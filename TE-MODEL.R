@@ -631,7 +631,7 @@ server <- function(input, output, session) {
                         select(Value)
 
                         value2 <- MainResultsFinal %>%
-                          filter(Description == "TTax Expenditures(without FTI) as % of GDP") %>%
+                          filter(Description == "Tax Expenditures(without FTI) as % of GDP") %>%
                           select(Value)
   
                         value3 <- MainResultsFinal %>%
