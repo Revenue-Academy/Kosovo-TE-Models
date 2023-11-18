@@ -297,9 +297,13 @@ server <- function(input, output, session) {
     # CustomsRevenue Tab
     
             # Charts 1 
+    
+           MacroFiscalData$ImportDuties_PctOfGDP<-round(MacroFiscalData$ImportDuties_PctOfGDP,2)
+      
             df_plt <- MacroFiscalData %>%
               dplyr::select(Year, GDP, ImportDuties_PctOfGDP)
-            
+    
+  
                                     ImportDuties_PctOfGDP <- plot_ly(df_plt)
                                     ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
                                     ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~ImportDuties_PctOfGDP, type = 'scatter', mode = 'lines+markers', name = 'Share of customs revenue in GDP ',
@@ -627,11 +631,11 @@ server <- function(input, output, session) {
     # 4. Info Boxes -------------------------------------------------------------
 
                         value1 <- MainResultsFinal %>%
-                        filter(Description == "Tax Expenditures(without FTI)") %>%
+                        filter(Description == "Tax Expenditures(without FTA)") %>%
                         select(Value)
 
                         value2 <- MainResultsFinal %>%
-                          filter(Description == "Tax Expenditures(without FTI) as % of GDP") %>%
+                          filter(Description == "Tax Expenditures(without FTA) as % of GDP") %>%
                           select(Value)
   
                         value3 <- MainResultsFinal %>%
