@@ -5,13 +5,13 @@
 
 'Step 1. Set your local path to the  model'
 
-path1<-" "# <--------Set your path here
+path1<-"~/Model1"# <--------Set your path here
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
 
 # I.  Installing libraries -------------------------------------------------
 
-
+#test
         list.of.packages <- c("shinydashboard",
                               "DT",
                               "readxl",
