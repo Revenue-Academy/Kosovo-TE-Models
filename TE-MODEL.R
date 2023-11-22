@@ -16,6 +16,8 @@ library(reshape2)
 library(base64enc)
 library(countrycode)
 
+#Day 1 training
+#Besart testing
 
 options(scipen=999)
 options(shiny.maxRequestSize = 30*1024^2) # defining a maximum file size
