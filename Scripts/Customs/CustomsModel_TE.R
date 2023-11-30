@@ -122,8 +122,6 @@ suppressMessages({
                     
 # II.Preparing data for charts and for the main table --------------------------------------------
 
-
-       
       # 1.Preparing data for Charts ---------------------------------------
             # 1.1 Regular Import------------------------------------------
                     
@@ -152,12 +150,7 @@ suppressMessages({
                       dplyr::summarise(Value=sum(Value,na.rm = TRUE))
                     
                     CustomsDuties_base_pie<-melt(CustomsDuties_base_pie)
-                    
-                    
-                    
-                    
-                    
-            
+
             # 1.3 TE's by HS Type of products -----------------------------------------
   
                   CustomsDuties_TE_type_products<-CustomsDuties_TE_agg_HS%>%
@@ -263,18 +256,28 @@ suppressMessages({
               # Adding ISO 3 codes to names of countries from ggplot2
               CustomsDuties_TE_agg_countries<-CustomsDuties_TE_agg_countries%>%
                 dplyr::mutate(CustomsDuties_TE=CustomsDuties_TE/1000000)
-
-              # mapdata <- map_data("world")
-              # iso3c <- data.frame(iso3=countrycode(mapdata$region, "country.name", "iso3c"))
-              # 
-              # 
-              #  mapdata_iso3c<-cbind(mapdata,iso3c)
               
-              #mapdata2 <- left_join(mapdata_iso3c,CustomsDuties_TE_agg_countries,by = c("iso3"="iso3c"))
+              
+              
+              # Extracting table for GUI
+              CustomsDuties_TE_agg_countries_tbl<-CustomsDuties_TE_agg_countries%>%
+              dplyr::arrange(desc(CustomsDuties_TE))
+              
+              
+              CustomsDuties_TE_agg_countries_tbl<-left_join(CustomsDuties_TE_agg_countries_tbl,GeoDimension, by=c("iso3c"))%>%
+              select(iso3c,countries,CustomsDuties_TE)%>%
+              dplyr::rename("Countries"="countries")
+              
+              
+              CustomsDuties_TE_agg_countries_tbl$CustomsDuties_TE<-round(CustomsDuties_TE_agg_countries_tbl$CustomsDuties_TE,3)
+              
+              CustomsDuties_TE_agg_countries_tbl<-CustomsDuties_TE_agg_countries_tbl%>%
+                dplyr::filter(CustomsDuties_TE>0)%>%
+                na.omit()
+
               mapdata3 <- left_join(mapdata_iso3c,CustomsDuties_TE_agg_countries,by = c("iso3"="iso3c"))
 
               # Removing Antarctica and Nan values
-              #mapdata3<-mapdata2[!(mapdata2$region=="Antarctica"),]
               mapdata3<-mapdata3[!(mapdata3$region=="Antarctica"),]
 
                
@@ -295,18 +298,7 @@ suppressMessages({
               
               CustomsDuties_TE_agg_HS_subset<-CustomsDuties_TE_agg_HS_subset %>%
                 pivot_wider(names_from = Treatment, values_from = CustomsDuties_TE)
-              
-              
-              # CustomsDuties_TE_agg_HS_subset<-CustomsDuties_TE_agg_HS_subset%>%
-              #   dplyr::mutate(Total=Preferential+NonPreferential)
-              
-              
-              # CustomsDuties_TE_agg_HS_subset$Total<-round(CustomsDuties_TE_agg_HS_subset$Total,0)
-              # CustomsDuties_TE_agg_HS_subset$Preferential<-round(CustomsDuties_TE_agg_HS_subset$Preferential,0)
-              # CustomsDuties_TE_agg_HS_subset$NonPreferential<-round(CustomsDuties_TE_agg_HS_subset$NonPreferential,0)
-              # 
-              # CustomsDuties_TE_agg_HS_subset$Total <- abs(round(CustomsDuties_TE_agg_HS_subset$Total, 0))
-              # CustomsDuties_TE_agg_HS_subset$Preferential <- abs(round(CustomsDuties_TE_agg_HS_subset$Preferential, 0))
+
               CustomsDuties_TE_agg_HS_subset$NonPreferential <- abs(round(CustomsDuties_TE_agg_HS_subset$NonPreferential, 0))
               
               

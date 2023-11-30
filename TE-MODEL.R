@@ -48,6 +48,7 @@ ui <- dashboardPage(
                     menuItem("Run simulation", tabName = "CustomsDuties-simulation",icon = icon("calculator")),
                     menuItem("Results",  icon = icon("gauge"),
                              menuSubItem("TaxExpenditures_HS", tabName = "HS_CODES"),
+                             menuSubItem("TE_Countries", tabName = "TE_agg_countries"),
                              menuSubItem("MainResults", tabName = "MainResults")
                     ),
                     menuItem("Charts", tabName = "CustomsDuties-charts",icon = icon("chart-line"),
@@ -113,6 +114,7 @@ ui <- dashboardPage(
                            )
                          )
                  ),
+              
                  tabItem(
                    tabName = "MainResults",
                    fluidRow(
@@ -127,6 +129,14 @@ ui <- dashboardPage(
               fluidRow(
                 column(12,
                        DTOutput("HS_CODE_TE")
+                )
+              )
+            ),
+            tabItem(
+              tabName = "TE_agg_countries",
+              fluidRow(
+                column(12,
+                       DTOutput("TE_agg_countries")
                 )
               )
             ),
@@ -282,6 +292,19 @@ server <- function(input, output, session) {
     })
 
     # Table 2
+    output$TE_agg_countries <-renderDT({
+      datatable(CustomsDuties_TE_agg_countries_tbl,
+                caption = tags$caption(paste("Tax expenditures in LCU (Millions),", actual_year_simulation), class = "table-caption-bold"),
+                extensions='Buttons',
+                options = list(
+                  pageLength = 15,
+                  dom = 'Blfrtip',
+                  buttons=c('copy','csv','excel','print','pdf'),
+                  lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
+    })
+    
+    
+    # Table 3
     output$TableOutputId <-renderDT({
       datatable(MainResultsFinal,
                 caption = tags$caption(paste("Main results from simulation in LCU (Millions),", actual_year_simulation), class = "table-caption-bold"),
