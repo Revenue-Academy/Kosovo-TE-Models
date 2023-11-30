@@ -58,6 +58,7 @@ suppressMessages({
                    
                     rm(split_columns_hs,split_columns_countries)
             
+                    
 
         # 2. Adding FreeTrade agreements --------------------------------------------
 
@@ -66,6 +67,18 @@ suppressMessages({
                                                              "Preferential","Preferential"))
                     
             CustomsDuties_base<-left_join(CustomsDuties_base,TreatmentOfGoods,by =c("FreeTradeAgreements"))
+            
+            
+            CustomsDuties_base <- CustomsDuties_base %>%
+              mutate(
+                FreeTradeAgreements = ifelse(iso3c == 'MNE', 'CEFTA', FreeTradeAgreements),
+                Treatment = ifelse(iso3c == 'MNE', 'Preferential', Treatment)
+              )
+            
+            # Assuming your data frame is named CustomsDuties_base
+            CustomsDuties_base$FreeTradeAgreements <- ifelse(is.na(CustomsDuties_base$FreeTradeAgreements), 'NoFreeTradeAgreement', CustomsDuties_base$FreeTradeAgreements)
+            CustomsDuties_base$Treatment <- ifelse(is.na(CustomsDuties_base$Treatment), 'NonPreferential', CustomsDuties_base$Treatment)
+            
 
         # 3.Estimation of Tax Expenditures for Customs duties -----------------------
             # 3.1 Countries -----------------------------------------------------------
