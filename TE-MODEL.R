@@ -182,7 +182,7 @@ ui <- dashboardPage(
                    uiOutput("infoBoxUI"),
                    column(12,
                           plotlyOutput("treemap_final_plt", height = "700px")))),
-                 
+    # Excise duties   
                  tabItem("Excise-input", "This is the Excise Input content"),
                  tabItem("Excise-simulationParameters", "This is the Excise Simulation Parameters content"),
                  tabItem("Excise-simulation", "This is the Excise Simulation content"),
