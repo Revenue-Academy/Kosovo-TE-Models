@@ -65,6 +65,12 @@ ui <- dashboardPage(
         menuItem("Input", tabName = "Excise-input"),
         menuItem("Simulation Parameters", tabName = "Excise-simulationParameters"),
         menuItem("Simulation", tabName = "Excise-simulation"),
+        menuItem("Results",  icon = icon("gauge"),
+                 menuSubItem("TaxExpenditures_HS", tabName = "HS_CODES"),
+                 menuSubItem("TE_Countries", tabName = "TE_agg_countries"),
+                 menuSubItem("MainResults", tabName = "MainResults"
+                             )
+        ),
         menuItem("Charts", tabName = "Excise-charts"),
         menuItem("Summary", tabName = "Excise-summary")
       )
@@ -261,6 +267,33 @@ ui <- dashboardPage(
               )
             )
     ),
+      tabItem(
+        tabName = "MainResultsExciseFinal",
+        fluidRow(
+          column(12,
+                 #DTOutput("TableOutputId")
+                 DTOutput("TableOutput_Excise")
+          )
+        )
+      ),
+      # # New ##### <----Do tuka 12.17.2023
+      # tabItem(
+      #   tabName = "HS_CODES",
+      #   fluidRow(
+      #     column(12,
+      #            DTOutput("HS_CODE_TE")
+      #     )
+      #   )
+      # ),
+      # tabItem(
+      #   tabName = "TE_agg_countries",
+      #   fluidRow(
+      #     column(12,
+      #            DTOutput("TE_agg_countries")
+      #     )
+      #   )
+      # ),
+  # Charts tab
                  tabItem("Excise-charts", "This is the Excise Charts content"),
                  tabItem("Excise-summary", "This is the Excise Summary content")
               
@@ -511,7 +544,7 @@ server <- function(input, output, session) {
     # 
     # 
     # Table 3
-    output$TableOutputId <-renderDT({
+    output$TableOutput_Excise <-renderDT({
       datatable(MainResultsExciseFinal,
                 caption = tags$caption(paste("Main results from simulation in LCU (Millions),", actual_year_simulation), class = "table-caption-bold"),
                 extensions='Buttons',

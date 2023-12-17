@@ -776,32 +776,32 @@ options(scipen=999)
 
               
         # ZA OVA DA RABOTI TREBA DELOT GORE DA SE KORGIRA KADE SE SE ZEMJITE INACE NEMA DA RABOTI !!!
-                            # Adding ISO 3 codes to names of countries from ggplot2
-                            CustomsDuties_TE_agg_countries<-CustomsDuties_TE_agg_countries%>%
-                              dplyr::mutate(CustomsDuties_TE=CustomsDuties_TE/1000000)
-
-
-                            # Extracting table for GUI
-                            CustomsDuties_TE_agg_countries_tbl<-CustomsDuties_TE_agg_countries%>%
-                            dplyr::arrange(desc(CustomsDuties_TE))
-
-
-                            CustomsDuties_TE_agg_countries_tbl<-left_join(CustomsDuties_TE_agg_countries_tbl,GeoDimension, by=c("iso3c"))%>%
-                            select(iso3c,countries,CustomsDuties_TE)%>%
-                            dplyr::rename("Countries"="countries")
-
-
-                            CustomsDuties_TE_agg_countries_tbl$CustomsDuties_TE<-round(CustomsDuties_TE_agg_countries_tbl$CustomsDuties_TE,3)
-
-                            CustomsDuties_TE_agg_countries_tbl<-CustomsDuties_TE_agg_countries_tbl%>%
-                              dplyr::filter(CustomsDuties_TE>0)%>%
-                              na.omit()
-
-                            mapdata3 <- left_join(mapdata_iso3c,CustomsDuties_TE_agg_countries,by = c("iso3"="iso3c"))
-
-                            # Removing Antarctica and Nan values
-                            mapdata3<-mapdata3[!(mapdata3$region=="Antarctica"),]
-           
+                            # # Adding ISO 3 codes to names of countries from ggplot2
+                            # CustomsDuties_TE_agg_countries<-CustomsDuties_TE_agg_countries%>%
+                            #   dplyr::mutate(CustomsDuties_TE=CustomsDuties_TE/1000000)
+                            # 
+                            # 
+                            # # Extracting table for GUI
+                            # CustomsDuties_TE_agg_countries_tbl<-CustomsDuties_TE_agg_countries%>%
+                            # dplyr::arrange(desc(CustomsDuties_TE))
+                            # 
+                            # 
+                            # CustomsDuties_TE_agg_countries_tbl<-left_join(CustomsDuties_TE_agg_countries_tbl,GeoDimension, by=c("iso3c"))%>%
+                            # select(iso3c,countries,CustomsDuties_TE)%>%
+                            # dplyr::rename("Countries"="countries")
+                            # 
+                            # 
+                            # CustomsDuties_TE_agg_countries_tbl$CustomsDuties_TE<-round(CustomsDuties_TE_agg_countries_tbl$CustomsDuties_TE,3)
+                            # 
+                            # CustomsDuties_TE_agg_countries_tbl<-CustomsDuties_TE_agg_countries_tbl%>%
+                            #   dplyr::filter(CustomsDuties_TE>0)%>%
+                            #   na.omit()
+                            # 
+                            # mapdata3 <- left_join(mapdata_iso3c,CustomsDuties_TE_agg_countries,by = c("iso3"="iso3c"))
+                            # 
+                            # # Removing Antarctica and Nan values
+                            # mapdata3<-mapdata3[!(mapdata3$region=="Antarctica"),]
+                            # 
                             
                             
  
