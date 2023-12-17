@@ -1,12 +1,18 @@
 ' Data preparation,estimation of tax expenditures and preparation of data for charts
 '
-options(warn = -1)
+# options(warn = -1)
+# 
+# suppressMessages({
 
-suppressMessages({
+library(tidyverse)
+options(scipen=999)
   
-# I. Estimation of tax expenditures for customs duties ----------------------------------------------------------
-        # 1.Processing of data ------------------------------------------------------
-
+# I. Estimation of tax expenditures for excise duties ----------------------------------------------------------
+        # 1.Import and Processing of data ------------------------------------------------------
+            # Ova ke se vnese direktno preku GUI
+                  Import_raw_monthly <- read_excel("~/Models/Kosovo-TE-Models/Data/ImportData/Open_DATA_Import-Janar-Dhjetor-2022.xlsx")      
+                            
+                
                     # Change the column names EN
                     colnames(Import_raw_monthly)[1:11] <- c("Year","Month","TradePolicy","Countries","Code_Description","Quantity","Value","Netweight","CustomsRevenue","ExciseRevenue","VAT_Revenue")
                     
@@ -46,9 +52,14 @@ suppressMessages({
                                                   dplyr::select(HS_code,Description,iso2c,Month,Year,Value,Quantity,Netweight,CustomsRevenue,ExciseRevenue,VAT_Revenue)%>%
                                                   dplyr::mutate(Effective_VAT_rate=round(VAT_Revenue/(Value+ExciseRevenue+CustomsRevenue),2),
                                                                 Effective_Customs_rate=round(CustomsRevenue/(Value),2),
-                                                                CustomsDuties_Benchmark=Value*Benchmark_Customs_Rate,
-                                                                CustomsDuties_TE=round(CustomsDuties_Benchmark-CustomsRevenue,1))
-                    
+                                                                Effective_Excise_rate=round((ExciseRevenue)/Quantity,3)
+                                                                
+                                                                )
+                                                                #CustomsDuties_Benchmark=Value*Benchmark_Customs_Rate,
+                                                                #CustomsDuties_TE=round(CustomsDuties_Benchmark-CustomsRevenue,1))
+                   View(CustomsDuties_base) 
+                   
+                   
                    # Merging with GeoDimension
                     CustomsDuties_base<-left_join(CustomsDuties_base,GeoDimension,by =c("iso2c"))
         
@@ -80,59 +91,417 @@ suppressMessages({
             CustomsDuties_base$Treatment <- ifelse(is.na(CustomsDuties_base$Treatment), 'NonPreferential', CustomsDuties_base$Treatment)
             
 
-        # 3.Estimation of Tax Expenditures for Customs duties -----------------------
-            # 3.1 Countries -----------------------------------------------------------
-
-                    CustomsDuties_TE_agg_countries<-CustomsDuties_base%>%
-                      dplyr::group_by(HS_code,HS_code_s,iso2c,iso3c,Treatment,countries)%>%
-                      dplyr::filter(Treatment=="NonPreferential")%>%
-                      dplyr::summarise(Value=sum(Value,na.rm = TRUE),
-                                       Quantity=sum(Quantity,na.rm = TRUE),
-                                       Netweight=sum(Netweight,na.rm = TRUE),
-                                       CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
-                                       ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
-                                       VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
-                                       CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
-                                       CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
-                    
-                    
-                    CustomsDuties_TE_agg_countries$HS_code<-NULL
-                    CustomsDuties_TE_agg_countries$HS_code_s<-NULL
-                    
-                    
-                    CustomsDuties_TE_agg_countries <- CustomsDuties_TE_agg_countries %>%
-                      dplyr::select(iso3c,CustomsDuties_TE)%>%
-                      dplyr::group_by(iso3c) %>%
-                      dplyr::summarise(across(where(is.numeric), sum))
+        # 3.Estimation of Tax Expenditures for Excise duties -----------------------
+                # 3.1 Countries -----------------------------------------------------------
+    
+                        CustomsDuties_TE_agg_countries<-CustomsDuties_base%>%
+                          dplyr::group_by(HS_code,HS_code_s,iso2c,iso3c,countries)%>% #Treatment
+                         # dplyr::filter(Treatment=="NonPreferential")%>%
+                          dplyr::summarise(Value=sum(Value,na.rm = TRUE),
+                                           Quantity=sum(Quantity,na.rm = TRUE),
+                                           Netweight=sum(Netweight,na.rm = TRUE),
+                                           CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
+                                           ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
+                                           VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE))#,
+                                          # CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
+                                           #CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
+                        
+                        
+                        CustomsDuties_TE_agg_countries$HS_code<-NULL
+                        CustomsDuties_TE_agg_countries$HS_code_s<-NULL
+                        
+                        # 
+                        # CustomsDuties_TE_agg_countries <- CustomsDuties_TE_agg_countries %>%
+                        # #  dplyr::select(iso3c,CustomsDuties_TE)%>%
+                        #   dplyr::select(iso3c)%>%
+                        #   dplyr::group_by(iso3c) %>%
+                        #   dplyr::summarise(across(where(is.numeric), sum))
+                          
+    
+                # 3.2 Harmonized System-HS  --------------------------------------------------------------------
+    
+                      CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
+                        dplyr::group_by(HS_code,HS_code_s)%>% #Treatment
+                        #dplyr::filter(Treatment=="NonPreferential")%>%
+                        dplyr::summarise(Value=sum(Value,na.rm = TRUE),
+                                         Quantity=sum(Quantity,na.rm = TRUE),
+                                         Netweight=sum(Netweight,na.rm = TRUE),
+                                         CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
+                                         ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
+                                         VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
+                                         Effective_Excise_rate=round((ExciseRevenue)/Quantity,3)
+                                         #Effective_Excise_rate=ifelse(Quantity=0,0,(round((ExciseRevenue)/Quantity,3)))
+                                         ) #,
+                                        # CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
+                                         #CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
                       
-
-            # 3.2 Harmonized System-HS  --------------------------------------------------------------------
-
-                  CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
-                    dplyr::group_by(HS_code,Treatment,HS_code_s)%>%
-                    dplyr::filter(Treatment=="NonPreferential")%>%
-                    dplyr::summarise(Value=sum(Value,na.rm = TRUE),
-                                     Quantity=sum(Quantity,na.rm = TRUE),
-                                     Netweight=sum(Netweight,na.rm = TRUE),
-                                     CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
-                                     ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
-                                     VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
-                                     CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
-                                     CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
+    
+                        # Adding desegregation by HS codes
+                        CustomsDuties_TE_agg_HS <- mutate(CustomsDuties_TE_agg_HS,
+                                                       Chapter = substr(HS_code_s, 1, 2),
+                                                       Four_digit = substr(HS_code_s, 1, 4),
+                                                       Six_digit = substr(HS_code_s, 1, 7),
+                                                       Eight_digit = paste0(substr(HS_code_s, 1, 4),
+                                                                            "",
+                                                                            substr(HS_code_s, 5, 7),
+                                                                            " ",
+                                                                            substr(HS_code_s, 8, 9)))
+    
+                      
+                        
+    
+        # 4. Data Sub-setting-------------------------------------------------------
+            # 4.1 Fuels ------------------------------------------------------------------------
+                    
                   
 
-                    # Adding desegregation by HS codes
-                    CustomsDuties_TE_agg_HS <- mutate(CustomsDuties_TE_agg_HS,
-                                                   Chapter = substr(HS_code_s, 1, 2),
-                                                   Four_digit = substr(HS_code_s, 1, 4),
-                                                   Six_digit = substr(HS_code_s, 1, 7),
-                                                   Eight_digit = paste0(substr(HS_code_s, 1, 4),
-                                                                        "",
-                                                                        substr(HS_code_s, 5, 7),
-                                                                        " ",
-                                                                        substr(HS_code_s, 8, 9)))
+                  # 1 Dataset from Customs Administration -----------------------------------
+          
+
+                              # HS_EXCISE <- read_excel("HS-EXCISE.xlsx")
+                              # 
+                              # HS_Chapter_27<- read_excel("Trade_Chapter_27_2022.xlsx")%>%
+                              #   dplyr::rename("HS_code_s"="Kodi tarifor",
+                              #                 "Excise"="Taksa_Akcizes",
+                              #                 "Description"="Përshkrimi tarifor",
+                              #                 "CommercialName"="Përshkrimi",
+                              #                 "NetWeight"="Pesha neto",
+                              #                 "GrossWeight"="Pesha bruto",
+                              #                 "Quantity"="Sasia"
+                              #   )%>%
+                              #   select(HS_code_s,Description,CommercialName,Excise,NetWeight,GrossWeight,Quantity)%>%
+                              #   dplyr::mutate(
+                              #     Effective_Excise_rate=round((Excise)/Quantity,3)
+                              #   )
+                              # 
+                              # # Adding desegregation by HS codes
+                              # HS_Chapter_27 <- mutate(HS_Chapter_27,
+                              #                         Chapter = substr(HS_code_s, 1, 2),
+                              #                         Four_digit = substr(HS_code_s, 1, 4),
+                              #                         Six_digit = substr(HS_code_s, 1, 6),
+                              #                         Eight_digit = paste0(substr(HS_code_s, 1, 4),
+                              #                                              "",
+                              #                                              substr(HS_code_s, 5, 8)
+                              #                                              # " ",
+                              #                                              #substr(HS_code_s, 8, 8))
+                              #                         ))
+                              # 
+                              # 
+                              # 
+                              # view(HS_Chapter_27)
+                              # # 
+                              # 
+                              # 
+                              # sum(HS_Chapter_27$Quantity,na.rm=TRUE)/1E06
+                              # 
+                              # 
+                              # str(HS_Chapter_27)
+                              # str(HS_EXCISE)
+                              # 
+                              # # subset<-HS_Chapter_27%>%
+                              # #   filter(Four_digit=="2707")
+                              # # 
+                              # # unique(subset$Eight_digit)
+                              # # 
+                              # # 
+                              # # summary(HS_Chapter_27)
+                              # 
+                              # 
+                              # HS_Chapter_27_Agg<-HS_Chapter_27%>%
+                              #   dplyr::select(Eight_digit,Excise,Quantity)%>%
+                              #   dplyr::group_by(Eight_digit)%>%
+                              #   dplyr::summarise(Excise=sum(Excise),Quantity=sum(Quantity))
+                              # 
+                              # 
+                              # 
+                              # 
+                              # HS_FUEL<-left_join(HS_Chapter_27_Agg,HS_EXCISE,by=c("Eight_digit"))%>%
+                              #   dplyr::select(Group,Excise,Quantity)%>%
+                              #   dplyr::group_by(Group)%>%
+                              #   dplyr::summarise(Excise=sum(Excise,na.rm = TRUE),Quantity=sum(Quantity,na.rm = TRUE))
+                              # 
+                              # 
+                              # view(HS_FUEL)
+                              
+          
+                  # 2. Simulation Dataset ---------------------------------------------------
+          
+                              # 1.Subset Chapter 27
+                              HS_Chapter_27<-CustomsDuties_TE_agg_HS %>%
+                                filter(Chapter == '27')
+                              
+                              # 2.Subset Alcohol For Engine
+                               AlcoholForEngine <- CustomsDuties_TE_agg_HS %>%
+                                dplyr::filter(Eight_digit %in% c('2710 12 31','2710 12 90'))
+                              
+                              
+                              # 3.Cyclic and Acyclic hydrocarbons
+                               CyclicAcyclicHydrocarbons <- CustomsDuties_TE_agg_HS %>%
+                                dplyr::filter(Four_digit %in% c('2901','2902'))
+                               
+                               
+                               # 4.Other which are used for the same purposes as mineral oils
+                               # Organic composite solvents and solvents
+                               # Alkylbenzenes and mixed Alkylnaphthalenes
+                               
+                                Other_Ch_38 <- CustomsDuties_TE_agg_HS %>%
+                                 dplyr::filter(Four_digit %in% c('3811','3814','3817'))
+                              
+                               # Merge the 
+                               
+                              FuelQuantity <- bind_rows(HS_Chapter_27, AlcoholForEngine,CyclicAcyclicHydrocarbons,Other_Ch_38)
+                              
+                              # Removing Nan from effective tax rates
+                              FuelQuantity$Effective_Excise_rate<-ifelse(FuelQuantity$Quantity==0,0,FuelQuantity$Effective_Excise_rate)
+                              
+                              FuelQuantity<-FuelQuantity%>%
+                                dplyr::filter(ExciseRevenue>0)
+                              
+                              
+                              #write.csv(FuelQuantity,"FuelQuantity.csv")
+                              
+                              sum(FuelQuantity$ExciseRevenue)
+                              # 272672809 LCU
+                              
+                              HS_EXCISE <- read_excel("Data/Excise/HS-EXCISE.xlsx")
+                              
+                             
+                              
+                              FuelQuantityFinal<-left_join(FuelQuantity,HS_EXCISE,by=c('Eight_digit'))%>%
+                                dplyr::filter(ExciseRevenue>0)
+                              
+                              
+                              sum(FuelQuantityFinal$ExciseRevenue)
+                              
+                              # Calculation of TE'S for fuels
+                              
+                              Benchmark_Customs_Rate <- input$simulationSlider
+                             
+                              
+# DO OVDE !!! TREBA DA SE PRODOLZI SO DETALEN PREGLED NA CHAPTER 27 FAILOT OD CARINA ZA DA SE VIDAT TRGOVSKITE IMINJA I TAKA DA SE PRODOLZI
+                              # SO SLIDERI I SO GRUPI
+                              
+                              View(FuelQuantityFinal)
+     
+                              
+                              # Ovde da se stavi subset sto ke gi povrze ovie ovie so benchmark !!!
+                    
+                    
+                    
+            # 4.2 Tobacco ---------------------------------------------------------------
+                  # 1.Dataset from Customs Administration ----------------------------------
+                    # Euromonitor
+                    # Euromonitor <- read_excel("Passport_Stats_09-12-2023_0908_GMT.xlsx")
+                    # 
+                    # # Customs administration
+                    # HS_Chapter_24 <- read_excel("Import of tobacco and electronic cigarettes_2022.xlsx")%>%
+                    #   dplyr::rename("HS_code_s"="Kodi tarifor",
+                    #                 "Excise"="Taksa_Akcizes",
+                    #                 "Description"="Përshkrimi tarifor",
+                    #                 "CommercialName"="Përshkrimi",
+                    #                 "NetWeight"="Pesha neto",	
+                    #                 "GrossWeight"="Pesha bruto",
+                    #                 "Quantity"="Sasia"
+                    #   )%>%
+                    #   select(HS_code_s,Description,CommercialName,Excise,NetWeight,GrossWeight,Quantity)%>%
+                    #   dplyr::mutate(
+                    #     Effective_Excise_rate=round((Excise)/Quantity,3)
+                    #   )
+                    # 
+                    # 
+                    # View(HS_Chapter_24)
+                    # 
+                    # 
+                    # sum(HS_Chapter_24$Quantity,na.rm = TRUE)/1e06
+                    # 
+                    # 
+                    # # Adding desegregation by HS codes
+                    # HS_Chapter_24 <- mutate(HS_Chapter_24,
+                    #                         Chapter = substr(HS_code_s, 1, 2),
+                    #                         Four_digit = substr(HS_code_s, 1, 4),
+                    #                         Six_digit = substr(HS_code_s, 1, 6),
+                    #                         Eight_digit = paste0(substr(HS_code_s, 1, 4),
+                    #                                              "",
+                    #                                              substr(HS_code_s, 5, 8)
+                    #                                              # " ",
+                    #                                              #substr(HS_code_s, 8, 8))
+                    #                         ))
+                    # 
+                    # 
+                    # 
+                    # # 
+                    # 
+                    # # Words to detect and replace
+                    # word_to_detect <- c("Bo x", "Cheste rfield", "C IGARE", "PRESTI GE", "DAVIDO FF", "ROTHMA NS", "Gauloi ses", "Winsto n", "Dunhil l", "Ma rlboro","Marlbo ro","Cigare  qe permbajne duhan:","Cigare qe permbajne duhan:","Ch esterfield")
+                    # replace_words <- c("Box", "Chesterfield", "CIGARE", "PRESTIGE", "DAVIDOFF", "ROTHMANS", "Gauloises", "Winston", "Dunhill", "Marlboro","Marlboro","","","Chesterfield")
+                    # 
+                    # # Function to detect and replace specific words
+                    # detect_and_replace <- function(text, words_to_detect, replace_words) {
+                    #   # Iterate over each word to detect and replace
+                    #   for (i in seq_along(words_to_detect)) {
+                    #     word_pattern <- paste0("\\b", words_to_detect[i], "\\b")
+                    #     text <- str_replace_all(text, word_pattern, replace_words[i])
+                    #   }
+                    #   return(text)
+                    # }
+                    # 
+                    # # Apply the function to the CommercialName column
+                    # HS_Chapter_24$CommercialName <- sapply(HS_Chapter_24$CommercialName, detect_and_replace, words_to_detect = word_to_detect, replace_words = replace_words)
+                    # 
+                    # 
+                    # 
+                    # View(HS_Chapter_24)
+                    # # Testing data
+                    
+                    ## 2401-Unmanufactured tobacco; tobacco refuse:
+                    ## 2402-Cigars, cheroots, cigarillos and cigarettes, of tobacco or of tobacco substitutes
+                    ## 2403-Other manufactured tobacco and manufactured tobacco substitutes; "homogenized" or "reconstituted" tobacco; tobacco extracts and essences:
+                    ## 2404-Products containing tobacco, reconstituted tobacco, nicotine, or tobacco or nicotine substitutes, intended for inhalation without combustion; other nicotine containing products intended for the intake of nicotine into the human body
+                    
+                    # HS_Chapter_24_agg<-HS_Chapter_24%>%
+                    #   dplyr::select(Four_digit,Excise,Quantity)%>%
+                    #   dplyr::group_by(Four_digit)%>%
+                    #   dplyr::summarise(Excise=sum(Excise,na.rm = TRUE),Quantity=sum(Quantity,na.rm = TRUE))
+                    # 
+                    # 
+                    # View(HS_Chapter_24_agg)
+                    
+                    # Do tuka !!!
+                    # Da se prodolzi so cistenje na bazata za cigari od aspekt na iminja.
+                    # Da se proverat stapkite na akcizi i mernata edinica
+                    # Da se najde za bencmark i da pocne da se presmetuva 
+
+                  # 2.Simulation Dataset ------------------------------------------------------
+
+                              ## 2401-Unmanufactured tobacco; tobacco refuse:
+                              ## 2402-Cigars, cheroots, cigarillos and cigarettes, of tobacco or of tobacco substitutes
+                              ## 2403-Other manufactured tobacco and manufactured tobacco substitutes; "homogenized" or "reconstituted" tobacco; tobacco extracts and essences:
+                              ## 2404-Products containing tobacco, reconstituted tobacco, nicotine, or tobacco or nicotine substitutes, intended for inhalation without combustion; other nicotine containing products intended for the intake of nicotine into the human body
+                              
+                              
+                              # Subset Chapter 27
+                              HS_Chapter_24<-CustomsDuties_TE_agg_HS %>%
+                                filter(Chapter == '24')
+                              
+                              # Ovde da se stavi subset sto ke gi povrze ovie ovie so benchmark !!!
+                      
+                    
+            # 4.3 Alcoholic beverage -----------------------------------------------------------          
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                  # 4.3.1 Beer --------------------------------------------------------------------
+                          
+                                              # First filter
+                                              AlcoholicBeer <- CustomsDuties_TE_agg_HS %>%
+                                                filter(Four_digit == 2203)
+                                              
+                                              # Second filter
+                                              NonAlcoholicBeer <- CustomsDuties_TE_agg_HS %>%
+                                                filter(Eight_digit == '2202 91 00')
+                                              
+                                              # Merge the results
+                                              BeerQuantity <- bind_rows(AlcoholicBeer, NonAlcoholicBeer)
+                                              
+                          
+                  # 4.3.2 Wine of fresh grapes ----------------------------------------------------
+                          
+                           # Wine of fresh grapes, including fortified wines; grape must other than that of heading 2009)                    
+                                              
+                                             
+                                              WineQuantity <- CustomsDuties_TE_agg_HS %>%
+                                                filter(Four_digit == 2204)
+                                              
+                                           
+                                              View(WineQuantity)
+                                              sum(WineQuantity$Quantity)/1e06
+                                             
+                          
+                          
+                  # 4.3.3 Vermouth ---------------------------------------------------
+                          
+                                             # Vermouth and other wine of fresh grapes flavoured with plants or aromatic substances
+                                              
+                                              VermouthQuantity <- CustomsDuties_TE_agg_HS %>%
+                                                filter(Four_digit == 2205)
+                                              
+                                              
+                                              View(VermouthQuantity)
+                                              sum(VermouthQuantity$Quantity)/1e06
+                          
+                          
+                  # 4.3.4 Other fermented beverages --------------------------------------------------
+                          
+                                              # Other fermented beverages (for example, cider, perry, mead); mixtures of fermented beverages and mixtures of fermented beverages and non-alcoholic beverages, not elsewhere specified or included
+                                              
+                                              OtherFermentedBeveragesQuantity  <- CustomsDuties_TE_agg_HS %>%
+                                                filter(Four_digit == 2206)
+                                              
+                                              
+                                              View(OtherFermentedBeveragesQuantity)
+                                              sum(OtherFermentedBeveragesQuantity$Quantity)/1e06
+                                              
+                                              
+                          
+                  # 4.3.5 Undenatured ethyl alcohol ---------------------------------------------
+                          
+                          
+                                              # Undenatured ethyl alcohol of an alcoholic strength by volume of less than 80 % vol; spirits, liqueurs and other spirituous beverages
+                                              
+                                              
+                                              UndenaturedEthylAlcoholQuantity  <- CustomsDuties_TE_agg_HS %>%
+                                                filter(Four_digit == 2208)
+                                              
+                                              
+                                              View(UndenaturedEthylAlcoholQuantity)
+                                              sum(UndenaturedEthylAlcoholQuantity$Quantity)/1e06
+                                              
+                                              
+                                                                  
+                                              
+                              
+                              
+                              
+                                    
+              # tEST 
+                                    Test1  <- CustomsDuties_TE_agg_HS %>%
+                                      filter(Chapter == '27')
+                                    
+                                    
+                                    View(Test1)
+                                    sum(Test1$Quantity)/1e06
+                                    
+                                    
+                                    Test1  <- CustomsDuties_TE_agg_HS %>%
+                                      filter(Chapter == '24')
+                                    
+                                    
+                                    View(Test1)
+                                    sum(Test1$Quantity)/1e06
+                                    
+                
+           # 5.Cars ------------------------------------------------------------------
 
                     
+                     CarsSet <- CustomsDuties_TE_agg_HS %>%
+                              dplyr::filter(Four_digit %in% c('8703'))
+                                    
+                                    
+                                    
+                                    
+        # 5.Merging Data Sets -------------------------------------------------------
+                  
+                                    
+                # Do tuka!!!
+                # Kaj site prethodni da se stavat iminja za spojuvanje i da se spojat so ovoj dataset !!
+                                    
+                                    
+                                    
+                                    
 # II.Preparing data for charts and for the main table --------------------------------------------
 
       # 1.Preparing data for Charts ---------------------------------------
@@ -435,6 +804,6 @@ suppressMessages({
                   dplyr::rename("Description"= "variable",
                                 "Value"="value")
                
-})
-        
+# })
+#         
         

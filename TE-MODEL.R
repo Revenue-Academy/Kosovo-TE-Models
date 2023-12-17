@@ -58,6 +58,7 @@ ui <- dashboardPage(
       
       )
     ),
+    # Excise
     conditionalPanel(
       condition = 'input["vertical-tabs"] == "Excise"',
       sidebarMenu(
@@ -69,6 +70,7 @@ ui <- dashboardPage(
       )
     )
   ),
+  # Customs duties
   dashboardBody(
     useShinyjs(),
     tabsetPanel(
@@ -183,16 +185,184 @@ ui <- dashboardPage(
                    column(12,
                           plotlyOutput("treemap_final_plt", height = "700px")))),
     # Excise duties   
-                 tabItem("Excise-input", "This is the Excise Input content"),
-                 tabItem("Excise-simulationParameters", "This is the Excise Simulation Parameters content"),
-                 tabItem("Excise-simulation", "This is the Excise Simulation content"),
-                 tabItem("Excise-charts", "This is the Excise Charts content"),
-                 tabItem("Excise-summary", "This is the Excise Summary content")
+                # tabItem("Excise-input", "This is the Excise Input content"),
+    
+    tabItem(
+      "Excise-input",
+      fluidRow(
+        column(6,
+               selectInput("inputType", "Data Source",
+                           choices = c("Excel File"),
+                           selected = "Excel File"),
+               conditionalPanel(
+                 condition = "input.inputType == 'Excel File'",
+                 fileInput("fileInput", "Upload Excel File", accept = c(".xlsx")),
+                 checkboxInput("hasHeader", "Header", TRUE)
+               ),
+               actionButton("resetInput", "Reset")
+        ))),
+    tabItem("Excise-simulationParameters",
+            fluidRow(
+              column(
+                12,
+                DTOutput("excelDataTableExcise"),# New name
+                br(),
+                actionButton("updateGlobalData", "Update"),
+                actionButton("resetGlobalData", "Reset Imported Data")
               )
             )
-          )
-        )
+          ),
+    # tabItem("Excise-simulation",
+    #         fluidRow(
+    #           column(6,
+    #                  sliderInput("simulationSlider", "Petroleum gases and other gaseous hydrocarbons",
+    #                              min = 0, max = 1, step = 0.01, value = 0.10),
+    #                  actionButton("runSimulation", "Run Simulation")
+    #           ),
+    #           column(6,
+    #                  # Table to display the slider values
+    #                  tableOutput("sliderValueTableExcise")
+    #           )
+    #         )
+    # ),
+  # This part 
+    tabItem("Excise-simulation", 
+            fluidRow(
+              column(2,
+                     h4("Fuels"),
+                     sliderInput("simulationSlider01", "Petroleum gases",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%"),
+                     sliderInput("simulationSlider02", "Oils and other distillation products of coal tar at high temperatures",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%"),
+                     sliderInput("simulationSlider03", "Petroleum oils and oils obtained from bituminous minerals (other than crude)",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%"),
+                     sliderInput("simulationSlider04", "Gas oils (Diesel)",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%"),
+                     sliderInput("simulationSlider05", "Heavy Heating Oils",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%"),
+                     sliderInput("simulationSlider06", "AlcoholForEngine",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%"),
+                     sliderInput("simulationSlider06", "AlcoholForEngineCyclic and Acyclic hydrocarbons",
+                                 min = 0, max = 0.1, step = 0.0001, value = 0.0385, width = "100%")
+                     
+              ),
+              column(2,
+                     h4("Tobacco"),
+                     sliderInput("simulationSlider07", "Cigars, cheroots and cigarillos",
+                                 min = 0, max = 10, step = 0.01, value = 1.1, width = "100%"),
+                     sliderInput("simulationSlider08", "Cigarettes containing tobacco",
+                                 min = 0, max = 100, step = 1, value = 53, width = "100%"),
+                     sliderInput("simulationSlider09", "Smoking tobacco, whether or not containing tobacco substitutes in any proportion",
+                                 min = 0, max = 100, step = 1, value = 35, width = "100%"),
+                     sliderInput("simulationSlider10", "Products intended for inhalation without combustion",
+                                 min = 0, max = 70, step = 1, value = 35, width = "100%"),
+                     actionButton("runSimulation", "Run Simulation")
+              ),
+              column(2,
+                     h4("SSB and Alcohol"),
+                     sliderInput("simulationSlider11", "Sugar-sweetened beverages(SSB)",
+                                 min = 0, max = 0.001, step = 0.0001, value = 0.005, width = "100%"),
+                     sliderInput("simulationSlider12", "Beer",
+                                 min = 0, max = 1600, step = 1, value = 800, width = "100%"),
+                     sliderInput("simulationSlider12", "Wine",
+                                 min = 0, max = 1000, step = 1, value = 500, width = "100%"),
+                     sliderInput("simulationSlider13", "Spirits obtained by distilling grape wine or grape marc",
+                                 min = 0, max = 70, step = 1, value = 35, width = "100%")
+              ),
 
+              column(2,
+                     h4("Vehicles to 2000cc"),
+                    sliderInput("simulationSlider18", "Usage (years) 0",
+                                 min = 0, max = 4000, step = 100, value = 0, width = "100%"),
+                    sliderInput("simulationSlider19", "Usage (years) 8",
+                                 min = 0, max = 4000, step = 100, value = 400, width = "100%"),
+                    sliderInput("simulationSlider20", "Usage (years) 9",
+                              min = 0, max = 4000, step = 100, value = 600, width = "100%"),
+                    sliderInput("simulationSlider21", "Usage (years) 10",
+                              min = 0, max = 4000, step = 100, value = 700, width = "100%"),
+                    sliderInput("simulationSlider22", "Usage (years) 11",
+                              min = 0, max = 4000, step = 100, value = 800, width = "100%"),
+                    sliderInput("simulationSlider23", "Usage (years) 12",
+                              min = 0, max = 4000, step = 100, value = 900, width = "100%"),
+                    sliderInput("simulationSlider24", "Usage (years) 13",
+                            min = 0, max = 4000, step = 100, value = 1000, width = "100%"),
+                    sliderInput("simulationSlider25", "Usage (years) 14",
+                            min = 0, max = 4000, step = 100, value = 1100, width = "100%"),
+                    sliderInput("simulationSlider26", "Usage (years) 15",
+                            min = 0, max = 4000, step = 100, value = 1200, width = "100%"),
+                    sliderInput("simulationSlider27", "Usage (years) 16",
+                            min = 0, max = 4000, step = 100, value = 1300, width = "100%"),
+                    sliderInput("simulationSlider28", "Usage (years) 17",
+                            min = 0, max = 4000, step = 100, value = 1500, width = "100%")
+            ),
+            column(2,
+                   h4("Vehicles to 2000cc-3000 cc"),
+                   sliderInput("simulationSlider29", "Usage (years) 0",
+                               min = 0, max = 4000, step = 100, value = 300, width = "100%"),
+                   sliderInput("simulationSlider30", "Usage (years) 8",
+                               min = 0, max = 4000, step = 100, value = 400, width = "100%"),
+                   sliderInput("simulationSlider31", "Usage (years) 9",
+                               min = 0, max = 4000, step = 100, value = 600, width = "100%"),
+                   sliderInput("simulationSlider32", "Usage (years) 10",
+                               min = 0, max = 4000, step = 100, value = 800, width = "100%"),
+                   sliderInput("simulationSlider33", "Usage (years) 11",
+                               min = 0, max = 4000, step = 100, value = 1000, width = "100%"),
+                   sliderInput("simulationSlider34", "Usage (years) 12",
+                               min = 0, max = 4000, step = 100, value = 1200, width = "100%"),
+                   sliderInput("simulationSlider35", "Usage (years) 13",
+                               min = 0, max = 4000, step = 100, value = 1400, width = "100%"),
+                   sliderInput("simulationSlider36", "Usage (years) 14",
+                               min = 0, max = 4000, step = 100, value = 1600, width = "100%"),
+                   sliderInput("simulationSlider37", "Usage (years) 15",
+                               min = 0, max = 4000, step = 100, value = 1800, width = "100%"),
+                   sliderInput("simulationSlider38", "Usage (years) 16",
+                               min = 0, max = 4000, step = 100, value = 2000, width = "100%"),
+                   sliderInput("simulationSlider39", "Usage (years) 17",
+                               min = 0, max = 4000, step = 100, value = 2200, width = "100%")
+            ),
+            column(2,
+                   h4("Vehicles over 3000 cc"),
+                   sliderInput("simulationSlider40", "Usage (years) 0",
+                               min = 0, max = 4000, step = 100, value = 800, width = "100%"),
+                   sliderInput("simulationSlider41", "Usage (years) 8",
+                               min = 0, max = 4000, step = 100, value = 1000, width = "100%"),
+                   sliderInput("simulationSlider42", "Usage (years) 9",
+                               min = 0, max = 4000, step = 100, value = 1500, width = "100%"),
+                   sliderInput("simulationSlider43", "Usage (years) 10",
+                               min = 0, max = 4000, step = 100, value = 1800, width = "100%"),
+                   sliderInput("simulationSlider44", "Usage (years) 11",
+                               min = 0, max = 4000, step = 100, value = 2100, width = "100%"),
+                   sliderInput("simulationSlider45", "Usage (years) 12",
+                               min = 0, max = 4000, step = 100, value = 2400, width = "100%"),
+                   sliderInput("simulationSlider46", "Usage (years) 13",
+                               min = 0, max = 4000, step = 100, value = 2700, width = "100%"),
+                   sliderInput("simulationSlider47", "Usage (years) 14",
+                               min = 0, max = 4000, step = 100, value = 3000, width = "100%"),
+                   sliderInput("simulationSlider48", "Usage (years) 15",
+                               min = 0, max = 4000, step = 100, value = 3300, width = "100%"),
+                   sliderInput("simulationSlider49", "Usage (years) 16",
+                               min = 0, max = 4000, step = 100, value = 3600, width = "100%"),
+                   sliderInput("simulationSlider50", "Usage (years) 17",
+                               min = 0, max = 4000, step = 100, value = 3900, width = "100%")
+            ),
+    
+              column(7,
+                     # Table to display the slider values
+                     tableOutput("sliderValueTableExcise")
+              )
+            )
+    ),
+                 tabItem("Excise-charts", "This is the Excise Charts content"),
+                 tabItem("Excise-summary", "This is the Excise Summary content")
+              
+    
+     )
+    )
+  )
+)
+
+
+        
 
 # II. Define the server logic ----------------------------------------------
 
