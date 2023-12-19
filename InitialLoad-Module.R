@@ -39,12 +39,15 @@ path1<-" "# <--------Set your path here
 
 
 # II. Importing raw data from Excel into R environment -------------------------
-          library(tidyverse)
-          library(readxl)
-          library(countrycode)
-          library(maps)
-          library(ggplot2)
-          
+           library(tidyverse)
+           library(readxl)
+           library(countrycode)
+           library(maps)
+           library(ggplot2)
+           
+    # 1.Customs Duties --------------------------------------------------------
+
+        
           path <- paste0(path1, "/Data/ImportData")
           setwd(path)
           getwd()
@@ -90,6 +93,27 @@ path1<-" "# <--------Set your path here
                   CPA_CN <- read_excel("CPA-CORRELATION/CPA21_CN2018_2023.xlsx")
                   CPA_NACE <- read_excel("CPA-CORRELATION/CPA21_NACE2_Table.xlsx")
 
+
+    # 2.Excise ----------------------------------------------------------------
+
+                  
+                  path <- paste0(path1, "/Data/Excise")
+                  setwd(path)
+                  getwd()
+                  
+                  
+                
+                  
+                  # EUROMONITOR
+                  #EUROMONITOR <- read_excel("Passport_Stats_09-12-2023_0908_GMT.xlsx")
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
 # III.Saving data in R environment (RDS file) --------------------------------
 
                 setwd(path1)
