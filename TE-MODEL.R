@@ -74,7 +74,8 @@ ui <- dashboardPage(
         #menuItem("Charts", tabName = "Excise-charts"),
         menuItem("Charts", tabName = "Excise-charts",icon = icon("chart-line"),
                  menuSubItem("ExciseRevenue", tabName = "ExciseRevenue"), 
-                 menuSubItem("ExciseTaxExpenditures", tabName = "ExciseTaxExpenditures")),
+                 menuSubItem("ExciseTaxExpenditures", tabName = "ExciseTaxExpenditures")
+                 ),
         menuItem("Summary", tabName = "Excise-summary")
       )
     )
@@ -331,7 +332,6 @@ ui <- dashboardPage(
              selectInput("chartSelectTaxExpenditures", "Select Chart",
                          choices = c(
                            "ExciseProductCategories1","Chapters_HS1","ProductGroups_MTN1"
-
                          ),
                          selected = "ExciseProductCategories1")
       )
@@ -923,7 +923,7 @@ server <- function(input, output, session) {
 
 # Excise charts -----------------------------------------------------------
 
-        # CustomsRevenue Tab
+        
                                   
         # Charts 1                 
                                   
@@ -1056,7 +1056,90 @@ server <- function(input, output, session) {
                                   )
 
 
+                  # 2. TE's by Excise Product Categories --------------------------------------
 
+                                  ExciseProducts_TE<-Estimation_TE%>%
+                                    dplyr::select(DataSet,ExciseRevenue)%>%
+                                    dplyr::group_by(DataSet)%>%
+                                    dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                                  
+                                  
+                                  ExciseProducts_TE<-melt(ExciseProducts_TE)
+                                  
+                                  ExciseProducts_TE$DataSet<- factor(ExciseProducts_TE$DataSet)
+                                  
+                                  ExciseProductCategories1 <- plot_ly(ExciseProducts_TE, x = ~DataSet , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', color = ~DataSet, colors = colors) %>% 
+                                    layout(
+                                      title = paste("Tax expenditures by Product Categories,", actual_year_simulation),
+                                      font = list(size = 11),
+                                      xaxis = list(title = ''),
+                                      yaxis = list(title = 'In LCU'),
+                                      #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
+                                      annotations = list(
+                                        x = 0, y = -0.056,
+                                        text = "Source: Calculations by WB staff based on data from National authorities",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        align = 'left'
+                                      ),
+                                      legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                    )
+                                  
+                      # 1.5 TE's by Chapters ---------------------------------------------------------       
+
+                                  Chapters_HS1 <- plot_ly(Excise_TE_Chapters, x = ~reorder(Chapter, -Excise_TE), y = ~Excise_TE, type = 'bar', text = ' ', hoverinfo = 'y+text',#color = ~Treatment, colors = colors,
+                                                         hovertext = ~Chapters_description) %>%
+                                    layout(
+                                      title = paste("Distribution of Tax Expenditures Across HS Chapters,", actual_year_simulation),font = t_11,
+                                      font = list(size = 11),
+                                      xaxis = list(title = ''),
+                                      yaxis = list(title = 'In LCU'),
+                                      # barmode = 'stack',
+                                      annotations = list(
+                                        x = 0, y = -0.056,
+                                        text = "Source: Calculations by WB staff based on data from National authorities",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        align = 'left'
+                                      ),
+                                      #legend = list(orientation = 'h')
+                                      legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                    )
+                                  
+                        # 1.6 TE's by WTO classification (MTN) Categories
+                                  ProductGroups_MTN <- plot_ly(
+                                    Excise_TE_MTN, 
+                                    y = ~reorder(Product_group, Excise_TE), 
+                                    x = ~Excise_TE, 
+                                    type = 'bar', 
+                                    text = ' ', 
+                                    hoverinfo = 'x+text',
+                                    hovertext = ~Product_group,
+                                    marker = list(color = '#d62728')
+                                  ) 
+                                  
+                                  # Add the layout step separately
+                                  ProductGroups_MTN1 <- ProductGroups_MTN %>% 
+                                    layout(
+                                      title = paste("Tax expenditures by Multilateral Trade Negotiations Categories,", actual_year_simulation),
+                                      font = t_11,
+                                      font = list(size = 11),
+                                      yaxis = list(title = ''),
+                                      xaxis = list(title = 'In LCU'),
+                                      annotations = list(
+                                        x = -0.1, y = -0.056,
+                                        text = "Source: Calculations by WB staff based on data from National authorities",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        align = 'left'
+                                      )
+                                    )
+                                  
+                                  
+                                  
                                   
     # 3.Drop down menu for Charts ---------------------------------------------------
        
@@ -1099,17 +1182,17 @@ server <- function(input, output, session) {
                                            "Excise_PctOfGDP1" = Excise_PctOfGDP1,
                                            "StructureOfTaxRevenues_Nominal1" = StructureOfTaxRevenues_Nominal1,
                                            "StructureOfTaxRevenues_Percentage1" = StructureOfTaxRevenues_Percentage1,
-                                           "ExciseGoodRegulaImport_plt1"=ExciseGoodRegulaImport_plt1,
-                                           "ImportStructureExcise1"=ImportStructureExcise1
+                                           "ExciseGoodRegulaImport_plt1" = ExciseGoodRegulaImport_plt1,
+                                           "ImportStructureExcise1" = ImportStructureExcise1
 
                                     )
                                   })
 
 
 
-        output$chartOutputTaxExpenditures <- renderPlotly({
+        output$chartOutputExciseTaxExpenditures <- renderPlotly({
                                     switch(input$chartSelectTaxExpenditures,
-                                           "ExciseProductCategories1"=ExciseProductCategories1,
+                                           "ExciseProductCategories1"= ExciseProductCategories1,
                                            "Chapters_HS1" = Chapters_HS1,
                                            "ProductGroups_MTN1" = ProductGroups_MTN1
 

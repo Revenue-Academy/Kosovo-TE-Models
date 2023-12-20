@@ -576,35 +576,18 @@ options(scipen=999)
 
                     # Chart 1
                     
-                    ExciseProducts_TE<-Estimation_TE%>%
-                      dplyr::select(DataSet,ExciseRevenue)%>%
-                      dplyr::group_by(DataSet)%>%
-                      dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                    # ExciseProducts_TE<-Estimation_TE%>%
+                    #   dplyr::select(DataSet,ExciseRevenue)%>%
+                    #   dplyr::group_by(DataSet)%>%
+                    #   dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                    # 
+                    # 
+                    # ExciseProducts_TE<-melt(ExciseProducts_TE)
+                    #                      
+                    # ExciseProducts_TE$DataSet<- factor(ExciseProducts_TE$DataSet)
+                   
                     
-                    
-                    ExciseProducts_TE<-melt(ExciseProducts_TE)
-                                         
-                    ExciseProducts_TE$DataSet<- factor(ExciseProducts_TE$DataSet)
-                    
-                    ExciseProductCategories <- plot_ly(ExciseProducts_TE, x = ~DataSet , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', color = ~DataSet, colors = colors) %>% 
-                      layout(
-                        title = paste("Tax expenditures by Product Categories,", actual_year_simulation),
-                        font = list(size = 11),
-                        xaxis = list(title = ''),
-                        yaxis = list(title = 'In LCU'),
-                        #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
-                        annotations = list(
-                          x = 0, y = -0.056,
-                          text = "Source: Calculations by WB staff based on data from National authorities",
-                          showarrow = FALSE,
-                          xref = 'paper',
-                          yref = 'paper',
-                          align = 'left'
-                        ),
-                        legend = list(orientation = 'v', x = 1.02, y = 0.5)
-                      )
-                    
-                    ExciseProductCategories        
+                    #ExciseProductCategories        
                     
                              
          
@@ -643,27 +626,7 @@ options(scipen=999)
               Excise_TE_Chapters$Chapter <- factor(Excise_TE_Chapters$Chapter)
 
                
-              Chapters_HS <- plot_ly(Excise_TE_Chapters, x = ~reorder(Chapter, -Excise_TE), y = ~Excise_TE, type = 'bar', text = ' ', hoverinfo = 'y+text',#color = ~Treatment, colors = colors,
-                                     hovertext = ~Chapters_description) %>%
-                layout(
-                  title = paste("Distribution of Tax Expenditures Across HS Chapters,", actual_year_simulation),font = t_11,
-                  font = list(size = 11),
-                  xaxis = list(title = ''),
-                  yaxis = list(title = 'In LCU'),
-                  # barmode = 'stack',
-                  annotations = list(
-                    x = 0, y = -0.056,
-                    text = "Source: Calculations by WB staff based on data from National authorities",
-                    showarrow = FALSE,
-                    xref = 'paper',
-                    yref = 'paper',
-                    align = 'left'
-                  ),
-                  #legend = list(orientation = 'h')
-                  legend = list(orientation = 'v', x = 1.02, y = 0.5)
-                )
               
-              Chapters_HS
               
 #             # 1.6 TE's by WTO classification (MTN) Categories -----------------------------------------
 #       
@@ -717,34 +680,7 @@ options(scipen=999)
               
               
               
-              ProductGroups_MTN <- plot_ly(
-                Excise_TE_MTN, 
-                y = ~reorder(Product_group, Excise_TE), 
-                x = ~Excise_TE, 
-                type = 'bar', 
-                text = ' ', 
-                hoverinfo = 'x+text',
-                hovertext = ~Product_group,
-                marker = list(color = '#d62728')
-              ) 
               
-              # Add the layout step separately
-              ProductGroups_MTN <- ProductGroups_MTN %>% 
-                layout(
-                  title = paste("Tax expenditures by Multilateral Trade Negotiations Categories,", actual_year_simulation),
-                  font = t_11,
-                  font = list(size = 11),
-                  yaxis = list(title = ''),
-                  xaxis = list(title = 'In LCU'),
-                  annotations = list(
-                    x = -0.1, y = -0.056,
-                    text = "Source: Calculations by WB staff based on data from National authorities",
-                    showarrow = FALSE,
-                    xref = 'paper',
-                    yref = 'paper',
-                    align = 'left'
-                  )
-                )
 
 #               
 #             # 1.7 TE's by Countries(Choropleth) -----------------------------------------------
