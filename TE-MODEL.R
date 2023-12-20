@@ -1146,7 +1146,7 @@ server <- function(input, output, session) {
 
 # 3.1 Customs duties --------------------------------------------------------
 
-                                                 
+                                        
       # 3.1.1 CustomsRevenue ---------------------------------------
       output$chartOutputCustomsRevenue <- renderPlotly({
                         switch(input$chartSelectCustomsRevenue,
