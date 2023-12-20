@@ -405,18 +405,18 @@ options(scipen=999)
 
 # Chart 1
                     
-                    MacroFiscalData$ImportDuties_PctOfGDP<-round(MacroFiscalData$ImportDuties_PctOfGDP,2)
+                    #MacroFiscalData$ImportDuties_PctOfGDP<-round(MacroFiscalData$ImportDuties_PctOfGDP,2)
                     
                     df_plt <- MacroFiscalData %>%
                       dplyr::select(Year, GDP, `Taxes on imports excluding VAT and duties`)
                     
                     
-                    ImportDuties_PctOfGDP <- plot_ly(df_plt)
-                    ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
-                    ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~`Taxes on imports excluding VAT and duties`, type = 'scatter', mode = 'lines+markers', name = 'Share of excise revenue in GDP ',
+                    Excise_PctOfGDP <- plot_ly(df_plt)
+                    Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
+                    Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~`Taxes on imports excluding VAT and duties`, type = 'scatter', mode = 'lines+markers', name = 'Share of excise revenue in GDP ',
                                                                                  yaxis = 'y2', line = list(dash = 'dot', color = "#FFA500", width = 6))
                     
-                    ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% layout(title = 'Nominal GDP and share of customs revenues in GDP,2015-2022',
+                    Excise_PctOfGDP <- Excise_PctOfGDP %>% layout(title = 'Nominal GDP and share of excise revenues in GDP,2015-2022',
                                                                               xaxis = list(title = ""),
                                                                               yaxis = list(side = 'left', title = 'In million LCU', showgrid = FALSE, zeroline = FALSE),
                                                                               yaxis2 = list(side = 'right', overlaying = "y", title = 'Percentage', showgrid = FALSE, zeroline = FALSE, font = list(size = 11)), 
@@ -428,7 +428,7 @@ options(scipen=999)
                                                                                 yref = 'paper',
                                                                                 align = 'left'))
                     
-                    # ImportDuties_PctOfGDP
+                    # Excise_PctOfGDP
 # Chart 2
                     
                   
