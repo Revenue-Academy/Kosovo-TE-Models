@@ -66,12 +66,16 @@ ui <- dashboardPage(
         menuItem("Simulation Parameters", tabName = "Excise-simulationParameters"),
         menuItem("Simulation", tabName = "Excise-simulation"),
         menuItem("Results",  icon = icon("gauge"),
-                 menuSubItem("TaxExpenditures_HS", tabName = "HS_CODES"),
-                 menuSubItem("TE_Countries", tabName = "TE_agg_countries"),
-                 menuSubItem("MainResults", tabName = "MainResults"
+                # menuSubItem("TaxExpenditures_HS", tabName = "HS_CODES"),
+                 #menuSubItem("TE_Countries", tabName = "TE_agg_countries"),
+                 menuSubItem("MainResults", tabName = "MainResultsExciseFinal"
                              )
         ),
-        menuItem("Charts", tabName = "Excise-charts"),
+        #menuItem("Charts", tabName = "Excise-charts"),
+        menuItem("Charts", tabName = "Excise-charts",icon = icon("chart-line"),
+                 menuSubItem("ExciseRevenue", tabName = "ExciseRevenue"), 
+                 menuSubItem("ExciseTaxExpenditures", tabName = "ExciseTaxExpenditures")
+                 ),
         menuItem("Summary", tabName = "Excise-summary")
       )
     )
@@ -294,8 +298,58 @@ ui <- dashboardPage(
       #   )
       # ),
   # Charts tab
-                 tabItem("Excise-charts", "This is the Excise Charts content"),
-                 tabItem("Excise-summary", "This is the Excise Summary content")
+                 #tabItem("Excise-charts", "This is the Excise Charts content"),
+  
+  # Charts tab
+  # Charts tab
+  tabItem(
+    tabName = "ExciseRevenue",
+    fluidRow(
+      column(6,
+             selectInput("chartSelectExciseRevenue", "Select Chart",
+                         choices = c(
+                           "Excise_PctOfGDP1",
+                           "StructureOfTaxRevenues_Nominal1", 
+                           "StructureOfTaxRevenues_Percentage1", 
+                           "ExciseGoodRegulaImport_plt1",
+                           "ImportStructureExcise1"
+                           
+                           #,"StructureOfTaxRevenues_Nominal","StructureOfTaxRevenues_Percentage","ExciseGoodRegulaImport_plt","ImportStructureExcise" 
+                         ),
+                         selected = "Excise_PctOfGDP1")
+      )
+    ),
+    fluidRow(
+      column(12,
+             plotlyOutput("chartOutputExciseRevenue", height = "700px")
+      )
+    )
+  ),
+  tabItem(
+    tabName = "ExciseTaxExpenditures",
+    fluidRow(
+      column(6,
+             selectInput("chartSelectTaxExpenditures", "Select Chart",
+                         choices = c(
+                           "ExciseProductCategories1","Chapters_HS1","ProductGroups_MTN1"
+                         ),
+                         selected = "ExciseProductCategories1")
+      )
+    ),
+    fluidRow(
+      column(12,
+             plotlyOutput("chartOutputExciseTaxExpenditures", height = "700px")
+      )
+    )
+  ),
+  
+  tabItem("ExciseDuties-summary",
+          fluidRow(
+            uiOutput("exciseInfoBox"),
+            column(12,
+                   plotlyOutput("treemap_final_plt1", height = "700px")))),
+  
+        tabItem("Excise-summary", "This is the Excise Summary content")
               
     
      )
@@ -866,22 +920,247 @@ server <- function(input, output, session) {
                                     labs(title = paste("                                                                                      Geographic distribution of Kosovo tax expenditures,", actual_year_simulation))
 
                           
+
+# Excise charts -----------------------------------------------------------
+
+        
+                                  
+        # Charts 1                 
+                                  
+                                  # Chart 1
+                                  
+                                  #MacroFiscalData$ImportDuties_PctOfGDP<-round(MacroFiscalData$ImportDuties_PctOfGDP,2)
+                                  
+                                  df_plt <- MacroFiscalData %>%
+                                    dplyr::select(Year, GDP, `Taxes on imports excluding VAT and duties`)
+                                  
+                                  
+                                  Excise_PctOfGDP <- plot_ly(df_plt)
+                                  Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
+                                  Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~`Taxes on imports excluding VAT and duties`, type = 'scatter', mode = 'lines+markers', name = 'Share of excise revenue in GDP ',
+                                                                                   yaxis = 'y2', line = list(dash = 'dot', color = "#FFA500", width = 6))
+                                  
+                                  Excise_PctOfGDP1 <- Excise_PctOfGDP %>% layout(title = 'Nominal GDP and share of excise revenues in GDP,2015-2022',
+                                                                                xaxis = list(title = ""),
+                                                                                yaxis = list(side = 'left', title = 'In million LCU', showgrid = FALSE, zeroline = FALSE),
+                                                                                yaxis2 = list(side = 'right', overlaying = "y", title = 'Percentage', showgrid = FALSE, zeroline = FALSE, font = list(size = 11)), 
+                                                                                annotations = list(
+                                                                                  x = -0.1, y = -0.056,
+                                                                                  text = "Source: National authorities",
+                                                                                  showarrow = FALSE,
+                                                                                  xref = 'paper',
+                                                                                  yref = 'paper',
+                                                                                  align = 'left'))
+                                  
+                                  # Excise_PctOfGDP
+                                  # Chart 2
+
+
+                                  year_df <- MacroFiscalData%>%
+                                    dplyr::select(Year, "VAT", "ImportDuties", "Taxes on imports excluding VAT and duties",
+                                                  "Taxes on products, except VAT and import taxes",
+                                                  "Other taxes on production", "Property income",
+                                                  "Current taxes on income, wealth, etc.")
+
+                                  year_df$Year<-as.factor(year_df$Year)
+                                  year_df<-melt(year_df)
+                                  year_df$color <- factor(year_df$variable, labels =c( "orange","brown","forestgreen","red", "cyan","royalblue","blue"))
+
+                                  StructureOfTaxRevenues_Nominal1 <- plot_ly(year_df, x = ~Year, y = ~value,
+                                                                            type = 'bar',
+                                                                            marker = list(color = ~color), name = ~variable) %>%
+                                    layout(title = 'Structure of tax revenues',font = t_11,
+                                           xaxis = list(title = ''),
+                                           yaxis = list(title = ' '),
+                                           annotations =
+                                             list( x = 0, y = -0.05,
+                                                   text = "Source:National authorities",font = t_8,
+                                                   showarrow = F,
+                                                   xref='paper',
+                                                   yref='paper',align='left'),barmode = 'stack')
+
+                                  # StructureOfTaxRevenues_Nominal
+
+                                  # Chart 3
+                                  year_df<-group_by(year_df, Year) %>% mutate(Pct = value/sum(value))
+
+
+                                  StructureOfTaxRevenues_Percentage1 <- plot_ly(year_df, x = ~Year, y = ~Pct*100,
+                                                                               type = 'bar',
+                                                                               marker = list(color = ~color), name = ~variable) %>%
+                                    layout(title = 'Structure of revenues in percentage, 2015-2022',font = t_11,
+                                           xaxis = list(title = ''),
+                                           yaxis = list(title = 'In percentage '),
+                                           annotations =
+                                             list( x = 0, y = -0.05,
+                                                   text = "Source:National authorities",font = t_8,
+                                                   showarrow = F,
+                                                   xref='paper',
+                                                   yref='paper',align='left'),barmode = 'stack')
+
+                                  #StructureOfTaxRevenues_Percentage
+
+                                  # Chart 4
+
+                                  # 1.1 Regular Import------------------------------------------
+
+                                  ExciseGoodRegulaImport<-Estimation_TE%>%
+                                    dplyr::select(DataSet,Value)%>%
+                                    dplyr::group_by(DataSet)%>%
+                                    dplyr::summarise(Value=sum(Value,na.rm = TRUE))
+
+                                  # Factor the "Sections" column without ordering other strings
+                                  ExciseGoodRegulaImport$Chapter <- factor(ExciseGoodRegulaImport$DataSet)
+
+                                  ExciseGoodRegulaImport$HS<-"Excise by types of goods "
+
+                                  ExciseGoodRegulaImport_plt1<-plot_ly(data =ExciseGoodRegulaImport, type = "treemap", values = ~round(Value/1e06,1), labels = ~DataSet,
+                                                                      parents = ~HS,
+                                                                      name = " ",
+                                                                      text = ~DataSet   ,
+                                                                      textinfo="label+value+percent parent")%>%
+                                    layout(title=paste("Structure of Regular Import by types of excise goods in LCU (Millions),", actual_year_simulation),font =t_11)
+
+
+                                  #              1.2 Pie chart  --------------------------------------------------------------
+
+
+                                  ExciseRevenuePie<-Estimation_TE%>%
+                                    dplyr::select(DataSet,ExciseRevenue)%>%
+                                    dplyr::group_by(DataSet)%>%
+                                    dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+
+
+                                  ExciseRevenueBasePie<-melt(ExciseRevenuePie)
+
+                                  ImportStructureExcise1 <- ExciseRevenueBasePie %>%
+                                    plot_ly(labels = ~DataSet, values = ~value)
+
+                                  ImportStructureExcise1 <- ImportStructureExcise1 %>% add_pie(hole = 0.6)
+                                  ImportStructureExcise1 <- ImportStructureExcise1 %>% layout(
+                                    title = paste("Structure of excise revenues by type of excise goods", actual_year_simulation),
+                                    font = t_11,
+                                    showlegend = TRUE,
+                                    xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                    yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                    annotations = list(
+                                      x = 0, y = -0.1,
+                                      #title = "Additional Information:",  # New subtitle
+                                      #text = "Preferential treatment includes goods covered by Free Trade Agreements, while non-preferential treatment includes only imports subject to customs tariffs.",
+                                      showarrow = FALSE,
+                                      xref = 'paper',
+                                      yref = 'paper',
+                                      align = 'left'
+                                    ),
+                                    font = t_8
+                                  )
+
+
+                  # 2. TE's by Excise Product Categories --------------------------------------
+
+                                  ExciseProducts_TE<-Estimation_TE%>%
+                                    dplyr::select(DataSet,ExciseRevenue)%>%
+                                    dplyr::group_by(DataSet)%>%
+                                    dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                                  
+                                  
+                                  ExciseProducts_TE<-melt(ExciseProducts_TE)
+                                  
+                                  ExciseProducts_TE$DataSet<- factor(ExciseProducts_TE$DataSet)
+                                  
+                                  ExciseProductCategories1 <- plot_ly(ExciseProducts_TE, x = ~DataSet , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', color = ~DataSet, colors = colors) %>% 
+                                    layout(
+                                      title = paste("Tax expenditures by Product Categories,", actual_year_simulation),
+                                      font = list(size = 11),
+                                      xaxis = list(title = ''),
+                                      yaxis = list(title = 'In LCU'),
+                                      #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
+                                      annotations = list(
+                                        x = 0, y = -0.056,
+                                        text = "Source: Calculations by WB staff based on data from National authorities",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        align = 'left'
+                                      ),
+                                      legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                    )
+                                  
+                      # 1.5 TE's by Chapters ---------------------------------------------------------       
+
+                                  Chapters_HS1 <- plot_ly(Excise_TE_Chapters, x = ~reorder(Chapter, -Excise_TE), y = ~Excise_TE, type = 'bar', text = ' ', hoverinfo = 'y+text',#color = ~Treatment, colors = colors,
+                                                         hovertext = ~Chapters_description) %>%
+                                    layout(
+                                      title = paste("Distribution of Tax Expenditures Across HS Chapters,", actual_year_simulation),font = t_11,
+                                      font = list(size = 11),
+                                      xaxis = list(title = ''),
+                                      yaxis = list(title = 'In LCU'),
+                                      # barmode = 'stack',
+                                      annotations = list(
+                                        x = 0, y = -0.056,
+                                        text = "Source: Calculations by WB staff based on data from National authorities",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        align = 'left'
+                                      ),
+                                      #legend = list(orientation = 'h')
+                                      legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                    )
+                                  
+                        # 1.6 TE's by WTO classification (MTN) Categories
+                                  ProductGroups_MTN <- plot_ly(
+                                    Excise_TE_MTN, 
+                                    y = ~reorder(Product_group, Excise_TE), 
+                                    x = ~Excise_TE, 
+                                    type = 'bar', 
+                                    text = ' ', 
+                                    hoverinfo = 'x+text',
+                                    hovertext = ~Product_group,
+                                    marker = list(color = '#d62728')
+                                  ) 
+                                  
+                                  # Add the layout step separately
+                                  ProductGroups_MTN1 <- ProductGroups_MTN %>% 
+                                    layout(
+                                      title = paste("Tax expenditures by Multilateral Trade Negotiations Categories,", actual_year_simulation),
+                                      font = t_11,
+                                      font = list(size = 11),
+                                      yaxis = list(title = ''),
+                                      xaxis = list(title = 'In LCU'),
+                                      annotations = list(
+                                        x = -0.1, y = -0.056,
+                                        text = "Source: Calculations by WB staff based on data from National authorities",
+                                        showarrow = FALSE,
+                                        xref = 'paper',
+                                        yref = 'paper',
+                                        align = 'left'
+                                      )
+                                    )
+                                  
+                                  
+                                  
+                                  
     # 3.Drop down menu for Charts ---------------------------------------------------
-                      
-      # 3.1 CustomsRevenue ---------------------------------------
+       
+
+# 3.1 Customs duties --------------------------------------------------------
+
+                                        
+      # 3.1.1 CustomsRevenue ---------------------------------------
       output$chartOutputCustomsRevenue <- renderPlotly({
                         switch(input$chartSelectCustomsRevenue,
                                "ImportDuties_PctOfGDP" = ImportDuties_PctOfGDP,
                                "StructureOfTaxRevenues_Nominal" = StructureOfTaxRevenues_Nominal,
                                "StructureOfTaxRevenues_Percentage" = StructureOfTaxRevenues_Percentage,
-                               "RegularImport"=RegularImport,
-                               "ImportStructure"=ImportStructure
+                               "RegularImport" = RegularImport,
+                               "ImportStructure" = ImportStructure
                                
                                )
                       })
                       
                       
-      # 3.2 TaxExpenditures ---------------------------------------
+      # 3.2.1 TaxExpenditures ---------------------------------------
                       
     output$chartOutputTaxExpenditures <- renderPlotly({
       switch(input$chartSelectTaxExpenditures,
@@ -895,6 +1174,34 @@ server <- function(input, output, session) {
     })
 
     
+
+# 3.2 Excise revenues -----------------------------------------------------
+
+    output$chartOutputExciseRevenue <- renderPlotly({
+                                    switch(input$chartSelectExciseRevenue,
+                                           "Excise_PctOfGDP1" = Excise_PctOfGDP1,
+                                           "StructureOfTaxRevenues_Nominal1" = StructureOfTaxRevenues_Nominal1,
+                                           "StructureOfTaxRevenues_Percentage1" = StructureOfTaxRevenues_Percentage1,
+                                           "ExciseGoodRegulaImport_plt1" = ExciseGoodRegulaImport_plt1,
+                                           "ImportStructureExcise1" = ImportStructureExcise1
+
+                                    )
+                                  })
+
+
+
+        output$chartOutputExciseTaxExpenditures <- renderPlotly({
+                                    switch(input$chartSelectTaxExpenditures,
+                                           "ExciseProductCategories1"= ExciseProductCategories1,
+                                           "Chapters_HS1" = Chapters_HS1,
+                                           "ProductGroups_MTN1" = ProductGroups_MTN1
+
+                                    )
+                                  })
+
+                                  
+                                                  
+                                  
     # 4. Info Boxes -------------------------------------------------------------
 
                         value1 <- MainResultsFinal %>%
