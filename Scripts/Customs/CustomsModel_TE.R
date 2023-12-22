@@ -434,7 +434,335 @@ suppressMessages({
                 MainResultsFinal<-MainResultsCustoms1%>%
                   dplyr::rename("Description"= "variable",
                                 "Value"="value")
+                
+                Estimation_TE <- data.frame(
+                  DataSet = character(),  # Replace with appropriate data type if not character
+                  Value = numeric(),
+                  ExciseRevenue=numeric()# Replace with appropriate data type if not numeric
+                )
+                
+                Excise_TE_Chapters<- data.frame(
+                  Chapter = character(),  # Replace with appropriate data type if not character
+                  Excise_TE = numeric(),
+                  ExciseRevenue=numeric()# Replace with appropriate data type if not numeric
+                )
+                
+                Excise_TE_MTN<- data.frame(
+                  Product_group = character(),  # Replace with appropriate data type if not character
+                  Excise_TE = numeric(),
+                  ExciseRevenue=numeric()# Replace with appropriate data type if not numeric
+                )
                
+                
+                
 })
-        
+
+
+# CustomsRevenue Tab
+
+# Charts 1 
+
+MacroFiscalData$ImportDuties_PctOfGDP<-round(MacroFiscalData$ImportDuties_PctOfGDP,2)
+
+df_plt <- MacroFiscalData %>%
+  dplyr::select(Year, GDP, ImportDuties_PctOfGDP)
+
+
+ImportDuties_PctOfGDP <- plot_ly(df_plt)
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~ImportDuties_PctOfGDP, type = 'scatter', mode = 'lines+markers', name = 'Share of customs revenue in GDP ',
+                                                             yaxis = 'y2', line = list(dash = 'dot', color = "#FFA500", width = 6))
+
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% layout(title = 'Nominal GDP and share of customs revenues in GDP,2015-2022',
+                                                          xaxis = list(title = ""),
+                                                          yaxis = list(side = 'left', title = 'In million LCU', showgrid = FALSE, zeroline = FALSE),
+                                                          yaxis2 = list(side = 'right', overlaying = "y", title = 'Percentage', showgrid = FALSE, zeroline = FALSE, font = list(size = 11)), 
+                                                          annotations = list(
+                                                            x = -0.1, y = -0.056,
+                                                            text = "Source: National authorities",
+                                                            showarrow = FALSE,
+                                                            xref = 'paper',
+                                                            yref = 'paper',
+                                                            align = 'left'))
+
+df_plt <- MacroFiscalData %>%
+  dplyr::select(Year, GDP, ImportDuties_PctOfGDP)
+ImportDuties_PctOfGDP <- plot_ly(df_plt)
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% add_trace(
+  x = ~Year, y = ~ImportDuties_PctOfGDP, type = 'scatter', mode = 'lines+markers', name = 'Share of customs revenue in GDP ',
+  yaxis = 'y2', line = list(dash = 'dot', color = "#FFA500", width = 4)  # Set width to 4 for a bold dotted line
+)
+
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% layout(
+  title = 'Nominal GDP and share of customs revenues in GDP,2015-2022',font = t_11,
+  xaxis = list(title = ""),
+  yaxis = list(side = 'left', title = 'In million LCU', showgrid = FALSE, zeroline = FALSE),
+  yaxis2 = list(side = 'right', overlaying = "y", title = 'Percentage', showgrid = FALSE, zeroline = FALSE, font = list(size = 8)), 
+  annotations = list(
+    x = 0, y = -0.05,
+    text = "Source: National authorities",font = t_8,
+    showarrow = FALSE,
+    xref = 'paper',
+    yref = 'paper',
+    align = 'left'
+  )
+)
+
+
+ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>%
+  layout(
+    images = list(
+      source = base64_image,  # Use the base64-encoded image data
+      xref = "paper",
+      yref = "paper",
+      x = 0,
+      y = 1,
+      sizex = 0.05,  
+      sizey = 0.05,  
+      opacity = 0.8
+    )
+  )
+
+# Chart 2
+
+year_df <- MacroFiscalData%>% 
+  dplyr::select(Year, "VAT", "ImportDuties", "Taxes on imports excluding VAT and duties",
+                "Taxes on products, except VAT and import taxes",
+                "Other taxes on production", "Property income",
+                "Current taxes on income, wealth, etc.")
+
+year_df$Year<-as.factor(year_df$Year)
+year_df<-melt(year_df)
+year_df$color <- factor(year_df$variable, labels =c( "orange","brown","forestgreen","red", "cyan","royalblue","blue")) 
+
+StructureOfTaxRevenues_Nominal <- plot_ly(year_df, x = ~Year, y = ~value,
+                                          type = 'bar',
+                                          marker = list(color = ~color), name = ~variable) %>%
+  layout(title = 'Structure of tax revenues',font = t_11,
+         xaxis = list(title = ''), 
+         yaxis = list(title = ' '),
+         annotations =
+           list( x = 0, y = -0.05, 
+                 text = "Source:National authorities",font = t_8,
+                 showarrow = F,
+                 xref='paper',
+                 yref='paper',align='left'),barmode = 'stack')
+
+
+# Chart 3
+year_df<-group_by(year_df, Year) %>% mutate(Pct = value/sum(value))
+
+
+StructureOfTaxRevenues_Percentage <- plot_ly(year_df, x = ~Year, y = ~Pct*100,
+                                             type = 'bar',
+                                             marker = list(color = ~color), name = ~variable) %>%
+  layout(title = 'Structure of revenues in percentage, 2015-2022',font = t_11,
+         xaxis = list(title = ''), 
+         yaxis = list(title = 'In percentage '),
+         annotations =
+           list( x = 0, y = -0.05, 
+                 text = "Source:National authorities",font = t_8,
+                 showarrow = F,
+                 xref='paper',
+                 yref='paper',align='left'),barmode = 'stack')
+
+
+# Chart 4
+
+RegularImport<-plot_ly(data =CustomsValue, type = "treemap", values = ~round(Value/1e06,1), labels = ~Chapter,
+                       parents = ~HS,
+                       name = " ",
+                       text = ~Chapters_description   ,
+                       textinfo="label+value+percent parent")%>%
+  layout(title=paste("Structure of Total Regular Import by HS Chapters in LCU(Millions),", actual_year_simulation),font =t_11)
+
+
+# Chart 5
+
+ImportStructure <- CustomsDuties_base_pie %>% 
+  plot_ly(labels = ~Treatment, values = ~value)
+
+ImportStructure <- ImportStructure %>% add_pie(hole = 0.6)
+ImportStructure <- ImportStructure %>% layout(
+  title = paste("Structure of Import by Treatment of Goods (preferential vs non-preferential)", actual_year_simulation),
+  font = t_11, 
+  showlegend = TRUE,
+  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+  annotations = list(
+    x = 0, y = -0.1,
+    title = "Additional Information:",  # New subtitle
+    text = "Preferential treatment includes goods covered by Free Trade Agreements, while non-preferential treatment includes only imports subject to customs tariffs.",
+    showarrow = FALSE,
+    xref = 'paper',
+    yref = 'paper',
+    align = 'left'
+  ),
+  font = t_8
+)
+
+
+
+# TaxExpenditures Tab 
+
+# Chart 1
+
+GroupOfProducts_HS <- plot_ly(CustomsDuties_TE_type_products, x = ~type_products , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', color = ~type_products, colors = colors) %>% 
+  layout(
+    title = paste("Tax expenditures by Group of products by HS,", actual_year_simulation),
+    font = list(size = 11),
+    xaxis = list(title = ''),
+    yaxis = list(title = 'In LCU'),
+    #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
+    annotations = list(
+      x = 0, y = -0.056,
+      text = "Source: Calculations by WB staff based on data from National authorities",
+      showarrow = FALSE,
+      xref = 'paper',
+      yref = 'paper',
+      align = 'left'
+    ),
+    legend = list(orientation = 'v', x = 1.02, y = 0.5)
+  )
+
+
+# Charts 2
+
+Sections_HS <- plot_ly(
+  CustomsDuties_TE_Sections, 
+  x = ~reorder(Sections, -CustomsDuties_TE), 
+  y = ~CustomsDuties_TE, 
+  type = 'bar', 
+  text = ' ', 
+  hoverinfo = 'y+text', 
+  hovertext = ~Section_description,
+  marker = list(color = '#ff7f0e')  # Set the color of all bars to orange
+) %>%
+  layout(
+    title = paste("Tax expenditures by HS Sections,", actual_year_simulation),
+    font = t_11,
+    font = list(size = 11),
+    xaxis = list(title = ''),
+    yaxis = list(title = 'In LCU'),
+    annotations = list(
+      x = 0, y = -0.056,
+      text = "Source: Calculations by WB staff based on data from National authorities",
+      showarrow = FALSE,
+      xref = 'paper',
+      yref = 'paper',
+      align = 'left'
+    ),
+    legend = list(orientation = 'v', x = 1.02, y = 0.5)
+  )
+
+
+# Charts 3
+
+
+Chapters_HS <- plot_ly(CustomsDuties_TE_Chapters, x = ~reorder(Chapter, -CustomsDuties_TE), y = ~CustomsDuties_TE, type = 'bar', text = ' ', hoverinfo = 'y+text',#color = ~Treatment, colors = colors,
+                       hovertext = ~Chapters_description) %>%
+  layout(
+    title = paste("Tax expenditures by HS Chapters,", actual_year_simulation),font = t_11,
+    font = list(size = 11),
+    xaxis = list(title = ''),
+    yaxis = list(title = 'In LCU'),
+    # barmode = 'stack',
+    annotations = list(
+      x = 0, y = -0.056,
+      text = "Source: Calculations by WB staff based on data from National authorities",
+      showarrow = FALSE,
+      xref = 'paper',
+      yref = 'paper',
+      align = 'left'
+    ),
+    #legend = list(orientation = 'h')
+    legend = list(orientation = 'v', x = 1.02, y = 0.5)
+  )
+
+
+
+# Chart 4
+
+ProductGroups_MTN <- plot_ly(
+  CustomsDuties_TE_MTN, 
+  y = ~reorder(Product_group, CustomsDuties_TE), 
+  x = ~CustomsDuties_TE, 
+  type = 'bar', 
+  text = ' ', 
+  hoverinfo = 'x+text',
+  hovertext = ~Product_group,
+  marker = list(color = '#d62728')
+) 
+
+# Add the layout step separately
+ProductGroups_MTN <- ProductGroups_MTN %>% 
+  layout(
+    title = paste("Tax expenditures by Multilateral Trade Negotiations Categories,", actual_year_simulation),
+    font = t_11,
+    font = list(size = 11),
+    yaxis = list(title = ''),
+    xaxis = list(title = 'In LCU'),
+    annotations = list(
+      x = -0.1, y = -0.056,
+      text = "Source: Calculations by WB staff based on data from National authorities",
+      showarrow = FALSE,
+      xref = 'paper',
+      yref = 'paper',
+      align = 'left'
+    )
+  )
+
+#  Chart 5
+
+Sectors_CPA <- plot_ly(CustomsDuties_TE_SECTORS, y = ~reorder(CPA21_NAME , CustomsDuties_TE), x = ~CustomsDuties_TE, type = 'bar', text = ' ', hoverinfo = 'x+text',#color = ~Treatment, colors = colors,
+                       hovertext = ~CPA21_NAME) %>%
+  layout(
+    title = paste("Tax expenditures by CPA Sectors", actual_year_simulation),font = t_11,
+    font = list(size = 11),
+    yaxis = list(title = ''),
+    xaxis = list(title = 'In LCU'),
+    barmode = 'stack',
+    annotations = list(
+      x = -0.1, y = -0.056,
+      text = "Source: Calculations by WB staff based on data from National authorities",
+      showarrow = FALSE,
+      xref = 'paper',
+      yref = 'paper',
+      align = 'left'
+    )
+  )
+
+
+
+#  Chart 5
+
+mapdata3 <- left_join(mapdata_iso3c,CustomsDuties_TE_agg_countries,by = c("iso3"="iso3c"))
+
+# Removing Antarctica
+mapdata3<-mapdata3[!(mapdata3$region=="Antarctica"),]
+
+map1 <- ggplot(mapdata3, aes(x= long , y=lat,group=group)) +
+  geom_polygon(aes(fill=CustomsDuties_TE), color="black")
+
+
+
+ChoroplethMap <- map1 + scale_fill_gradient(name= "In LCU million",
+                                            low = "lightgreen",
+                                            high = "darkgreen",
+                                            na.value="grey90") +
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold"),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        legend.position="bottom")+
+  labs(title = paste("                                                                                      Geographic distribution of Kosovo tax expenditures,", actual_year_simulation))
+
+
+
+rm(Import_raw_monthly)
         
