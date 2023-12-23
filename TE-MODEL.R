@@ -236,7 +236,7 @@ ui <- dashboardPage(
               column(2,
                      h4("Tobacco"),
                      sliderInput("simulationSlider02", "Excise benchmark",
-                                 min = 0, max = 100, step = 1, value = 72.85, width = "100%"),
+                                 min = 0, max = 100, step = 1, value = 73, width = "100%"),
               ),
               column(2,
                      h4("Alcohol"),
@@ -275,7 +275,12 @@ ui <- dashboardPage(
                            "StructureOfTaxRevenues_Nominal1", 
                            "StructureOfTaxRevenues_Percentage1", 
                            "ExciseGoodRegulaImport_plt1",
-                           "ImportStructureExcise1"
+                           "ImportStructureExcise1",
+                           "ExciseProductCategories1",
+                           "Structure_Excise_MineralOils",
+                           "Structure_Excise_TobaccoProducts",
+                           "Structure_Excise_AlcoholProducts"
+                           
                          ),
                          selected = "Excise_PctOfGDP1")
       )
@@ -292,9 +297,9 @@ ui <- dashboardPage(
       column(6,
              selectInput("chartSelectTaxExpendituresExcise", "Select Chart",
                          choices = c(
-                           "ExciseProductCategories1","Chapters_HS1","ProductGroups_MTN1"
+                           "Chapters_HS1","ProductGroups_MTN1","ExciseStructure_MineralOils","ExciseStructure_TobaccoProducts","ExciseStructure_AlcoholProducts"
                          ),
-                         selected = "ExciseProductCategories1")
+                         selected = "Chapters_HS1")
       )
     ),
     fluidRow(
@@ -661,7 +666,11 @@ server <- function(input, output, session) {
                  "StructureOfTaxRevenues_Nominal1" = StructureOfTaxRevenues_Nominal1,
                  "StructureOfTaxRevenues_Percentage1" = StructureOfTaxRevenues_Percentage1,
                  "ExciseGoodRegulaImport_plt1" = ExciseGoodRegulaImport_plt1,
-                 "ImportStructureExcise1" = ImportStructureExcise1
+                 "ExciseProductCategories1"= ExciseProductCategories1,
+                 "ImportStructureExcise1" = ImportStructureExcise1,
+                 "Structure_Excise_MineralOils"=Structure_Excise_MineralOils,
+                 "Structure_Excise_TobaccoProducts"=Structure_Excise_TobaccoProducts,
+                 "Structure_Excise_AlcoholProducts"=Structure_Excise_AlcoholProducts
 
           )
         })
@@ -671,9 +680,12 @@ server <- function(input, output, session) {
 
     output$chartOutputExciseTaxExpenditures <- renderPlotly({
       switch(input$chartSelectTaxExpendituresExcise,
-             "ExciseProductCategories1"= ExciseProductCategories1,
              "Chapters_HS1" = Chapters_HS1,
-             "ProductGroups_MTN1" = ProductGroups_MTN1
+             "ProductGroups_MTN1" = ProductGroups_MTN1,
+             "ExciseStructure_MineralOils"=ExciseStructure_MineralOils,
+             "ExciseStructure_TobaccoProducts"=ExciseStructure_TobaccoProducts,
+             "ExciseStructure_AlcoholProducts"=ExciseStructure_AlcoholProducts
+             
       )
     })
     

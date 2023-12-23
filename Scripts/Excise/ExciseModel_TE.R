@@ -169,33 +169,56 @@ options(scipen=999)
                               # Subset Chapter 27
                               HS_Chapter_27<-CustomsDuties_TE_agg_HS %>%
                                 filter(Chapter == '27')
+                        
+                        
+                              HS_Chapter_27<-HS_Chapter_27%>%
+                                dplyr::filter(ExciseRevenue>0)
                               
-                              HS_Chapter_27$Subdataset<-c("Fuel") #<---- Ova ke treba detealno da se definira po tip na proizvodi ili po tarifen broj 
+                              HS_Chapter_27$Subdataset<-c(" ") 
                         
                         
-                              # Subset Alcohol For Engine
-                               AlcoholForEngine <- CustomsDuties_TE_agg_HS %>%
-                                dplyr::filter(Eight_digit %in% c('2710 12 31','2710 12 90'))
-
-                               AlcoholForEngine$Subdataset<-c("AlcoholForEngine")
-                               
-                              # Cyclic and Acyclic hydrocarbons
+                              # Subset 1
+                              HS_Chapter_27 <- HS_Chapter_27 %>%
+                                dplyr::mutate(Subdataset = case_when(
+                                  Eight_digit == "2710 19 43" ~ 'EURO DIESEL',
+                                  Eight_digit == "2710 12 45" ~ 'EUROSUPER BC 95',
+                                  Eight_digit == "2710 12 49" ~ 'EUROSUPER BS 100',
+                                  Eight_digit == "2711 12 94" ~ 'LPG PROPAN',
+                                  Eight_digit == "2710 19 81" ~ 'LUBRICATING OILS', # MOTOR OIL
+                                  Eight_digit == "2711 13 97" ~ 'LPG BUTAN',
+                                  Eight_digit == "2710 19 99" ~ 'LUBRICATING OILS', # Other lubricating oils
+                                  Eight_digit == "2710 19 67" ~ 'HEAVY OILS', # MAZUT M-1
+                                  Eight_digit == "2710 19 83" ~ 'LUBRICATING OILS', #Hydraulic oils
+                                  Eight_digit == "2710 19 87" ~ 'LUBRICATING OILS', #MOTOR GEAR OIL
+                                  Eight_digit == "2711 12 97" ~ 'LPG PROPAN',
+                                  Eight_digit == "2711 12 11" ~ 'LPG PROPAN',
+                                  Eight_digit == "2711 13 91" ~ 'LPG BUTAN',
+                                  Eight_digit == "2710 19 93" ~ 'LUBRICATING OILS',#Electrical insulating oils
+                                  Eight_digit == "2711 12 19" ~ 'LPG PROPAN',
+                                  Eight_digit == "2710 19 47" ~ 'OTHER',
+                                  Eight_digit == "2707 30 00" ~ 'LUBRICATING OILS',#Oils and other products of the distillation
+                                  Eight_digit == "2710 12 31" ~ 'AVIATION GASOLINE',
+                                  Eight_digit == "2710 12 90" ~ 'AVIATION GASOLINE',
+                                  TRUE ~ 'OTHER'
+                                ))
+                              
+                              # Subset 2 - Cyclic and Acyclic hydrocarbons- ORGANIC CHEMICALS
                                CyclicAcyclicHydrocarbons <- CustomsDuties_TE_agg_HS %>%
                                 dplyr::filter(Four_digit %in% c('2901','2902'))
                                
-                               CyclicAcyclicHydrocarbons$Subdataset<-c("CyclicAcyclicHydrocarbons")
+                               CyclicAcyclicHydrocarbons$Subdataset<-c("CHEMICAL PRODUCTS")
                                
-                               #  Other which are used for the same purposes as mineral oils
+                               # Subset 3  -Other which are used for the same purposes as mineral oils-MISCELLANEOUS CHEMICAL PRODUCTS
                                    # Organic composite solvents and solvents
                                    # Alkylbenzenes and mixed Alkylnaphthalenes
                                
                                 Other_Ch_38 <- CustomsDuties_TE_agg_HS %>%
                                  dplyr::filter(Four_digit %in% c('3811','3814','3817'))
                                 
-                                Other_Ch_38$Subdataset<-c("Other_Ch_38")
+                                Other_Ch_38$Subdataset<-c("CHEMICAL PRODUCTS")
                                 
                                #  Merging subsets
-                                Fuel_tbl <- bind_rows(HS_Chapter_27, AlcoholForEngine,CyclicAcyclicHydrocarbons,Other_Ch_38)
+                                Fuel_tbl <- bind_rows(HS_Chapter_27,CyclicAcyclicHydrocarbons,Other_Ch_38)
                               
                               #  Removing Nan from effective tax rates
                                 Fuel_tbl$Effective_Excise_rate<-ifelse(Fuel_tbl$Quantity==0,0,Fuel_tbl$Effective_Excise_rate)
@@ -211,6 +234,8 @@ options(scipen=999)
                                 Fuel_tbl$PotentialExcise<-as.numeric(0)
                                 
 
+                                #view(Fuel_tbl)
+                                
             # 4.2 Tobacco ---------------------------------------------------------------
 
                               ## 2401-Unmanufactured tobacco; tobacco refuse:
@@ -237,13 +262,23 @@ options(scipen=999)
                               Tobacco_tbl$PotentialExcise<-as.numeric(0)
                               
                               
+                              Tobacco_tbl <- Tobacco_tbl %>%
+                                dplyr::mutate(Subdataset = case_when(
+                                  Eight_digit == "2402 10 00" ~ 'CIGARS AND CIGARILLOS',
+                                  Eight_digit == "2402 20 10" ~ 'CIGARETTES',
+                                  Eight_digit == "2402 20 90" ~ 'CIGARETTES',
+                                  TRUE ~ 'TOBACCO'
+                                ))
+                              
+                             # View(Tobacco_tbl)
+                              
                               # Calculation of base for calculation
                               # Conversion factors, (equivalent of grams tobacco):
                               
                                       # . 1 stick cigarette = 0.7g
                                       # . 1 cigarillo = 3 g
                                       # . 1 cigar = 20 g
-                                      # . 1 ml (E-cig) = 1 g
+                                      # . 1 ml (E-cig) = 1 g # Electronic cigarettes and similar personal electric vaporizing devices-Contains sets together with cartridges for smoking
                                       # . Fine cut and HNB are with the same weight as is declared converted in grams
                               
                               
@@ -282,31 +317,6 @@ options(scipen=999)
                               
                                 # View(Tobacco_tbl)
                               
-                              # 
-                              # # Define a function to round up two columns
-                              # round_up_columns <- function(data, columns) {
-                              #   data %>%
-                              #     mutate(across(all_of(columns), ~ceiling(.)))
-                              # }
-                              # 
-                              # # Apply the function to round up "value1" and "value2"
-                              # Tobacco_tbl <- round_up_columns(Tobacco_tbl, c("Excise_BenchmarkRevenue", "Excise_TE"))
-                              
-                              
-                           
-                              
-                           
-                             #  # Cross check
-                             #  # sum(Tobacco_tbl$ExciseEstimation)
-                             #  # [1] 213833135
-                             #  # > sum(Tobacco_tbl$ExciseRevenue)
-                             #  # [1] 213833135
-                             #  
-                             #  
-                             #  #sum(Tobacco_tbl$ExciseRevenue)/1000000
-                             # # 213.8331
-                             # 
-                           
                               
             # 4.3 Alcohol -----------------------------------------------------------          
                   # 4.3.1 Beer --------------------------------------------------------------------
@@ -316,7 +326,7 @@ options(scipen=999)
                                               
                               
                                               # Adding columns
-                                              BeerQuantity$Subdataset<-c("Beer")
+                                              BeerQuantity$Subdataset<-c("BEER")
                                               # Adding excis rate
                                               BeerQuantity$ExciseRate<-as.numeric(800)
                                            
@@ -336,7 +346,7 @@ options(scipen=999)
                                               WineQuantity <- CustomsDuties_TE_agg_HS %>%
                                                 filter(Four_digit == 2204)
                                               
-                                              WineQuantity$Subdataset<-c("Wine")
+                                              WineQuantity$Subdataset<-c("WINE")
                                               # Adding excis rate
                                               WineQuantity$ExciseRate<-as.numeric(500)
                                            
@@ -354,7 +364,7 @@ options(scipen=999)
                                               
                                               # View(VermouthQuantity)
                                               # sum(VermouthQuantity$Quantity)/1e06
-                                              VermouthQuantity$Subdataset<-c("VermouthAndOtherWines")
+                                              VermouthQuantity$Subdataset<-c("VERMOUTH")
                                               
                                               # Adding excis rate
                                               VermouthQuantity$ExciseRate<-as.numeric(500)
@@ -367,7 +377,7 @@ options(scipen=999)
                                               OtherFermentedBeveragesQuantity  <- CustomsDuties_TE_agg_HS %>%
                                                 filter(Four_digit == 2206)
                                               
-                                              OtherFermentedBeveragesQuantity$Subdataset<-c("OtherFermentedBeverages")
+                                              OtherFermentedBeveragesQuantity$Subdataset<-c("OTHER FERMENTED BEVERAGES")
                                               
                                               # Adding excis rate
                                               OtherFermentedBeveragesQuantity$ExciseRate<-as.numeric(500)
@@ -393,7 +403,7 @@ options(scipen=999)
                                                         
                                    # View(UndenaturedEthylAlcoholQuantity)
                                    #  sum(UndenaturedEthylAlcoholQuantity$Quantity)/1e06
-                                    UndenaturedEthylAlcoholQuantity$Subdataset<-c("UndenaturedEthylAlcohol")
+                                    UndenaturedEthylAlcoholQuantity$Subdataset<-c("UNDENATURED ETHYL ALCOHOL")
                                     
                                     # Adding excis rate
                                     UndenaturedEthylAlcoholQuantity$ExciseRate<-as.numeric(800)
@@ -627,6 +637,96 @@ options(scipen=999)
                             )
                             
         
+            #  1.1.6 Structure of excise for mineral oils  ----------------------------------------
+                    
+                            MineralFuels_Structure<-Fuel_tbl%>%
+                                    dplyr::select(Subdataset,ExciseRevenue)%>%
+                                    dplyr::group_by(Subdataset)%>%
+                                    dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                                  
+                            ExciseRevenueBasePie<-melt(MineralFuels_Structure)
+                            
+                            Structure_Excise_MineralOils <- ExciseRevenueBasePie %>%
+                                   plot_ly(labels = ~Subdataset, values = ~value)
+                            
+                            Structure_Excise_MineralOils <- Structure_Excise_MineralOils %>% add_pie(hole = 0.6)
+                            Structure_Excise_MineralOils <- Structure_Excise_MineralOils %>% layout(
+                                  title = paste("Structure of excise revenues by type of mineral oils", actual_year_simulation),
+                                  font = t_11,
+                                  showlegend = TRUE,
+                                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                  annotations = list(
+                                    x = 0, y = -0.1,
+                                    #title = "Additional Information:",  # New subtitle
+                                    #text = "Preferential treatment includes goods covered by Free Trade Agreements, while non-preferential treatment includes only imports subject to customs tariffs.",
+                                    showarrow = FALSE,
+                                    xref = 'paper',
+                                    yref = 'paper',
+                                    align = 'left'
+                                  ),
+                                  font = t_8)  
+
+
+            #  1.1.7 Structure of excise for tobacco products  -------------------------------
+
+                            TobaccoProducts_Structure<-Tobacco_tbl%>%
+                              dplyr::select(Subdataset,ExciseRevenue)%>%
+                              dplyr::group_by(Subdataset)%>%
+                              dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                            
+                            ExciseRevenueBasePie<-melt(TobaccoProducts_Structure)
+                            
+                            Structure_Excise_TobaccoProducts <- ExciseRevenueBasePie %>%
+                              plot_ly(labels = ~Subdataset, values = ~value)
+                            
+                            Structure_Excise_TobaccoProducts <- Structure_Excise_TobaccoProducts %>% add_pie(hole = 0.6)
+                            Structure_Excise_TobaccoProducts <- Structure_Excise_TobaccoProducts %>% layout(
+                              title = paste("Structure of excise revenues by type of tobacco products", actual_year_simulation),
+                              font = t_11,
+                              showlegend = TRUE,
+                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              annotations = list(
+                                x = 0, y = -0.1,
+                                showarrow = FALSE,
+                                xref = 'paper',
+                                yref = 'paper',
+                                align = 'left'
+                              ),
+                              font = t_8)  
+                            
+                            
+            #  1.1.8 Structure of excise for alcohol ----------------------------------
+
+                            AlcoholProducts_Structure<-Alcohol_tbl%>%
+                              dplyr::select(Subdataset,ExciseRevenue)%>%
+                              dplyr::group_by(Subdataset)%>%
+                              dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
+                            
+                            ExciseRevenueAlcoholProducts<-melt(AlcoholProducts_Structure)
+                            
+                            Structure_Excise_AlcoholProducts <- ExciseRevenueAlcoholProducts %>%
+                              plot_ly(labels = ~Subdataset, values = ~value)
+                            
+                            Structure_Excise_AlcoholProducts <- Structure_Excise_AlcoholProducts %>% add_pie(hole = 0.6)
+                            Structure_Excise_AlcoholProducts <- Structure_Excise_AlcoholProducts %>% layout(
+                              title = paste("Structure of excise revenues by type of Alcohol products", actual_year_simulation),
+                              font = t_11,
+                              showlegend = TRUE,
+                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              annotations = list(
+                                x = 0, y = -0.1,
+                                showarrow = FALSE,
+                                xref = 'paper',
+                                yref = 'paper',
+                                align = 'left'
+                              ),
+                              font = t_8) 
+                            
+                            
+                            
         # 1.2 Tax Expenditures Tab -----------------------------------------------------
             # 1.2.1 TE's by Chapters ---------------------------------------------------------
                       Excise_TE_Chapters<-Estimation_TE%>%
@@ -693,7 +793,7 @@ options(scipen=999)
                                        yref='paper',align='left'),barmode = 'stack')
                       
         
-            # 1.2.4 Structure Of Tax Revenues Percentage-----------------------------------------------
+            # 1.2.4 Structure Of Tax Revenues Percentage -----------------------------------------------
         
                       year_df<-group_by(year_df, Year) %>% mutate(Pct = value/sum(value))
                       
@@ -818,9 +918,6 @@ options(scipen=999)
                         )
         
             # 1.2.9 TE's by WTO classification (MTN) Categories---------------------------------------------
-        
-                      
-                      # 
                       ProductGroups_MTN <- plot_ly(
                         Excise_TE_MTN, 
                         y = ~reorder(Product_group, Excise_TE), 
@@ -854,8 +951,134 @@ options(scipen=999)
                       
 
                               
+
+            # 1.2.10  TE'S by type of Mineral oils----------------------------------------------
+
+                      ExciseMineralOils_TE<-Estimation_TE%>%
+                        dplyr::filter(DataSet=='Fuels')%>%
+                        dplyr::select(Subdataset,Excise_TE)%>%
+                        dplyr::group_by(Subdataset)%>%
+                        dplyr::summarise(Value=sum(Excise_TE,na.rm = TRUE))
+                      
+                      
+                       ExciseMineralOils_TE<-melt(ExciseMineralOils_TE)
+                      
+                     
+                       ExciseMineralOils_TE$color <- factor(ExciseMineralOils_TE$Subdataset, labels =c( "royalblue","orange","forestgreen","brown","red", "cyan","blue","purple","green","gold"))
+
+                      # Reorder the levels of Subdataset based on value in descending order
+                      ExciseMineralOils_TE$Subdataset <- factor(ExciseMineralOils_TE$Subdataset, levels = ExciseMineralOils_TE$Subdataset[order(ExciseMineralOils_TE$value, decreasing = TRUE)])
+                      
+                      # Create the plot with reordered Subdataset levels
+                      ExciseStructure_MineralOils <- plot_ly(ExciseMineralOils_TE, x = ~Subdataset , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', 
+                                                             marker = list(color = ~color), name = ~Subdataset
+                      ) %>% 
+                        layout(
+                          title = paste("Tax expenditures by Mineral Oils and Chemical Products,", actual_year_simulation),
+                          font = list(size = 11),
+                          xaxis = list(title = ''),
+                          yaxis = list(title = 'In LCU'),
+                          #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
+                          annotations = list(
+                            x = 0, y = -0.056,
+                            text = "Source: Calculations by WB staff based on data from National authorities",
+                            showarrow = FALSE,
+                            xref = 'paper',
+                            yref = 'paper',
+                            align = 'left'
+                          ),
+                          legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                        )
+                      
+                      
+            # 1.2.11 TE'S by type of Tobacco Products----------------------------------------
+
+
+                      TobaccoProducts_TE<-Estimation_TE%>%
+                        dplyr::filter(DataSet=='Tobacco')%>%
+                        dplyr::select(Subdataset,Excise_TE)%>%
+                        dplyr::group_by(Subdataset)%>%
+                        dplyr::summarise(Value=sum(Excise_TE,na.rm = TRUE))
+                      
+                      
+                      TobaccoProducts_TE<-melt(TobaccoProducts_TE)
+                      
+                      
+                      TobaccoProducts_TE$color <- factor(TobaccoProducts_TE$Subdataset, labels =c( "royalblue","orange","forestgreen"))
+                      
+                      # Reorder the levels of Subdataset based on value in descending order
+                      TobaccoProducts_TE$Subdataset <- factor(TobaccoProducts_TE$Subdataset, levels = TobaccoProducts_TE$Subdataset[order(TobaccoProducts_TE$value, decreasing = TRUE)])
+                      
+                      # Create the plot with reordered Subdataset levels
+                      ExciseStructure_TobaccoProducts <- plot_ly(TobaccoProducts_TE, x = ~Subdataset , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', 
+                                                             marker = list(color = ~color), name = ~Subdataset
+                      ) %>% 
+                        layout(
+                          title = paste("Tax expenditures by Tobacco Products,", actual_year_simulation),
+                          font = list(size = 11),
+                          xaxis = list(title = ''),
+                          yaxis = list(title = 'In LCU'),
+                          annotations = list(
+                            x = 0, y = -0.056,
+                            text = "Source: Calculations by WB staff based on data from National authorities",
+                            showarrow = FALSE,
+                            xref = 'paper',
+                            yref = 'paper',
+                            align = 'left'
+                          ),
+                          legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                        )
+                      
+                     
+
+            # 1.2.12 TE'S by type of Alcohol Products---------------------------------
+
+                      AlcoholProducts_TE<-Estimation_TE%>%
+                        dplyr::filter(DataSet=='Alcohol')%>%
+                        dplyr::select(Subdataset,Excise_TE)%>%
+                        dplyr::group_by(Subdataset)%>%
+                        dplyr::summarise(Value=sum(Excise_TE,na.rm = TRUE))
+                      
+                      
+                      AlcoholProducts_TE<-melt(AlcoholProducts_TE)
+                      
+                      
+                      AlcoholProducts_TE$color <- factor(AlcoholProducts_TE$Subdataset, labels =c( "royalblue","orange","forestgreen","brown","cyan"))
+                      
+                      # Reorder the levels of Subdataset based on value in descending order
+                      AlcoholProducts_TE$Subdataset <- factor(AlcoholProducts_TE$Subdataset, levels = AlcoholProducts_TE$Subdataset[order(AlcoholProducts_TE$value, decreasing = TRUE)])
+                      
+                      # Create the plot with reordered Subdataset levels
+                      ExciseStructure_AlcoholProducts <- plot_ly(AlcoholProducts_TE, x = ~Subdataset , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', 
+                                                                 marker = list(color = ~color), name = ~Subdataset
+                      ) %>% 
+                        layout(
+                          title = paste("Tax expenditures by Alcohol Products,", actual_year_simulation),
+                          font = list(size = 11),
+                          xaxis = list(title = ''),
+                          yaxis = list(title = 'In LCU'),
+                          annotations = list(
+                            x = 0, y = -0.056,
+                            text = "Source: Calculations by WB staff based on data from National authorities",
+                            showarrow = FALSE,
+                            xref = 'paper',
+                            yref = 'paper',
+                            align = 'left'
+                          ),
+                          legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                        )
+                      
+                      
+                      
 # III. Main table ------------------------------------------------------
 
+
+                      TE_MineralOils_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Fuels")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                      TE_TobaccoProducts_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Tobacco")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                      TE_Alcohol_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Alcohol")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                      TE_Cars_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                      
+                      
 
                                             MainResultsExcise<-MacroFiscalData%>%
                                               dplyr::filter(Year==actual_year_simulation)%>%
@@ -864,11 +1087,21 @@ options(scipen=999)
                                                 `Actual Total Import`=sum(Estimation_TE$Value,na.rm=TRUE)/1e+06,
                                                 `Actual Total Excise Revenues`=sum(Estimation_TE$ExciseRevenue,na.rm=TRUE)/1e+06,
                                                 `Excise Revenue Benchmark`=sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
+                                                
                                                 `Tax Expenditures`=sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
                                                 `Tax Expenditures as % of GDP`=(`Tax Expenditures`/GDP)*100,
                                                 `Tax Expenditures as % of Government Revenue`=(`Tax Expenditures`/GeneralGovernmentRevenue)*100,
                                                 `Tax Expenditures (as % of Taxes On Products)`=(`Tax Expenditures`/TaxesOnProducts)*100,
-                                                `Tax Expenditures (as % of ExciseRevenue)`=(`Tax Expenditures`/TaxesOnProducts)*100
+                                                `Tax Expenditures (as % of ExciseRevenue)`=(`Tax Expenditures`/TaxesOnProducts)*100,
+                                                # TE's by type of products
+                                                `Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
+                                                `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
+                                                `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
+                                                `Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                                
+                                                
+                                                
+                                                
                                                 )%>%
                                               dplyr::select(
                                                 `Actual Total Import`,
@@ -878,7 +1111,11 @@ options(scipen=999)
                                                 `Tax Expenditures as % of GDP`,
                                                 `Tax Expenditures as % of Government Revenue`,
                                                 `Tax Expenditures (as % of Taxes On Products)`,
-                                                `Tax Expenditures (as % of ExciseRevenue)`
+                                                `Tax Expenditures (as % of ExciseRevenue)`,
+                                                `Tax Expenditures by Mineral Oils`,
+                                                `Tax Expenditures by Tobacco Products`,
+                                                `Tax Expenditures by Alcohol Products`,
+                                                `Tax Expenditures by Cars`
                                                 )
 
 
