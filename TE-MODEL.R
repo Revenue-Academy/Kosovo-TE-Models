@@ -66,7 +66,7 @@ ui <- dashboardPage(
         menuItem("Simulation Parameters", tabName = "Excise-simulationParameters"),
         menuItem("Simulation", tabName = "Excise-simulation"),
         menuItem("Results",  icon = icon("gauge"),
-                # menuSubItem("TaxExpenditures_HS", tabName = "HS_CODES"),
+                 menuSubItem("TaxExpenditures_HS", tabName = "HS_EXCISE"),
                  #menuSubItem("TE_Countries", tabName = "TE_agg_countries"),
                  menuSubItem("MainResults", tabName = "MainResultsExciseFinal"
                              )
@@ -264,6 +264,14 @@ ui <- dashboardPage(
           )
         )
       ),
+    tabItem(
+      tabName = "HS_EXCISE",
+      fluidRow(
+        column(12,
+               DTOutput("HS_CODE_EXCISE_TE")
+        )
+      )
+    ),
   # Charts tab
   tabItem(
     tabName = "ExciseRevenue",
@@ -619,16 +627,16 @@ server <- function(input, output, session) {
     
     # Show Excise tables
     # # Table 1
-    # output$HS_CODE_TE<-renderDT({
-    #   datatable(CustomsDuties_TE_agg_HS_subset,
-    #             caption = tags$caption(paste("Tax expenditures by HS codes in LCU,", actual_year_simulation), class = "table-caption-bold"),
-    #             extensions='Buttons',
-    #             options = list(
-    #               pageLength = 15,
-    #               dom = 'Blfrtip',
-    #               buttons=c('copy','csv','excel','print','pdf'),
-    #               lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
-    # })
+    output$HS_CODE_EXCISE_TE<-renderDT({
+      datatable(Estimation_Excise_TE_HS,
+                caption = tags$caption(paste("Tax expenditures by HS codes in LCU,", actual_year_simulation), class = "table-caption-bold"),
+                extensions='Buttons',
+                options = list(
+                  pageLength = 15,
+                  dom = 'Blfrtip',
+                  buttons=c('copy','csv','excel','print','pdf'),
+                  lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
+    })
     # 
     # # Table 2
     # output$TE_agg_countries <-renderDT({
@@ -691,32 +699,40 @@ server <- function(input, output, session) {
     
     
     # 4.4   Info Boxes ---------------------------------------------
-    
+
     value1 <- MainResultsExciseFinal %>%
-      filter(Description == "Actual Total Excise Revenues") %>%
-      select(Value)
-    
-    value2 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures") %>%
       select(Value)
     
-    value3 <- MainResultsExciseFinal %>%
+    value2 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures as % of GDP") %>%
       select(Value)
     
+    value3 <- MainResultsExciseFinal %>%
+      filter(Description == "Tax Expenditures by Mineral Oils") %>%
+      select(Value)
+    
     value4 <- MainResultsExciseFinal %>%
-      filter(Description == "Tax Expenditures as % of Government Revenue") %>%
+      filter(Description == "Tax Expenditures by Tobacco Products") %>%
+      select(Value)
+    
+    value5 <- MainResultsExciseFinal %>%
+      filter(Description == "Tax Expenditures by Alcohol Products") %>%
+      select(Value)
+    
+    value6 <- MainResultsExciseFinal %>%
+      filter(Description == "Tax Expenditures by Cars") %>%
       select(Value)
     
     # Update the content of the info boxes
     output$exciseInfoBox <- renderUI({
       info_boxes <- list(
-        infoBox("Actual Total Excise Revenues", value1, icon = icon("hand-holding-dollar"), width = 4, color = "red"),
-        infoBox("Tax Expenditures", value2, icon = icon("chart-pie"), width = 4, color = "green"),
-        infoBox("Tax Expenditures as % of GDP", value3,  icon = icon("gauge"), width = 4,color = "blue"),
-        infoBox("Tax Expenditures as % of Government Revenue", value4,  icon = icon("chart-pie"), width = 4,color = "orange")
-        
-        # Add more info boxes if needed
+        infoBox("Tax Expenditures (in million of LCU )", value1, icon = icon("hand-holding-dollar"), width = 4, color = "red"),
+        infoBox("Tax Expenditures (as % of GDP)", value2, icon = icon("chart-pie"), width = 4, color = "green"),
+        infoBox("Tax Expenditures by Mineral Oils", value3,  icon = icon("gas-pump"), width = 4,color = "blue"),
+        infoBox("Tax Expenditures by Tobacco Products", value4,  icon = icon("ban-smoking"), width = 4,color = "orange"),
+        infoBox("Tax Expenditures by Alcohol Products", value5,  icon = icon("fas fa-beer-mug-empty"), width = 4,color = "navy"),
+        infoBox("Tax Expenditures by Cars", value6,  icon = icon("car"), width = 4,color = "maroon")
       )
       do.call(tagList, info_boxes)
     })
