@@ -136,7 +136,7 @@ suppressMessages({
 # II.Preparing data for charts and for the main table --------------------------------------------
 
       # 1.Preparing data for Charts ---------------------------------------
-            # 1.1 Regular Import------------------------------------------
+            # 1.1 Regular Import ------------------------------------------
                     
                     CustomsValue<-CustomsDuties_TE_agg_HS%>%
                       dplyr::select(Chapter,Value)%>%
@@ -237,6 +237,8 @@ suppressMessages({
              
             # 1.6 TE's by WTO classification (MTN) Categories -----------------------------------------
       
+              actual_year_simulation <- unique(Import_raw_monthly$Year)
+              
               # Multilateral Trade Negotiations (MTN) Categories, HS 2017
               # Multilateral Trade Negotiations (MTN) categories were first defined in the Tokyo Round and adapted for the Harmonized System in the Uruguay Round.
               # The product group breakdown in this publication deviates slightly from the previous definition, which was based on the HS 1992 nomenclature.
@@ -246,8 +248,15 @@ suppressMessages({
                 dplyr::group_by(Six_digit,Treatment)%>%
                 dplyr::summarise(CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
 
-
-              CustomsDuties_TE_MTN<-left_join(CustomsDuties_TE_MTN,WTO_MTN,by =c("Six_digit"))%>%
+              # New
+              WTO_MTN_subset <- WTO_MTN %>%
+                filter(
+                  (actual_year_simulation >= 2022 & str_detect(HS_year, ">2022")) |
+                    (actual_year_simulation < 2022 & str_detect(HS_year, "<2022"))
+                )
+              
+              #CustomsDuties_TE_MTN<-left_join(CustomsDuties_TE_MTN,WTO_MTN,by =c("Six_digit"))%>%
+              CustomsDuties_TE_MTN<-left_join(CustomsDuties_TE_MTN,WTO_MTN_subset,by =c("Six_digit"))%>%
                 dplyr::select(Product_group,Treatment,CustomsDuties_TE)
 
               CustomsDuties_TE_MTN <- distinct(CustomsDuties_TE_MTN)
@@ -328,7 +337,7 @@ suppressMessages({
 
         # links https://circabc.europa.eu/ui/group/c1b49c83-24a7-4ff2-951c-621ac0a89fd8/library/d3056f31-a684-430a-a77d-12d1d0fdfffa?p=2&n=10&sort=modified_DESC
               
-              actual_year_simulation <- unique(Import_raw_monthly$Year)
+            
 
                CustomsDuties_TE_CPA<-CustomsDuties_TE_agg_HS%>%
                        dplyr::select(Eight_digit,Treatment,CustomsDuties_TE)%>%

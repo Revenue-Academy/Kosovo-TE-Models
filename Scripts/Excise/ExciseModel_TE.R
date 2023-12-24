@@ -751,7 +751,15 @@ options(scipen=999)
                         dplyr::summarise(Excise_TE=sum(Excise_TE,na.rm = TRUE))
                       
                       
-                      Excise_TE_MTN<-left_join(Excise_TE_MTN,WTO_MTN,by =c("Six_digit"))%>%
+                      WTO_MTN_subset <- WTO_MTN %>%
+                        filter(
+                          (actual_year_simulation >= 2022 & str_detect(HS_year, ">2022")) |
+                            (actual_year_simulation < 2022 & str_detect(HS_year, "<2022"))
+                        )
+                      
+                      
+                      
+                      Excise_TE_MTN<-left_join(Excise_TE_MTN,WTO_MTN_subset,by =c("Six_digit"))%>%
                         dplyr::select(Product_group,Excise_TE)
                       
                       Excise_TE_MTN <- distinct(Excise_TE_MTN)
