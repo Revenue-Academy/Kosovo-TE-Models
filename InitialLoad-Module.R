@@ -59,6 +59,15 @@ path1<-"C:/Models/Test/Kosovo-TE-Models"# <--------Set your path here
                   # WTO classification
                   WTO_MTN <- read_excel("WTO-CORRELATION/WTO_HS.xlsx", 
                                         sheet = "WTO_HS")
+                  # Classifications on economic statistics-UN
+                  # https://unstats.un.org/unsd/classifications/Econ#corresp-hs
+                  
+                  # BEC<-read_excel("BEC/BEC.xlsx", 
+                  #                 sheet = "CN-BEC")
+                  
+                  BEC<-read_excel("BEC/BEC5.xlsx",sheet = "HS12BEC5")%>%
+                    dplyr::select(Six_digit,BEC5Code1,BEC5EndUse)
+                  
                   
                   # HS-Sections
                   HS_Sections <- read_excel("WTO-CORRELATION/WTO_HS.xlsx", 
@@ -123,7 +132,8 @@ path1<-"C:/Models/Test/Kosovo-TE-Models"# <--------Set your path here
                 
                 
                 rm(list = ls()[!ls() %in% c("GeoDimension","HS_Sections","path",                    
-                                               "path1","WTO_MTN","mapdata_iso3c","MacroFiscalData","CPA_CN","CPA_NACE","mapdata_iso3c"
+                                               "path1","WTO_MTN","BEC",
+                                            "mapdata_iso3c","MacroFiscalData","CPA_CN","CPA_NACE","mapdata_iso3c"
                                             )])
                 
                 save.image(file=".RData") 
