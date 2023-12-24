@@ -62,9 +62,9 @@ ui <- dashboardPage(
     conditionalPanel(
       condition = 'input["vertical-tabs"] == "Excise"',
       sidebarMenu(
-        menuItem("Input", tabName = "Excise-input"),
-        menuItem("Simulation Parameters", tabName = "Excise-simulationParameters"),
-        menuItem("Simulation", tabName = "Excise-simulation"),
+        menuItem("Input", tabName = "Excise-input",icon = icon("database")),
+        menuItem("Simulation Parameters", tabName = "Excise-simulationParameters",icon = icon("edit")),
+        menuItem("Run Simulation", tabName = "Excise-simulation",icon = icon("calculator")),
         menuItem("Results",  icon = icon("gauge"),
                  menuSubItem("TaxExpenditures_HS", tabName = "HS_EXCISE"),
                  #menuSubItem("TE_Countries", tabName = "TE_agg_countries"),
@@ -76,7 +76,7 @@ ui <- dashboardPage(
                  menuSubItem("ExciseRevenue", tabName = "ExciseRevenue"), 
                  menuSubItem("ExciseTaxExpenditures", tabName = "ExciseTaxExpenditures")
                  ),
-        menuItem("Summary", tabName = "Excise-summary")
+        menuItem("Summary", tabName = "Excise-summary",icon = icon("info"))
       )
     )
   ),
@@ -279,18 +279,17 @@ ui <- dashboardPage(
       column(6,
              selectInput("chartSelectExciseRevenue", "Select Chart",
                          choices = c(
-                           "Excise_PctOfGDP1",
-                           "StructureOfTaxRevenues_Nominal1", 
-                           "StructureOfTaxRevenues_Percentage1", 
-                           "ExciseGoodRegulaImport_plt1",
-                           "ImportStructureExcise1",
-                           "ExciseProductCategories1",
+                           "Excise_PctOfGDP",
+                           "Excise_StructureOfTaxRevenues_Nominal", 
+                           "Excise_StructureOfTaxRevenuesPct", 
+                           "Excise_RegularImport",
+                           "Excise_RevenueStructure",
                            "Structure_Excise_MineralOils",
                            "Structure_Excise_TobaccoProducts",
                            "Structure_Excise_AlcoholProducts"
                            
                          ),
-                         selected = "Excise_PctOfGDP1")
+                         selected = "Excise_PctOfGDP")
       )
     ),
     fluidRow(
@@ -320,7 +319,7 @@ ui <- dashboardPage(
           fluidRow(
             uiOutput("exciseInfoBox"),
             column(12,
-                   plotlyOutput("Excise_PctOfGDP1", height = "700px"))
+                   plotlyOutput("Excise_PctOfGDP", height = "700px"))
           )
         )
      )
@@ -613,7 +612,7 @@ server <- function(input, output, session) {
       # Execute scripts excluding ExciseModel_TE.R
       source("./Scripts/Customs/ChartsParametars-Module.R")
       source("./Scripts/Excise/ExciseModel_TE.R")
-     # source("./Scripts/Customs/Export-Module.R")
+      source("./Scripts/Excise/Export-Module.R")
     } else {
 
     }
@@ -670,12 +669,11 @@ server <- function(input, output, session) {
     
         output$chartOutputExciseRevenue <- renderPlotly({
           switch(input$chartSelectExciseRevenue,
-                 "Excise_PctOfGDP1" = Excise_PctOfGDP1,
-                 "StructureOfTaxRevenues_Nominal1" = StructureOfTaxRevenues_Nominal1,
-                 "StructureOfTaxRevenues_Percentage1" = StructureOfTaxRevenues_Percentage1,
-                 "ExciseGoodRegulaImport_plt1" = ExciseGoodRegulaImport_plt1,
-                 "ExciseProductCategories1"= ExciseProductCategories1,
-                 "ImportStructureExcise1" = ImportStructureExcise1,
+                 "Excise_PctOfGDP" = Excise_PctOfGDP,
+                 "Excise_StructureOfTaxRevenues_Nominal" = Excise_StructureOfTaxRevenues_Nominal,
+                 "Excise_StructureOfTaxRevenuesPct" = Excise_StructureOfTaxRevenuesPct,
+                 "Excise_RegularImport"= Excise_RegularImport,
+                 "Excise_RevenueStructure" = Excise_RevenueStructure,
                  "Structure_Excise_MineralOils"=Structure_Excise_MineralOils,
                  "Structure_Excise_TobaccoProducts"=Structure_Excise_TobaccoProducts,
                  "Structure_Excise_AlcoholProducts"=Structure_Excise_AlcoholProducts
