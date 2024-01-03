@@ -15,6 +15,8 @@ library(stringr)
 library(reshape2)
 library(base64enc)
 library(countrycode)
+library(sfo)
+library(circlize)
 
 #Day 1 training
 #Besart testing
@@ -286,7 +288,8 @@ ui <- dashboardPage(
                            "Excise_RevenueStructure",
                            "Structure_Excise_MineralOils",
                            "Structure_Excise_TobaccoProducts",
-                           "Structure_Excise_AlcoholProducts"
+                           "Structure_Excise_AlcoholProducts",
+                           "Alcohol_ChordPlot"
                            
                          ),
                          selected = "Excise_PctOfGDP")
@@ -304,7 +307,7 @@ ui <- dashboardPage(
       column(6,
              selectInput("chartSelectTaxExpendituresExcise", "Select Chart",
                          choices = c(
-                           "Chapters_HS1","ProductGroups_MTN1","ExciseStructure_MineralOils","ExciseStructure_TobaccoProducts","ExciseStructure_AlcoholProducts"
+                           "Chapters_HS1","ProductGroups_MTN1","ExciseStructure_MineralOils","ExciseStructure_TobaccoProducts","ExciseStructure_AlcoholProducts","DistributionOfTE"
                          ),
                          selected = "Chapters_HS1")
       )
@@ -676,7 +679,8 @@ server <- function(input, output, session) {
                  "Excise_RevenueStructure" = Excise_RevenueStructure,
                  "Structure_Excise_MineralOils"=Structure_Excise_MineralOils,
                  "Structure_Excise_TobaccoProducts"=Structure_Excise_TobaccoProducts,
-                 "Structure_Excise_AlcoholProducts"=Structure_Excise_AlcoholProducts
+                 "Structure_Excise_AlcoholProducts"=Structure_Excise_AlcoholProducts,
+                 "Alcohol_ChordPlot"=Alcohol_ChordPlot
 
           )
         })
@@ -690,7 +694,8 @@ server <- function(input, output, session) {
              "ProductGroups_MTN1" = ProductGroups_MTN1,
              "ExciseStructure_MineralOils"=ExciseStructure_MineralOils,
              "ExciseStructure_TobaccoProducts"=ExciseStructure_TobaccoProducts,
-             "ExciseStructure_AlcoholProducts"=ExciseStructure_AlcoholProducts
+             "ExciseStructure_AlcoholProducts"=ExciseStructure_AlcoholProducts,
+             "DistributionOfTE"=DistributionOfTE
              
       )
     })

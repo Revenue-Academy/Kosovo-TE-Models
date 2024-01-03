@@ -65,9 +65,11 @@ path1<-"C:/Models/Test/Kosovo-TE-Models"# <--------Set your path here
                   # BEC<-read_excel("BEC/BEC.xlsx", 
                   #                 sheet = "CN-BEC")
                   
-                  BEC<-read_excel("BEC/BEC5.xlsx",sheet = "HS12BEC5")%>%
-                    dplyr::select(Six_digit,BEC5Code1,BEC5EndUse)
+                  # BEC<-read_excel("BEC/BEC5.xlsx",sheet = "HS12BEC5")%>%
+                  #   dplyr::select(Six_digit,BEC5Code1,BEC5EndUse)
                   
+                  BEC<-read_excel("BEC/HS-BEC.xlsx",sheet = "HS SITC BEC")%>%
+                    dplyr::select(HS17,HS22,BEC5)
                   
                   # HS-Sections
                   HS_Sections <- read_excel("WTO-CORRELATION/WTO_HS.xlsx", 
