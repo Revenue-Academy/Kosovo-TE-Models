@@ -332,13 +332,13 @@ options(scipen=999)
                                            
 
                   # 4.3.2 Sugar-sweetened beverages(SSB) ------------------------------------------------------------------
-                              
-                              # # Non Alcoholic Beer is included here
-                              # SSB_Quantity <- CustomsDuties_TE_agg_HS %>%
-                              #   filter(Four_digit == 2202)
-                              # 
-                              #   SSB_Quantity$Subdataset<-c("SSB")
-                              #                 
+# Do tuka !!! Ova da se vnese 
+                              # # # Non Alcoholic Beer is included here
+                              SSB_Quantity <- CustomsDuties_TE_agg_HS %>%
+                                filter(Four_digit == 2202)
+
+                                SSB_Quantity$Subdataset<-c("SSB")
+
                                               
                   # 4.3.3 Wine of fresh grapes ----------------------------------------------------
                           
@@ -412,12 +412,16 @@ options(scipen=999)
 
                     # SSB is not included in the dataset !!!
                           
-                    AlcoholQuantity <- bind_rows(BeerQuantity, WineQuantity,VermouthQuantity,OtherFermentedBeveragesQuantity,UndenaturedEthylAlcoholQuantity)
+                   # AlcoholQuantity <- bind_rows(BeerQuantity,WineQuantity,VermouthQuantity,OtherFermentedBeveragesQuantity,UndenaturedEthylAlcoholQuantity)
+                      
+                    AlcoholQuantity <- bind_rows(BeerQuantity,WineQuantity,VermouthQuantity,OtherFermentedBeveragesQuantity,UndenaturedEthylAlcoholQuantity,SSB_Quantity)
                                               
                                                                   
                     # Removing Nan from effective tax rates
                     AlcoholQuantity$Effective_Excise_rate<-ifelse(AlcoholQuantity$Quantity==0,0,AlcoholQuantity$Effective_Excise_rate)
-                                              
+                                     
+                    
+                             
                     Alcohol_tbl<-AlcoholQuantity%>%
                                                 dplyr::filter(ExciseRevenue>0)                    
                               
@@ -442,6 +446,15 @@ options(scipen=999)
                     
                     Alcohol_tbl$Alc_Content<-round(Alcohol_tbl$Alc_Content,2)
                               
+                    
+                    # Assuming your data frame is named Alcohol_tbl
+                    Alcohol_tbl <- Alcohol_tbl %>%
+                      mutate(DataSet  = case_when(
+                        grepl("SSB", Subdataset, ignore.case = TRUE) ~ "SSB",
+                        TRUE ~ DataSet  # If not containing 'SSB', keep the original value
+                      ))
+                    
+                    
                     #write.csv(Alcohol_tbl,"Alcohol_tbl.csv")
                     
             #View(Alcohol_tbl)
@@ -486,7 +499,7 @@ options(scipen=999)
                         )
                     }
                     
-                    # Apply the function to your data
+                    # Apply the function 
                     Estimation_TE <- calculate_benchmark_fun(ExciseFinal_tbl)%>%
                       dplyr::rename("Excise_BenchmarkRevenue"="result")%>%
                       dplyr::mutate(Excise_TE=Excise_BenchmarkRevenue-ExciseRevenue)
@@ -517,13 +530,14 @@ options(scipen=999)
         # 1.1 Historic Data Tab -----------------------------------------------------------
             #  1.1.1 Excise_Pct Of GDP ---------------------------------------
           
-                            df_plt <- MacroFiscalData %>%
-                              dplyr::select(Year, GDP, `Taxes on imports excluding VAT and duties`)
+                    df_plt <- MacroFiscalData %>%
+                      dplyr::select(Year, GDP, Excise_PctOfGDP) %>%
+                      mutate(Excise_PctOfGDP = round(Excise_PctOfGDP, 1))
                             
                             
                             Excise_PctOfGDP <- plot_ly(df_plt)
                             Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~GDP, type = 'bar', name = 'GDP')
-                            Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~`Taxes on imports excluding VAT and duties`, type = 'scatter', mode = 'lines+markers', name = 'Share of excise revenue in GDP ',
+                            Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~Excise_PctOfGDP, type = 'scatter', mode = 'lines+markers', name = 'Share of excise revenue in GDP ',
                                                                              yaxis = 'y2', line = list(dash = 'dot', color = "#FFA500", width = 6))
                             
                             Excise_PctOfGDP <- Excise_PctOfGDP %>% layout(title = 'Nominal GDP and share of excise revenues in GDP,2015-2022',
@@ -531,7 +545,8 @@ options(scipen=999)
                                                                            yaxis = list(side = 'left', title = 'In million LCU', showgrid = FALSE, zeroline = FALSE),
                                                                            yaxis2 = list(side = 'right', overlaying = "y", title = 'Percentage', showgrid = FALSE, zeroline = FALSE, font = list(size = 11)), 
                                                                            annotations = list(
-                                                                             x = -0.1, y = -0.056,
+                                                                             #x = -0.1, y = -0.056,
+                                                                             x = 0.01, y = -0.056,
                                                                              text = "Source: National authorities",
                                                                              showarrow = FALSE,
                                                                              xref = 'paper',
@@ -560,7 +575,7 @@ options(scipen=999)
                                                                          yaxis = list(title = ' '),
                                                                          annotations =
                                                                            list( x = 0, y = -0.05,
-                                                                                 text = "Source:National authorities",font = t_8,
+                                                                                 text = "Source:National authorities",#font = t_8,
                                                                                  showarrow = F,
                                                                                  xref='paper',
                                                                                  yref='paper',align='left'),barmode = 'stack')
@@ -578,7 +593,7 @@ options(scipen=999)
                                                                          yaxis = list(title = 'In percentage '),
                                                                          annotations =
                                                                            list( x = 0, y = -0.05,
-                                                                                 text = "Source:National authorities",font = t_8,
+                                                                                 text = "Source:National authorities",#font = t_8,
                                                                                  showarrow = F,
                                                                                  xref='paper',
                                                                                  yref='paper',align='left'),barmode = 'stack')
@@ -594,12 +609,31 @@ options(scipen=999)
                             
                             ExciseGoodRegulaImport$HS<-"Excise by types of goods "
                             
-                            Excise_RegularImport<-plot_ly(data =ExciseGoodRegulaImport, type = "treemap", values = ~round(Value/1e06,1), labels = ~DataSet,
-                                                                 parents = ~HS,
-                                                                 name = " ",
-                                                                 text = ~DataSet   ,
-                                                                 textinfo="label+value+percent parent")%>%
-                                                                layout(title=paste("Structure of Regular Import by types of excise goods in LCU (Millions),", actual_year_simulation),font =t_11)
+                                                               
+                            Excise_RegularImport <- plot_ly(
+                              data = ExciseGoodRegulaImport,
+                              type = "treemap",
+                              values = ~round(Value/1e06, 1),
+                              labels = ~DataSet,
+                              parents = ~HS,
+                              name = " ",
+                              text = ~DataSet,
+                              textinfo = "label+value+percent parent"
+                            ) %>%
+                              layout(
+                                title = paste("Structure of Regular Import by types of excise goods in LCU (Millions),", actual_year_simulation),
+                                font = t_11,
+                                annotations = list(
+                                  x = 0,
+                                  y = -0.05,
+                                  xref = 'paper',
+                                  yref = 'paper',
+                                  text = "Source: National authorities",
+                                  showarrow = FALSE,
+                                  font = list(size = 11)
+                                )
+                              )
+                            
                             
                             
                             
@@ -619,8 +653,19 @@ options(scipen=999)
                                                          name = " ",
                                                          text = ~DataSet   ,
                                                          textinfo="label+value+percent parent")%>%
-                                                         layout(title=paste("Structure of excise revenues by type of excise goods in LCU (Millions),", actual_year_simulation),font =t_11)
-                            
+                                                         #layout(title=paste("Structure of excise revenues by type of excise goods in LCU (Millions),", actual_year_simulation),font =t_11)
+                                                            layout(
+                                                              title = paste("Structure of Regular Imports by Types of Excise Goods in LCU (Millions),", actual_year_simulation),
+                                                              font = t_11,
+                                                              annotations = list(
+                                                                x = 0,
+                                                                y = -0.05,
+                                                                xref = 'paper',
+                                                                yref = 'paper',
+                                                                text = "Source: National authorities",
+                                                                showarrow = FALSE,
+                                                                font = list(size = 11)
+                                                              ))
                                                         
                             
         
@@ -638,15 +683,15 @@ options(scipen=999)
 
                             Structure_Excise_MineralOils <- Structure_Excise_MineralOils %>% add_pie(hole = 0.6)
                             Structure_Excise_MineralOils <- Structure_Excise_MineralOils %>% layout(
-                                  title = paste("Structure of excise revenues by type of mineral oils", actual_year_simulation),
+                                  title = paste("Structure of Excise Revenues by Type of Mineral Oils,", actual_year_simulation),
                                   font = t_11,
                                   showlegend = TRUE,
                                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                   annotations = list(
-                                    x = 0, y = -0.1,
-                                    #title = "Additional Information:",  # New subtitle
-                                    #text = "Preferential treatment includes goods covered by Free Trade Agreements, while non-preferential treatment includes only imports subject to customs tariffs.",
+                                    x = 0, y = -0.05,
+                                    #x = 0.2, y = -0.05,
+                                    text = "Source: National authorities",
                                     showarrow = FALSE,
                                     xref = 'paper',
                                     yref = 'paper',
@@ -654,10 +699,6 @@ options(scipen=999)
                                   ),
                                   font = t_8)
                             
-                            
-                          
-                            
-
 
             #  1.1.7 Structure of excise for tobacco products  -------------------------------
 
@@ -671,26 +712,29 @@ options(scipen=999)
                             Structure_Excise_TobaccoProducts <- ExciseRevenueBasePie %>%
                               plot_ly(labels = ~Subdataset, values = ~value)
                             
-                            Structure_Excise_TobaccoProducts <- Structure_Excise_TobaccoProducts %>% add_pie(hole = 0.6)
-                            Structure_Excise_TobaccoProducts <- Structure_Excise_TobaccoProducts %>% layout(
-                                                              title = paste("Structure of excise revenues by type of tobacco products", actual_year_simulation),
-                                                              font = t_11,
-                                                              showlegend = TRUE,
-                                                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                                                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                                                              annotations = list(
-                                                                x = 0, y = -0.1,
-                                                                showarrow = FALSE,
-                                                                xref = 'paper',
-                                                                yref = 'paper',
-                                                                align = 'left'
-                                                              ),
-                                                              font = t_8)  
+                            Structure_Excise_TobaccoProducts <- Structure_Excise_TobaccoProducts %>% add_pie(hole = 0.6,rotation = 60)
+                             Structure_Excise_TobaccoProducts <- Structure_Excise_TobaccoProducts %>% layout(
+                              title = paste("Structure of Excise Revenues by Type of Tobacco Products,", actual_year_simulation),
+                              font = t_11,
+                              showlegend = TRUE,
+                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              annotations = list(
+                                x = 0, y = -0.05,
+                                #x = 0.2, y = -0.05,
+                                text = "Source: National authorities",
+                                showarrow = FALSE,
+                                xref = 'paper',
+                                yref = 'paper',
+                                align = 'left'
+                              ),
+                              font = t_8)
                             
                             
             #  1.1.8 Structure of excise for alcohol ----------------------------------
 
                             AlcoholProducts_Structure<-Alcohol_tbl%>%
+                                    dplyr::filter(DataSet=='Alcohol')%>%
                                     dplyr::select(Subdataset,ExciseRevenue)%>%
                                     dplyr::group_by(Subdataset)%>%
                                     dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
@@ -702,19 +746,34 @@ options(scipen=999)
                             
                             Structure_Excise_AlcoholProducts <- Structure_Excise_AlcoholProducts %>% add_pie(hole = 0.6)
                             Structure_Excise_AlcoholProducts <- Structure_Excise_AlcoholProducts %>% layout(
-                                                                title = paste("Structure of excise revenues by type of Alcohol products", actual_year_simulation),
-                                                                font = t_11,
-                                                                showlegend = TRUE,
-                                                                xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                                                                yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                                                                annotations = list(
-                                                                  x = 0, y = -0.1,
-                                                                  showarrow = FALSE,
-                                                                  xref = 'paper',
-                                                                  yref = 'paper',
-                                                                  align = 'left'
-                                                                ),
-                                                                font = t_8) 
+                                                                # title = paste("Structure of excise revenues by type of Alcohol products", actual_year_simulation),
+                                                                # font = t_11,
+                                                                # showlegend = TRUE,
+                                                                # xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                # yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                # annotations = list(
+                                                                #   x = 0, y = -0.1,
+                                                                #   showarrow = FALSE,
+                                                                #   xref = 'paper',
+                                                                #   yref = 'paper',
+                                                                #   align = 'left'
+                                                                # ),
+                                                                # font = t_8) 
+                              title = paste("Structure of Excise Revenues by Type of Alcohol Products,", actual_year_simulation),
+                              font = t_11,
+                              showlegend = TRUE,
+                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                              annotations = list(
+                                x = 0, y = -0.05,
+                                #x = 0.2, y = -0.05,
+                                text = "Source: National authorities",
+                                showarrow = FALSE,
+                                xref = 'paper',
+                                yref = 'paper',
+                                align = 'left'
+                              ),
+                              font = t_8)
                             
                             
                             # 
@@ -727,6 +786,76 @@ options(scipen=999)
                             # 
                             # #facet_plot
                             
+                            
+            # 1.1.9 Structure of excise pure alcohol-----------------------------------------------
+
+                            Alcohol_tbl_subset<-Alcohol_tbl%>%
+                              dplyr::select(Subdataset,DataSet,Pure_Alc)
+
+                            Alcohol_tbl_subset$Subdataset[Alcohol_tbl_subset$Subdataset == "OTHER FERMENTED BEVERAGES" | Alcohol_tbl_subset$Subdataset == "VERMOUTH"] <- "OTHER"
+
+                            Alcohol_tbl_subset<-Alcohol_tbl_subset%>%
+                              dplyr::group_by(Subdataset,DataSet)%>%
+                              dplyr::summarise(Pure_Alc=sum(Pure_Alc,na.rm = TRUE))
+
+                           # Alcohol_tbl_subset <- Alcohol_tbl_subset[order(Alcohol_tbl_subset$Category), ]
+
+                            #old version
+                            col.pal = c("ALCHOLIC BEVERAGE" = "red",
+                                        "WINE" = "maroon",
+                                        BEER  = "blue"
+                                        )
+
+
+
+                            # Alcohol_ChordPlot<-chordDiagram(Alcohol_tbl_subset,
+                            #              grid.col = col.pal,
+                            #              title(main = "Distribution of Pure Alcohol,by Excise products"))
+
+                            library(cowplot)
+                            #plot(runif(10))
+                            chordDiagram(Alcohol_tbl_subset,
+                                         grid.col = col.pal,
+                                         title(main = "Distribution of Pure Alcohol,by Excise products"))
+                            
+                            # Alcohol_ChordPlot <- recordPlot()
+                            # #ggdraw(Alcohol_ChordPlot)
+                            # 
+                            # Alcohol_ChordPlot <- ggplotly(Alcohol_ChordPlot)
+                            # 
+                            # new version
+                            # Da se proba ovaa varijanta https://r-graph-gallery.com/chord-diagram-interactive.html
+                            
+                            # Alcohol_tbl_subset<-as.matrix(Alcohol_tbl_subset)
+                            # ####
+                            # https://r-graph-gallery.com/chord-diagram-interactive.html
+                            # # Set the RowNames column as the row names of the data frame
+                            # rownames(Alcohol_tbl_subset) <- Alcohol_tbl_subset
+                            # Alcohol_tbl_subset$RowNames <- NULL  # Remove the original RowNames column
+                            # 
+                            # # Use xtabs to create a square matrix
+                            # square_matrix <- xtabs(cbind(A, B, C) ~ rownames(Alcohol_tbl_subset) + colnames(Alcohol_tbl_subset), data = Alcohol_tbl_subset)
+                            # 
+                            # # Convert the result to a matrix
+                            # result_matrix <- as.matrix(square_matrix)
+                            # 
+                            # 
+                            # 
+                            
+                            ######
+                            
+                            # # A vector of 4 colors for 4 groups
+                            # haircolors <- c("black", "blonde", "brown", "red")
+                            # 
+                            # dimnames(m) <- list(have = haircolors,
+                            #                     prefer = haircolors)
+                            # groupColors <- c("#000000", "#FFDD89", "#957244", "#F26223")
+                            # 
+                            # # Build the chord diagram:
+                            # p <- chorddiag(Alcohol_tbl_subset, groupColors = groupColors, groupnamePadding = 20)
+                            # p
+                            # 
+                          
                             
         # 1.2 Tax Expenditures Tab -----------------------------------------------------
             # 1.2.1 TE's by Chapters ---------------------------------------------------------
@@ -989,6 +1118,24 @@ options(scipen=999)
                           ),
                           legend = list(orientation = 'v', x = 1.02, y = 0.5)
                         )
+                      
+                      
+                      
+            # 1.2.13 TE'S Sankey ------------------------------------------
+
+                      Estimation_TE_subset<-Estimation_TE%>%
+                        dplyr::select(Chapter,Four_digit,DataSet,Subdataset,Excise_TE)%>%
+                        dplyr::group_by(Chapter,Four_digit,DataSet,Subdataset)%>%
+                        dplyr::summarise(total = sum(Excise_TE), .groups = "drop")
+                      
+                      Estimation_TE_subset$RegularImport<-c('RegularImport')
+                      
+                     DistributionOfTE<-sankey_ly(Estimation_TE_subset,cat_cols = c('RegularImport',"Chapter","Four_digit",
+                                                                  "DataSet","Subdataset"), 
+                                                                    num_col = "total",
+                                                                    title = "Distribution of Tax Expenditures")
+                      
+                      
                       
                       
                       
