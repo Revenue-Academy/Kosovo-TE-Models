@@ -183,18 +183,18 @@ options(scipen=999)
                                   Eight_digit == "2710 19 43" ~ 'EURO DIESEL',
                                   Eight_digit == "2710 12 45" ~ 'EUROSUPER BC 95',
                                   Eight_digit == "2710 12 49" ~ 'EUROSUPER BS 100',
-                                  Eight_digit == "2711 12 94" ~ 'LPG PROPAN',
+                                  Eight_digit == "2711 12 94" ~ 'LPG PROPANE',
                                   Eight_digit == "2710 19 81" ~ 'LUBRICATING OILS', # MOTOR OIL
-                                  Eight_digit == "2711 13 97" ~ 'LPG BUTAN',
+                                  Eight_digit == "2711 13 97" ~ 'LPG BUTANE',
                                   Eight_digit == "2710 19 99" ~ 'LUBRICATING OILS', # Other lubricating oils
                                   Eight_digit == "2710 19 67" ~ 'HEAVY OILS', # MAZUT M-1
                                   Eight_digit == "2710 19 83" ~ 'LUBRICATING OILS', #Hydraulic oils
                                   Eight_digit == "2710 19 87" ~ 'LUBRICATING OILS', #MOTOR GEAR OIL
-                                  Eight_digit == "2711 12 97" ~ 'LPG PROPAN',
-                                  Eight_digit == "2711 12 11" ~ 'LPG PROPAN',
-                                  Eight_digit == "2711 13 91" ~ 'LPG BUTAN',
+                                  Eight_digit == "2711 12 97" ~ 'LPG PROPANE',
+                                  Eight_digit == "2711 12 11" ~ 'LPG PROPANE',
+                                  Eight_digit == "2711 13 91" ~ 'LPG BUTANE',
                                   Eight_digit == "2710 19 93" ~ 'LUBRICATING OILS',#Electrical insulating oils
-                                  Eight_digit == "2711 12 19" ~ 'LPG PROPAN',
+                                  Eight_digit == "2711 12 19" ~ 'LPG PROPANE',
                                   Eight_digit == "2710 19 47" ~ 'OTHER',
                                   Eight_digit == "2707 30 00" ~ 'LUBRICATING OILS',#Oils and other products of the distillation
                                   Eight_digit == "2710 12 31" ~ 'AVIATION GASOLINE',
@@ -233,8 +233,12 @@ options(scipen=999)
                                 Fuel_tbl$Quantity_HL<-as.numeric(0)
                                 Fuel_tbl$PotentialExcise<-as.numeric(0)
                                 
-
+                                # Fuel_tbl_subset<-Fuel_tbl%>%
+                                #   select(Eight_digit,Subdataset,Effective_Excise_rate)
+                                #  View(Fuel_tbl_subset)
+                                
                                 #view(Fuel_tbl)
+                                
                                 
             # 4.2 Tobacco ---------------------------------------------------------------
 
@@ -294,11 +298,11 @@ options(scipen=999)
 
                               Tobacco_tbl <- Tobacco_tbl %>%
                                 dplyr::mutate(
-                                  ConvetionalUnit = ExciseRevenue / ExciseRate, # For Cigars, cigarillos and cigarettes is 1000 sticks, for fine-cut is 1 KG
-                                  ExciseEstimation = ConvetionalUnit * ExciseRate,
+                                  ConventionalUnit = ExciseRevenue / ExciseRate, # For Cigars, cigarillos and cigarettes is 1000 sticks, for fine-cut is 1 KG
+                                  ExciseEstimation = ConventionalUnit * ExciseRate,
                                   VolumeBySticks = case_when(
                                                   Eight_digit == "2402 10 00" ~ Quantity * 1000,
-                                                  Eight_digit == "2402 20 90" ~ ConvetionalUnit * 1000,
+                                                  Eight_digit == "2402 20 90" ~ ConventionalUnit * 1000,
                                                   TRUE ~ Quantity * 1000
                                                 ),
                                   # Base for calculation of TE's
@@ -317,7 +321,14 @@ options(scipen=999)
                               
                                 # View(Tobacco_tbl)
                               
-                              
+                              # Tobacco_tbl_subset<-Tobacco_tbl%>%
+                              #   select(Subdataset,Quantity,ExciseRevenue,ExciseRate,ConventionalUnit,VolumeBySticks,Base_EquivalentOfGramsTobacco,
+                              #          ExciseByEquivalentGramsTobacco,ExciseByEquivalentGramsTobacco_1000,CrossCheckExise
+                              #          )
+                              # 
+                              # 
+                              # write.csv(Tobacco_tbl_subset,"Tobacco_tbl_subset.csv")
+                              # 
             # 4.3 Alcohol -----------------------------------------------------------          
                   # 4.3.1 Beer --------------------------------------------------------------------
                          
@@ -458,6 +469,19 @@ options(scipen=999)
                     #write.csv(Alcohol_tbl,"Alcohol_tbl.csv")
                     
             #View(Alcohol_tbl)
+                    
+                    # Alcohol_tbl_subset_export<-Alcohol_tbl%>%
+                    #   select(Subdataset,ExciseRate,Alc_Content,Pure_Alc,Quantity)%>%
+                    #   group_by(Subdataset,ExciseRate,Alc_Content)%>%
+                    #   summarise(Pure_Alc=sum(Pure_Alc),
+                    #             Quantity=sum(Quantity)
+                    #             
+                    #             )
+                    # 
+                    # View(Alcohol_tbl_subset_export)
+                    # 
+                    # write.csv(Alcohol_tbl_subset_export,"Alcohol_tbl_subset_export.csv")
+                    
                    
            # 5.Cars ------------------------------------------------------------------
 
@@ -746,34 +770,21 @@ options(scipen=999)
                             
                             Structure_Excise_AlcoholProducts <- Structure_Excise_AlcoholProducts %>% add_pie(hole = 0.6)
                             Structure_Excise_AlcoholProducts <- Structure_Excise_AlcoholProducts %>% layout(
-                                                                # title = paste("Structure of excise revenues by type of Alcohol products", actual_year_simulation),
-                                                                # font = t_11,
-                                                                # showlegend = TRUE,
-                                                                # xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                                                                # yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                                                                # annotations = list(
-                                                                #   x = 0, y = -0.1,
-                                                                #   showarrow = FALSE,
-                                                                #   xref = 'paper',
-                                                                #   yref = 'paper',
-                                                                #   align = 'left'
-                                                                # ),
-                                                                # font = t_8) 
-                              title = paste("Structure of Excise Revenues by Type of Alcohol Products,", actual_year_simulation),
-                              font = t_11,
-                              showlegend = TRUE,
-                              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                              annotations = list(
-                                x = 0, y = -0.05,
-                                #x = 0.2, y = -0.05,
-                                text = "Source: National authorities",
-                                showarrow = FALSE,
-                                xref = 'paper',
-                                yref = 'paper',
-                                align = 'left'
-                              ),
-                              font = t_8)
+                                                                title = paste("Structure of Excise Revenues by Type of Alcohol Products,", actual_year_simulation),
+                                                                font = t_11,
+                                                                showlegend = TRUE,
+                                                                xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                annotations = list(
+                                                                  x = 0, y = -0.05,
+                                                                  #x = 0.2, y = -0.05,
+                                                                  text = "Source: National authorities",
+                                                                  showarrow = FALSE,
+                                                                  xref = 'paper',
+                                                                  yref = 'paper',
+                                                                  align = 'left'
+                                                                ),
+                                                                font = t_8)
                             
                             
                             # 
@@ -1023,23 +1034,23 @@ options(scipen=999)
                       # Create the plot with reordered Subdataset levels
                       ExciseStructure_MineralOils <- plot_ly(ExciseMineralOils_TE, x = ~Subdataset , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', 
                                                              marker = list(color = ~color), name = ~Subdataset
-                      ) %>% 
-                        layout(
-                          title = paste("Tax expenditures by Mineral Oils and Chemical Products,", actual_year_simulation),
-                          font = list(size = 11),
-                          xaxis = list(title = ''),
-                          yaxis = list(title = 'In LCU'),
-                          #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
-                          annotations = list(
-                            x = 0, y = -0.056,
-                            text = "Source: Calculations by WB staff based on data from National authorities",
-                            showarrow = FALSE,
-                            xref = 'paper',
-                            yref = 'paper',
-                            align = 'left'
-                          ),
-                          legend = list(orientation = 'v', x = 1.02, y = 0.5)
-                        )
+                                                                ) %>% 
+                                                                  layout(
+                                                                    title = paste("Tax expenditures by Mineral Oils and Chemical Products,", actual_year_simulation),
+                                                                    font = list(size = 11),
+                                                                    xaxis = list(title = ''),
+                                                                    yaxis = list(title = 'In LCU'),
+                                                                    #barmode = 'stack',  # Use 'stack' for multiple colors within a single bar
+                                                                    annotations = list(
+                                                                      x = 0, y = -0.056,
+                                                                      text = "Source: Calculations by WB staff based on data from National authorities",
+                                                                      showarrow = FALSE,
+                                                                      xref = 'paper',
+                                                                      yref = 'paper',
+                                                                      align = 'left'
+                                                                    ),
+                                                                    legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                                                  )
                       
                       
             # 1.2.11 TE'S by type of Tobacco Products----------------------------------------
@@ -1063,23 +1074,23 @@ options(scipen=999)
                       # Create the plot with reordered Subdataset levels
                       ExciseStructure_TobaccoProducts <- plot_ly(TobaccoProducts_TE, x = ~Subdataset , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', 
                                                              marker = list(color = ~color), name = ~Subdataset
-                      ) %>% 
-                        layout(
-                          title = paste("Tax expenditures by Tobacco Products,", actual_year_simulation),
-                          font = list(size = 11),
-                          xaxis = list(title = ''),
-                          yaxis = list(title = 'In LCU'),
-                          annotations = list(
-                            x = 0, y = -0.056,
-                            text = "Source: Calculations by WB staff based on data from National authorities",
-                            showarrow = FALSE,
-                            xref = 'paper',
-                            yref = 'paper',
-                            align = 'left'
-                          ),
-                          legend = list(orientation = 'v', x = 1.02, y = 0.5)
-                        )
-                      
+                                                                ) %>% 
+                                                                  layout(
+                                                                    title = paste("Tax expenditures by Tobacco Products,", actual_year_simulation),
+                                                                    font = list(size = 11),
+                                                                    xaxis = list(title = ''),
+                                                                    yaxis = list(title = 'In LCU'),
+                                                                    annotations = list(
+                                                                      x = 0, y = -0.056,
+                                                                      text = "Source: Calculations by WB staff based on data from National authorities",
+                                                                      showarrow = FALSE,
+                                                                      xref = 'paper',
+                                                                      yref = 'paper',
+                                                                      align = 'left'
+                                                                    ),
+                                                                    legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                                                  )
+                                                                
                      
 
             # 1.2.12 TE'S by type of Alcohol Products---------------------------------
@@ -1101,24 +1112,24 @@ options(scipen=999)
                       
                       # Create the plot with reordered Subdataset levels
                       ExciseStructure_AlcoholProducts <- plot_ly(AlcoholProducts_TE, x = ~Subdataset , y = ~value, type = 'bar', text = ' ', hoverinfo = 'y+text', 
-                                                                 marker = list(color = ~color), name = ~Subdataset
-                      ) %>% 
-                        layout(
-                          title = paste("Tax expenditures by Alcohol Products,", actual_year_simulation),
-                          font = list(size = 11),
-                          xaxis = list(title = ''),
-                          yaxis = list(title = 'In LCU'),
-                          annotations = list(
-                            x = 0, y = -0.056,
-                            text = "Source: Calculations by WB staff based on data from National authorities",
-                            showarrow = FALSE,
-                            xref = 'paper',
-                            yref = 'paper',
-                            align = 'left'
-                          ),
-                          legend = list(orientation = 'v', x = 1.02, y = 0.5)
-                        )
-                      
+                                                                       marker = list(color = ~color), name = ~Subdataset
+                                                                          ) %>% 
+                                                                            layout(
+                                                                              title = paste("Tax expenditures by Alcohol Products,", actual_year_simulation),
+                                                                              font = list(size = 11),
+                                                                              xaxis = list(title = ''),
+                                                                              yaxis = list(title = 'In LCU'),
+                                                                              annotations = list(
+                                                                                x = 0, y = -0.056,
+                                                                                text = "Source: Calculations by WB staff based on data from National authorities",
+                                                                                showarrow = FALSE,
+                                                                                xref = 'paper',
+                                                                                yref = 'paper',
+                                                                                align = 'left'
+                                                                              ),
+                                                                              legend = list(orientation = 'v', x = 1.02, y = 0.5)
+                                                                            )
+                                                                          
                       
                       
             # 1.2.13 TE'S Sankey ------------------------------------------
@@ -1137,7 +1148,18 @@ options(scipen=999)
                       
                       
                       
-                      
+                     
+                    #  DistributionOfTE <- plotly::last_plot()
+                    #  
+                    # # DistributionOfTE<-plotly::DistributionOfTE
+                    #  
+                    # plotly::add_annotations(DistributionOfTE, c("HS CHAPTERS", "HS FOUR DIGITS" ), x = c(0.2, 0.5), y = c(1, 1), showarrow = FALSE)
+                    
+                     
+                     DistributionOfTE<-plotly::add_annotations(DistributionOfTE,
+                                                               text= c("HS CHAPTERS", "HS FOUR DIGITS" ), 
+                                                               x = c(0.2, 0.5), 
+                                                               y = c(1, 1), showarrow = FALSE)
                       
 # III.Tables  ------------------------------------------------------
           
