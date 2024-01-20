@@ -245,12 +245,11 @@ ui <- dashboardPage(
                      sliderInput("simulationSlider03", "EUR/HLTR abs.alc 100% vol",
                                  min = 0, max = 1000, step = 100, value = 800, width = "100%")
               ),
-              # Sugar-sweetened beverages
-              column(2,
-                     h4("Vehicles"),
-                    sliderInput("simulationSlider04", "Excise benchmark",
-                                 min = 0, max = 4000, step = 100, value = 1800, width = "100%")
-            ),
+            #   column(2,
+            #          h4("Vehicles"),
+            #         sliderInput("simulationSlider04", "Excise benchmark",
+            #                      min = 0, max = 4000, step = 100, value = 1800, width = "100%")
+            # ),
               column(7,
                      # Table to display the slider values
                      tableOutput("sliderValueTableExcise")
@@ -724,7 +723,7 @@ server <- function(input, output, session) {
       select(Value)
     
     value6 <- MainResultsExciseFinal %>%
-      filter(Description == "Tax Expenditures by Cars") %>%
+      filter(Description == "Tax Expenditures as % of Government Revenue") %>%
       select(Value)
     
     # Update the content of the info boxes
@@ -732,10 +731,11 @@ server <- function(input, output, session) {
       info_boxes <- list(
         infoBox("Tax Expenditures (in million of LCU )", value1, icon = icon("hand-holding-dollar"), width = 4, color = "red"),
         infoBox("Tax Expenditures (as % of GDP)", value2, icon = icon("chart-pie"), width = 4, color = "green"),
+        infoBox("Tax Expenditures as % of Government Revenue", value6,  icon = icon("chart-column"), width = 4,color = "maroon"),
         infoBox("Tax Expenditures by Mineral Oils", value3,  icon = icon("gas-pump"), width = 4,color = "blue"),
         infoBox("Tax Expenditures by Tobacco Products", value4,  icon = icon("ban-smoking"), width = 4,color = "orange"),
-        infoBox("Tax Expenditures by Alcohol Products", value5,  icon = icon("fas fa-beer-mug-empty"), width = 4,color = "navy"),
-        infoBox("Tax Expenditures by Cars", value6,  icon = icon("car"), width = 4,color = "maroon")
+        infoBox("Tax Expenditures by Alcohol Products", value5,  icon = icon("fas fa-beer-mug-empty"), width = 4,color = "navy")
+        
       )
       do.call(tagList, info_boxes)
     })
