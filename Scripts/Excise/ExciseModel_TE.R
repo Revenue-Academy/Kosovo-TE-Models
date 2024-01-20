@@ -237,8 +237,27 @@ options(scipen=999)
                                 #   select(Eight_digit,Subdataset,Effective_Excise_rate)
                                 #  View(Fuel_tbl_subset)
                                 
-                                #view(Fuel_tbl)
+                                # view(Fuel_tbl)
+                             
                                 
+                                
+                                FuelSubset<-Fuel_tbl%>%
+                                  ungroup()%>%
+                                  dplyr::select(Subdataset,Value,Quantity,Netweight,CustomsRevenue,ExciseRevenue)%>%
+                                  dplyr::group_by(Subdataset)%>%
+                                  dplyr::summarise(
+                                    Value=sum(Value,na.rm = TRUE),
+                                    Quantity=sum(Quantity,na.rm = TRUE),
+                                    Netweight=sum(Netweight,na.rm = TRUE),
+                                    CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
+                                    ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
+                                    
+                                    
+                                  )
+
+                                
+                                
+                                # write.csv(FuelSubset,"Fuel_tbl1.csv")
                                 
             # 4.2 Tobacco ---------------------------------------------------------------
 
@@ -470,40 +489,42 @@ options(scipen=999)
                     
             #View(Alcohol_tbl)
                     
-                    # Alcohol_tbl_subset_export<-Alcohol_tbl%>%
-                    #   select(Subdataset,ExciseRate,Alc_Content,Pure_Alc,Quantity)%>%
-                    #   group_by(Subdataset,ExciseRate,Alc_Content)%>%
-                    #   summarise(Pure_Alc=sum(Pure_Alc),
-                    #             Quantity=sum(Quantity)
-                    #             
-                    #             )
-                    # 
-                    # View(Alcohol_tbl_subset_export)
+                    Alcohol_tbl_subset_export<-Alcohol_tbl%>%
+                      select(Subdataset,ExciseRate,Alc_Content,Pure_Alc,Quantity,ExciseRevenue)%>%
+                      group_by(Subdataset,ExciseRate,Alc_Content)%>%
+                      summarise(Pure_Alc=sum(Pure_Alc),
+                                Quantity=sum(Quantity),
+                                ExciseRevenue=sum(ExciseRevenue)
+
+                                )
+
+                    View(Alcohol_tbl_subset_export)
                     # 
                     # write.csv(Alcohol_tbl_subset_export,"Alcohol_tbl_subset_export.csv")
                     
                    
            # 5.Cars ------------------------------------------------------------------
 
-                     CarsSet <- CustomsDuties_TE_agg_HS %>%
-                              dplyr::filter(Four_digit %in% c('8703'))
-                                    
-            
-                    Cars_tbl<-CarsSet%>%
-                      dplyr::filter(ExciseRevenue>0)
-                    
-                    Cars_tbl$Subdataset<-c("Cars")
-                    Cars_tbl$DataSet<-c("Cars")            
-                                
-                    
-                    Cars_tbl$Quantity_HL<-as.numeric(0)
-                    Cars_tbl$PotentialExcise<-as.numeric(0)
+                    #  CarsSet <- CustomsDuties_TE_agg_HS %>%
+                    #           dplyr::filter(Four_digit %in% c('8703'))
+                    #                 
+                    # 
+                    # Cars_tbl<-CarsSet%>%
+                    #   dplyr::filter(ExciseRevenue>0)
+                    # 
+                    # Cars_tbl$Subdataset<-c("Cars")
+                    # Cars_tbl$DataSet<-c("Cars")            
+                    #             
+                    # 
+                    # Cars_tbl$Quantity_HL<-as.numeric(0)
+                    # Cars_tbl$PotentialExcise<-as.numeric(0)
                     
                    # View(Cars_tbl)
                                     
         # 6.Merging Data Sets and estimation of TE'S -------------------------------------------------------
                   
-                    ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl,Cars_tbl)
+                    #ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl,Cars_tbl)
+                    ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl)
                     
                     ExciseFinal_tbl$ExciseRate[is.nan(ExciseFinal_tbl$ExciseRate)]<-0
                     ExciseFinal_tbl$Alc_Content[is.nan(ExciseFinal_tbl$Alc_Content)]<-0
@@ -518,7 +539,7 @@ options(scipen=999)
                             DataSet == "Fuels" ~ Quantity * Benchmark_ExciseFuels,
                             DataSet == "Tobacco" ~ (Base_EquivalentOfGramsTobacco / 1000) * Benchmark_ExciseTobacco,
                             DataSet == "Alcohol" ~ Pure_Alc * Benchmark_ExciseAlcohol,
-                            DataSet == "Cars" ~ Quantity * Benchmark_ExciseCars,
+                            #DataSet == "Cars" ~ Quantity * Benchmark_ExciseCars,
                           )
                         )
                     }
@@ -1170,7 +1191,7 @@ options(scipen=999)
                                 TE_MineralOils_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Fuels")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 TE_TobaccoProducts_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Tobacco")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 TE_Alcohol_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Alcohol")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
-                                TE_Cars_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                                #TE_Cars_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 
                                 
           
@@ -1191,7 +1212,7 @@ options(scipen=999)
                                                           `Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
                                                           `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
                                                           `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
-                                                          `Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                                          #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
                                                           
                                                           
                                                           
@@ -1209,7 +1230,7 @@ options(scipen=999)
                                                           `Tax Expenditures by Mineral Oils`,
                                                           `Tax Expenditures by Tobacco Products`,
                                                           `Tax Expenditures by Alcohol Products`,
-                                                          `Tax Expenditures by Cars`
+                                                          #`Tax Expenditures by Cars`
                                                           )
           
           
