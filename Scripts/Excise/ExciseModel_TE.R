@@ -240,21 +240,44 @@ options(scipen=999)
                                 # view(Fuel_tbl)
                              
                                 
-                                
-                                FuelSubset<-Fuel_tbl%>%
-                                  ungroup()%>%
-                                  dplyr::select(Subdataset,Value,Quantity,Netweight,CustomsRevenue,ExciseRevenue)%>%
-                                  dplyr::group_by(Subdataset)%>%
-                                  dplyr::summarise(
-                                    Value=sum(Value,na.rm = TRUE),
-                                    Quantity=sum(Quantity,na.rm = TRUE),
-                                    Netweight=sum(Netweight,na.rm = TRUE),
-                                    CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
-                                    ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
-                                    
-                                    
-                                  )
+                                # 
+                                # FuelSubset<-Fuel_tbl%>%
+                                #   ungroup()%>%
+                                #   dplyr::select(Subdataset,Value,Quantity,Netweight,CustomsRevenue,ExciseRevenue)%>%
+                                #   dplyr::group_by(Subdataset)%>%
+                                #   dplyr::summarise(
+                                #     Value=sum(Value,na.rm = TRUE),
+                                #     Quantity=sum(Quantity,na.rm = TRUE),
+                                #     Netweight=sum(Netweight,na.rm = TRUE),
+                                #     CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
+                                #     ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
+                                #     
+                                #     
+                                #   )
 
+
+            # Adding emission factors -------------------------------------------------
+
+                                # Create a data frame
+                                EmmisionFactors <- data.frame(Subdataset =  c("AVIATION GASOLINE", "EURO DIESEL", "EUROSUPER BC 95", "EUROSUPER BS 100", "HEAVY OILS", "LPG BUTANE", "LPG PROPANE"),
+                                                   CO2_per_1000_units = c(2.54, 2.68, 2.29, 2.29, 2.83, 2.98, 2.98),
+                                                   StatutoryExcisePerLiter = c(0.385, 0.360, 0.385, 0.385, 0.250, 0.100, 0.100)
+                                                   
+                                                   )
+                                
+                                
+                                
+                                Fuel_tbl<-left_join(Fuel_tbl,EmmisionFactors, by=c("Subdataset"="Subdataset"))
+                                         
+                                
+                                # Filter rows where CO2_per_1000_units is not NaN
+                                Fuel_tbl <- Fuel_tbl[complete.cases(Fuel_tbl$CO2_per_1000_units), ]
+                                
+                                
+                               
+                                  
+                                
+                                
                                 
                                 
                                 # write.csv(FuelSubset,"Fuel_tbl1.csv")
@@ -498,7 +521,7 @@ options(scipen=999)
 
                                 )
 
-                    View(Alcohol_tbl_subset_export)
+                   # View(Alcohol_tbl_subset_export)
                     # 
                     # write.csv(Alcohol_tbl_subset_export,"Alcohol_tbl_subset_export.csv")
                     
@@ -530,19 +553,32 @@ options(scipen=999)
                     ExciseFinal_tbl$Alc_Content[is.nan(ExciseFinal_tbl$Alc_Content)]<-0
                     ExciseFinal_tbl$Pure_Alc[is.nan( ExciseFinal_tbl$Pure_Alc)]<-0
                     
-
+                   # Benchmark_ExciseFuels<-1
                     
                     calculate_benchmark_fun <- function(data) {
                       data %>%
                         mutate(
                           result = case_when(
-                            DataSet == "Fuels" ~ Quantity * Benchmark_ExciseFuels,
+                            #DataSet == "Fuels" ~ Quantity * Benchmark_ExciseFuels,
+                            Subdataset == "AVIATION GASOLINE" ~ Quantity * Benchmark_AVIATION_GASOLINE,
+                            Subdataset == "EURO DIESEL" ~ Quantity * Benchmark_EURO_DIESEL,
+                            Subdataset == "EUROSUPER BC 95" ~ Quantity * Benchmark_EUROSUPER_BC_95,
+                            Subdataset == "EUROSUPER BS 100" ~ Quantity * Benchmark_EUROSUPER_BS_100,
+                            Subdataset == "HEAVY OILS" ~ Quantity * Benchmark_HEAVY_OILS,
+                            Subdataset == "LPG BUTANE" ~ Quantity * Benchmark_LPG_BUTANE,
+                            Subdataset == "LPG PROPANE" ~ Quantity * Benchmark_LPG_PROPANE,
                             DataSet == "Tobacco" ~ (Base_EquivalentOfGramsTobacco / 1000) * Benchmark_ExciseTobacco,
                             DataSet == "Alcohol" ~ Pure_Alc * Benchmark_ExciseAlcohol,
                             #DataSet == "Cars" ~ Quantity * Benchmark_ExciseCars,
                           )
                         )
                     }
+                    
+                    
+                    
+                    
+                    
+                    
                     
                     # Apply the function 
                     Estimation_TE <- calculate_benchmark_fun(ExciseFinal_tbl)%>%
@@ -1046,8 +1082,9 @@ options(scipen=999)
                       
                        ExciseMineralOils_TE<-melt(ExciseMineralOils_TE)
                       
+                       #,"purple","green","gold"
                      
-                       ExciseMineralOils_TE$color <- factor(ExciseMineralOils_TE$Subdataset, labels =c( "royalblue","orange","forestgreen","brown","red", "cyan","blue","purple","green","gold"))
+                       ExciseMineralOils_TE$color <- factor(ExciseMineralOils_TE$Subdataset, labels =c( "royalblue","orange","forestgreen","brown","red", "cyan","blue"))
 
                       # Reorder the levels of Subdataset based on value in descending order
                       ExciseMineralOils_TE$Subdataset <- factor(ExciseMineralOils_TE$Subdataset, levels = ExciseMineralOils_TE$Subdataset[order(ExciseMineralOils_TE$value, decreasing = TRUE)])
@@ -1057,7 +1094,7 @@ options(scipen=999)
                                                              marker = list(color = ~color), name = ~Subdataset
                                                                 ) %>% 
                                                                   layout(
-                                                                    title = paste("Tax expenditures by Mineral Oils and Chemical Products,", actual_year_simulation),
+                                                                    title = paste("Tax expenditures by Mineral Oils,", actual_year_simulation),
                                                                     font = list(size = 11),
                                                                     xaxis = list(title = ''),
                                                                     yaxis = list(title = 'In LCU'),
