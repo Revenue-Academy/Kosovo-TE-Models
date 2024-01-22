@@ -5,7 +5,7 @@
 
 'Step 1. Set your local path to the  model'
 
-path1<-"C:/Models/Test/Kosovo-TE-Models"# <--------Set your path here
+path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
 
@@ -30,7 +30,10 @@ path1<-"C:/Models/Test/Kosovo-TE-Models"# <--------Set your path here
                               "stringr",
                               "reshape2",
                               "base64enc",
-                              "maps")
+                              "maps",
+                              "sfo",
+                              "circlize"
+                              )
 
            new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
            if(length(new.packages)) install.packages(new.packages)

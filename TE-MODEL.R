@@ -231,13 +231,32 @@ ui <- dashboardPage(
             fluidRow(
               column(2,
                      h4("Fuels"),
-                     sliderInput("simulationSlider01", "Excise benchmark",
-                                 min = 0, max = 0.8, step = 0.001, value = 0.3850, width = "100%"),
-                     actionButton("ExciseSimulation", "Run Simulation")
+              #        sliderInput("simulationSlider01", "Excise benchmark",
+              #                    min = 0, max = 0.8, step = 0.001, value = 0.3850, width = "100%"),
+              #        actionButton("ExciseSimulation", "Run Simulation")
+              # ),
+              
+              sliderInput("AVIATION_GASOLINE", "Aviation Gasoline (EUR/LTR) ",
+                          min = 0, max = 1, step = 0.01, value = 0.43, width = "100%"),
+              sliderInput("EURO_DIESEL", "EURO DIESEL (EUR/LTR)",
+                          min = 0, max = 1, step = 0.01, value = 0.45, width = "100%"),
+              sliderInput("EUROSUPER_BC_95", "EUROSUPER BC 95 (EUR/LTR)",
+                          min = 0, max = 2, step = 0.01, value = 0.39, width = "100%"),
+              sliderInput("EUROSUPER_BS_100", "EUROSUPER BS 100 (EUR/LTR)",
+                          min = 0, max = 2, step = 0.01, value = 0.39, width = "100%"),
+              sliderInput("HEAVY_OILS", "HEAVY OILS (EUR/LTR)",
+                          min = 0, max = 2, step = 0.01, value = 0.48, width = "100%"),
+              sliderInput("LPG_BUTANE", "LPG BUTANE (EUR/LTR)",
+                          min = 0, max = 2, step = 0.01, value = 0.50, width = "100%"),
+              sliderInput("LPG_PROPANE", "LPG PROPANE (EUR/LTR)",
+                          min = 0, max = 1, step = 0.01, value = 0.50, width = "100%")
+              
               ),
+              
+              
               column(2,
                      h4("Tobacco"),
-                     sliderInput("simulationSlider02", "Excise benchmark",
+                     sliderInput("simulationSlider02", "EUR/KG tobacco",
                                  min = 0, max = 100, step = 1, value = 73, width = "100%"),
               ),
               column(2,
@@ -252,7 +271,8 @@ ui <- dashboardPage(
             # ),
               column(7,
                      # Table to display the slider values
-                     tableOutput("sliderValueTableExcise")
+                     tableOutput("sliderValueTableExcise"),
+                             actionButton("ExciseSimulation", "Run Simulation")
               )
             )
     ),
@@ -599,12 +619,35 @@ server <- function(input, output, session) {
     getwd()
     
     # Assign input values to  in the global environment
-    Benchmark_ExciseFuels <- input$simulationSlider01
+    #Benchmark_ExciseFuels <- input$simulationSlider01
+    Benchmark_AVIATION_GASOLINE <- input$AVIATION_GASOLINE
+    Benchmark_EURO_DIESEL <- input$EURO_DIESEL
+    Benchmark_EUROSUPER_BC_95 <- input$EUROSUPER_BC_95
+    Benchmark_EUROSUPER_BS_100 <- input$EUROSUPER_BS_100
+    Benchmark_HEAVY_OILS <- input$HEAVY_OILS
+    Benchmark_LPG_BUTANE <- input$LPG_BUTANE
+    Benchmark_LPG_PROPANE <- input$LPG_PROPANE
+    
+    
+    
     Benchmark_ExciseTobacco <- input$simulationSlider02
     Benchmark_ExciseAlcohol <- input$simulationSlider03
     Benchmark_ExciseCars <- input$simulationSlider04
 
-    assign("Benchmark_ExciseFuels", Benchmark_ExciseFuels, envir = .GlobalEnv)
+    #assign("Benchmark_ExciseFuels", Benchmark_ExciseFuels, envir = .GlobalEnv)
+    assign("Benchmark_AVIATION_GASOLINE", Benchmark_AVIATION_GASOLINE, envir = .GlobalEnv)
+    
+    assign("Benchmark_EURO_DIESEL", Benchmark_EURO_DIESEL, envir = .GlobalEnv)
+    assign("Benchmark_EUROSUPER_BC_95", Benchmark_EUROSUPER_BC_95, envir = .GlobalEnv)
+    assign("Benchmark_EUROSUPER_BS_100", Benchmark_EUROSUPER_BS_100, envir = .GlobalEnv)
+    assign("Benchmark_HEAVY_OILS", Benchmark_HEAVY_OILS, envir = .GlobalEnv)
+    
+    assign("Benchmark_LPG_BUTANE", Benchmark_LPG_BUTANE, envir = .GlobalEnv)
+    assign("Benchmark_LPG_PROPANE", Benchmark_LPG_PROPANE, envir = .GlobalEnv)
+    
+    
+    
+    
     assign("Benchmark_ExciseTobacco", Benchmark_ExciseTobacco, envir = .GlobalEnv)
     assign("Benchmark_ExciseAlcohol", Benchmark_ExciseAlcohol, envir = .GlobalEnv)
     assign("Benchmark_ExciseCars", Benchmark_ExciseCars, envir = .GlobalEnv)
