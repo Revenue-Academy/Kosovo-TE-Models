@@ -274,9 +274,17 @@ options(scipen=999)
                                 Fuel_tbl <- Fuel_tbl[complete.cases(Fuel_tbl$CO2_per_1000_units), ]
                                 
                                 
-                               
+                               # Adding calculation of TE with alternative approach
+                                Fuel_tbl<-Fuel_tbl%>%
+                                  dplyr::mutate(PotentialExcise=StatutoryExcisePerLiter*Quantity)
                                   
                                 
+                                # View(Fuel_tbl)
+                                
+                                
+                                # sum(Fuel_tbl$PotentialExcise)
+                                # 
+                                # sum(Fuel_tbl$ExciseRevenue)
                                 
                                 
                                 
@@ -604,7 +612,7 @@ options(scipen=999)
                     
                    # View(Estimation_TE)
                     
-                    print("Simulation is done")
+                 
 
                     
 # II.Preparing data and charts --------------------------------------------
@@ -1224,61 +1232,193 @@ options(scipen=999)
           # 1.Main table ------------------------------------------------------------
           
           
-          
+                                # Emissions approach
                                 TE_MineralOils_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Fuels")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                                
+                                 # Exemption approach
+                                TE_MineralOils_total_exemption <- Estimation_TE %>% 
+                                  ungroup()%>%
+                                  select(DataSet,ExciseRevenue,PotentialExcise)%>%
+                                  filter(DataSet == "Fuels")%>%
+                                  group_by(DataSet)%>% 
+                                  mutate(PotentialExcise = sum(PotentialExcise, na.rm = TRUE),
+                                        ExciseRevenue = sum(ExciseRevenue, na.rm = TRUE),
+                                        Excise_TE=(PotentialExcise-ExciseRevenue)/ 1e+06)%>%
+                                  distinct()%>%
+                                  select(Excise_TE)
+                                
+                                TE_MineralOils_total_exemption<-TE_MineralOils_total_exemption$Excise_TE
+                                         
+                                  #summarise(Excise_TE = sum(PotentialExcise, na.rm = TRUE)-summarise(ExciseRevenue = sum(ExciseRevenue, na.rm = TRUE) / 1e+06))%>%select(Excise_TE)
+                     
                                 TE_TobaccoProducts_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Tobacco")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 TE_Alcohol_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Alcohol")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 #TE_Cars_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 
                                 
           
-                                                      MainResultsExcise<-MacroFiscalData%>%
-                                                        dplyr::filter(Year==actual_year_simulation)%>%
-                                                        dplyr::mutate(
-                                                          # Total
-                                                          `Actual Total Import`=sum(Estimation_TE$Value,na.rm=TRUE)/1e+06,
-                                                          `Actual Total Excise Revenues`=sum(Estimation_TE$ExciseRevenue,na.rm=TRUE)/1e+06,
-                                                          `Excise Revenue Benchmark`=sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
-                                                          
-                                                          `Tax Expenditures`=sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
-                                                          `Tax Expenditures as % of GDP`=(`Tax Expenditures`/GDP)*100,
-                                                          `Tax Expenditures as % of Government Revenue`=(`Tax Expenditures`/GeneralGovernmentRevenue)*100,
-                                                          `Tax Expenditures (as % of Taxes On Products)`=(`Tax Expenditures`/TaxesOnProducts)*100,
-                                                          `Tax Expenditures (as % of ExciseRevenue)`=(`Tax Expenditures`/TaxesOnProducts)*100,
-                                                          # TE's by type of products
-                                                          `Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
-                                                          `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
-                                                          `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
-                                                          #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
-                                                          
-                                                          
-                                                          
-                                                          
-                                                          )%>%
-                                                        dplyr::select(
-                                                          `Actual Total Import`,
-                                                          `Actual Total Excise Revenues`,
-                                                          `Excise Revenue Benchmark`,
-                                                          `Tax Expenditures`,
-                                                          `Tax Expenditures as % of GDP`,
-                                                          `Tax Expenditures as % of Government Revenue`,
-                                                          `Tax Expenditures (as % of Taxes On Products)`,
-                                                          `Tax Expenditures (as % of ExciseRevenue)`,
-                                                          `Tax Expenditures by Mineral Oils`,
-                                                          `Tax Expenditures by Tobacco Products`,
-                                                          `Tax Expenditures by Alcohol Products`,
-                                                          #`Tax Expenditures by Cars`
-                                                          )
-          
-          
-          
-                                                      MainResultsExcise<-melt(MainResultsExcise)
-                                                      MainResultsExcise$value<-round(MainResultsExcise$value,2)
-          
-                                                      MainResultsExciseFinal<-MainResultsExcise%>%
-                                                        dplyr::rename("Description"= "variable",
-                                                                      "Value"="value")
+                                    MainResultsExcise<-MacroFiscalData%>%
+                                                                    dplyr::filter(Year==actual_year_simulation)%>%
+                                                                    dplyr::mutate(
+                                                                      # Total
+                                                                      `Actual Total Import`=sum(Estimation_TE$Value,na.rm=TRUE)/1e+06,
+                                                                      `Actual Total Excise Revenues`=sum(Estimation_TE$ExciseRevenue,na.rm=TRUE)/1e+06,
+                                                                      `Excise Revenue Benchmark`=sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
+            
+                                                                      `Tax Expenditures`=sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
+                                                                      `Tax Expenditures as % of GDP`=(`Tax Expenditures`/GDP)*100,
+                                                                      `Tax Expenditures as % of Government Revenue`=(`Tax Expenditures`/GeneralGovernmentRevenue)*100,
+                                                                      `Tax Expenditures (as % of Taxes On Products)`=(`Tax Expenditures`/TaxesOnProducts)*100,
+                                                                      `Tax Expenditures (as % of ExciseRevenue)`=(`Tax Expenditures`/TaxesOnProducts)*100,
+                                                                      # TE's by type of products
+                                                                      `Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
+                                                                      `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
+                                                                      `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
+                                                                      #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                                                      )%>%
+                                                                    dplyr::select(
+                                                                      `Actual Total Import`,
+                                                                      `Actual Total Excise Revenues`,
+                                                                      `Excise Revenue Benchmark`,
+                                                                      `Tax Expenditures`,
+                                                                      `Tax Expenditures as % of GDP`,
+                                                                      `Tax Expenditures as % of Government Revenue`,
+                                                                      `Tax Expenditures (as % of Taxes On Products)`,
+                                                                      `Tax Expenditures (as % of ExciseRevenue)`,
+                                                                      `Tax Expenditures by Mineral Oils`,
+                                                                      `Tax Expenditures by Tobacco Products`,
+                                                                      `Tax Expenditures by Alcohol Products`,
+                                                                      #`Tax Expenditures by Cars`
+                                                                      )
+            
+            
+            
+                                                                  MainResultsExcise<-melt(MainResultsExcise)
+                                                                  MainResultsExcise$value<-round(MainResultsExcise$value,2)
+            
+                                                                  MainResultsExcise<-MainResultsExcise%>%
+                                                                    dplyr::rename("Description"= "variable",
+                                                                                  #"Value"="value")
+                                                                                  "Approach_1"="value")
                                                       
+                            
+                          ## Second table
+                                                                                   
+                                                                  
+                                                  MainResultsExcise_1<-MacroFiscalData%>%
+                                                                    dplyr::filter(Year==actual_year_simulation)%>%
+                                                                    dplyr::mutate(
+                                                                      # Total
+                                                                      `Actual Total Import`=sum(Estimation_TE$Value,na.rm=TRUE)/1e+06,
+                                                                      `Actual Total Excise Revenues`=sum(Estimation_TE$ExciseRevenue,na.rm=TRUE)/1e+06,
+                                                                      `Excise Revenue Benchmark`=(sum(Estimation_TE$ExciseRevenue)/1e+06) + TE_MineralOils_total_exemption + TE_TobaccoProducts_total$Excise_TE +TE_Alcohol_total$Excise_TE,
+                                                                        
+                                                                        #sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
+                                                                      
+                                                                      `Tax Expenditures`= (TE_MineralOils_total_exemption + TE_TobaccoProducts_total$Excise_TE +TE_Alcohol_total$Excise_TE),
+                                                                        
+                                                                        #sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
+                                                                      `Tax Expenditures as % of GDP`=(`Tax Expenditures`/GDP)*100,
+                                                                      `Tax Expenditures as % of Government Revenue`=(`Tax Expenditures`/GeneralGovernmentRevenue)*100,
+                                                                      `Tax Expenditures (as % of Taxes On Products)`=(`Tax Expenditures`/TaxesOnProducts)*100,
+                                                                      `Tax Expenditures (as % of ExciseRevenue)`=(`Tax Expenditures`/TaxesOnProducts)*100,
+                                                                      # TE's by type of products
+                                                                      `Tax Expenditures by Mineral Oils`= TE_MineralOils_total_exemption,
+                                                                      `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
+                                                                      `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
+                                                                      #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                                                    )%>%
+                                                                    dplyr::select(
+                                                                      `Actual Total Import`,
+                                                                      `Actual Total Excise Revenues`,
+                                                                      `Excise Revenue Benchmark`,
+                                                                      `Tax Expenditures`,
+                                                                      `Tax Expenditures as % of GDP`,
+                                                                      `Tax Expenditures as % of Government Revenue`,
+                                                                      `Tax Expenditures (as % of Taxes On Products)`,
+                                                                      `Tax Expenditures (as % of ExciseRevenue)`,
+                                                                      `Tax Expenditures by Mineral Oils`,
+                                                                      `Tax Expenditures by Tobacco Products`,
+                                                                      `Tax Expenditures by Alcohol Products`,
+                                                                      #`Tax Expenditures by Cars`
+                                                                    )
+                                                                  
+                                                                  
+                                                                  
+                                                                   MainResultsExcise_1<-melt(MainResultsExcise_1)
+                                                                   MainResultsExcise_1$value<-round(MainResultsExcise_1$value,2)
+                                                                  
+                                                                   MainResultsExcise_1<-MainResultsExcise_1%>%
+                                                                    dplyr::rename("Description"= "variable",
+                                                                                  #"Value"="value")%>%
+                                                                                  "Approach_2"="value")%>%
+                                                                     select(-c(Description))
+                                                                    
+                                                                     #MainResultsExciseFinal
+                                                                  
+                                                                  
+                                                                  
+                                                                   MainResultsExciseFinal<-cbind(MainResultsExcise,MainResultsExcise_1)
+                                                                  
+                                                                  
+                                                                  
+                                                                  
+                                                                   
+                                                                   
+                                # Do tuka !! Da se dozavrsi tabelata 
+                                
+                                
+                                # MainResultsExcise<-MacroFiscalData%>%
+                                #   dplyr::filter(Year==actual_year_simulation)%>%
+                                #   dplyr::mutate(
+                                #     # Total
+                                #     `Actual Total Import`=sum(Estimation_TE$Value,na.rm=TRUE)/1e+06,
+                                #     `Actual Total Excise Revenues`=sum(Estimation_TE$ExciseRevenue,na.rm=TRUE)/1e+06,
+                                #     
+                                #     # Approach 1 
+                                #     
+                                #     `Excise Revenue Benchmark-Approach 1`=sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
+                                #     
+                                #     `    Tax Expenditures`=sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
+                                #     `    Tax Expenditures as % of GDP`=(`    Tax Expenditures`/GDP)*100,
+                                #     `    Tax Expenditures as % of Government Revenue`=(`    Tax Expenditures`/GeneralGovernmentRevenue)*100,
+                                #     `    Tax Expenditures (as % of Taxes On Products)`=(`    Tax Expenditures`/TaxesOnProducts)*100,
+                                #     `    Tax Expenditures (as % of ExciseRevenue)`=(`    Tax Expenditures`/TaxesOnProducts)*100,
+                                #     
+                                #     # TE's by type of products
+                                #     `    Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
+                                #     `    Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
+                                #     `    Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
+                                #     #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                #     
+
+                                  # )%>%
+                                  # dplyr::select(
+                                  #   `Actual Total Import`,
+                                  #   `Actual Total Excise Revenues`,
+                                  #   
+                                  #   `Excise Revenue Benchmark-Approach 1`,
+                                  #   `    Tax Expenditures`,
+                                  #   `    Tax Expenditures as % of GDP`,
+                                  #   `    Tax Expenditures as % of Government Revenue`,
+                                  #   `    Tax Expenditures (as % of Taxes On Products)`,
+                                  #   `    Tax Expenditures (as % of ExciseRevenue)`,
+                                  #   `    Tax Expenditures by Mineral Oils`,
+                                  #   `    Tax Expenditures by Tobacco Products`,
+                                  #   `    Tax Expenditures by Alcohol Products`,
+                                  #   #`Tax Expenditures by Cars`
+                                  # )
+                                
+                                # 
+                                # 
+                                # MainResultsExcise<-melt(MainResultsExcise)
+                                # MainResultsExcise$value<-round(MainResultsExcise$value,2)
+                                # 
+                                # MainResultsExciseFinal<-MainResultsExcise%>%
+                                #   dplyr::rename("Description"= "variable",
+                                #                 "Value"="value")
+                                
+                                
                                                       
           
           # 2.TE's by HS -------------------------------------------------------------------
@@ -1301,4 +1441,6 @@ options(scipen=999)
           rm(Import_Excise_Data)        
                                          
           
+          
+          print("Simulation is done")
 })

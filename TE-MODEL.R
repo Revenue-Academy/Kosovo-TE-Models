@@ -747,27 +747,27 @@ server <- function(input, output, session) {
 
     value1 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures") %>%
-      select(Value)
+      select(Approach_1)
     
     value2 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures as % of GDP") %>%
-      select(Value)
+      select(Approach_1)
     
     value3 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures by Mineral Oils") %>%
-      select(Value)
+      select(Approach_1)
     
     value4 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures by Tobacco Products") %>%
-      select(Value)
+      select(Approach_1)
     
     value5 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures by Alcohol Products") %>%
-      select(Value)
+      select(Approach_1)
     
     value6 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures as % of Government Revenue") %>%
-      select(Value)
+      select(Approach_1)
     
     # Update the content of the info boxes
     output$exciseInfoBox <- renderUI({
