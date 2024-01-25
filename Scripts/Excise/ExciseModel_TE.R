@@ -288,7 +288,7 @@ options(scipen=999)
                                 
                                 
                                 
-                                # write.csv(FuelSubset,"Fuel_tbl1.csv")
+                                # write.csv(Fuel_tbl,"Fuel_tbl2.csv")
                                 
             # 4.2 Tobacco ---------------------------------------------------------------
 
@@ -357,7 +357,7 @@ options(scipen=999)
                                                 ),
                                   # Base for calculation of TE's
                                   Base_EquivalentOfGramsTobacco = case_when(
-                                                  Eight_digit == "2402 10 00" ~ VolumeBySticks * 11.5, # Ova 11.5 da se prover od setot i da se vidi stavarno kolku e vo 2022
+                                                  Eight_digit == "2402 10 00" ~ VolumeBySticks * 11.5, 
                                                   Eight_digit == "2402 20 90" ~ VolumeBySticks * 0.7,
                                                   TRUE ~ VolumeBySticks
                                                 ),
@@ -368,6 +368,12 @@ options(scipen=999)
                                   # TE_TEST=Base_EquivalentOfGramsTobacco/1000*72.857143,
                                   # TE=TE_TEST-CrossCheckExise
                                 )
+                              
+                              
+                              Tobacco_tbl <- Tobacco_tbl %>%
+                                dplyr::filter(Subdataset %in% c("CIGARETTES", "TOBACCO"))
+                              
+                             
                               
                                 # View(Tobacco_tbl)
                               
@@ -1132,7 +1138,7 @@ options(scipen=999)
                       TobaccoProducts_TE<-melt(TobaccoProducts_TE)
                       
                       
-                      TobaccoProducts_TE$color <- factor(TobaccoProducts_TE$Subdataset, labels =c( "royalblue","orange","forestgreen"))
+                      TobaccoProducts_TE$color <- factor(TobaccoProducts_TE$Subdataset, labels =c( "royalblue","orange")) #,"forestgreen"
                       
                       # Reorder the levels of Subdataset based on value in descending order
                       TobaccoProducts_TE$Subdataset <- factor(TobaccoProducts_TE$Subdataset, levels = TobaccoProducts_TE$Subdataset[order(TobaccoProducts_TE$value, decreasing = TRUE)])
