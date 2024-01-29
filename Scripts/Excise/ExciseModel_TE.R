@@ -1,7 +1,7 @@
 ' Data preparation,estimation of tax expenditures and preparation of data for charts
 '
 # options(warn = -1)
-# 
+
 suppressMessages({
 
 library(tidyverse)
@@ -9,17 +9,6 @@ options(scipen=999)
   
 # I. Estimation of tax expenditures for excise duties ----------------------------------------------------------
         # 1.Import and Processing of data ------------------------------------------------------
-            # Ova ke se vnese direktno preku GUI
-                    #Import_Excise_Data <- read_excel("~/Models/Kosovo-TE-Models/Data/ImportData/Open_DATA_Import-Janar-Dhjetor-2022.xlsx")      
-                   #Import_Excise_Data
-# 
-# library(readxl)
-# Import_Excise_Data <- read_excel("Data/ImportData/Open_DATA_Import-Janar-Dhjetor-2022.xlsx")
-
-#rm(Estimation_TE,Excise_TE_Chapters,Excise_TE_MTN)
-                
-#Import_raw_monthly<-Import_Excise_Data
-
                     # Change the column names EN
                     colnames(Import_Excise_Data)[1:11] <- c("Year","Month","TradePolicy","Countries","Code_Description","Quantity","Value","Netweight","CustomsRevenue","ExciseRevenue","VAT_Revenue")
                     
@@ -66,13 +55,8 @@ options(scipen=999)
                                                   dplyr::mutate(Effective_VAT_rate=round(VAT_Revenue/(Value+ExciseRevenue+CustomsRevenue),2),
                                                                 Effective_Customs_rate=round(CustomsRevenue/(Value),2),
                                                                 Effective_Excise_rate=round((ExciseRevenue)/Quantity,3)
-                                                                
                                                                 )
-                                                                #CustomsDuties_Benchmark=Value*Benchmark_Customs_Rate,
-                                                                #CustomsDuties_TE=round(CustomsDuties_Benchmark-CustomsRevenue,1))
-                   #View(CustomsDuties_base) 
-                   #rm(Import_Excise_Data)  
-                   
+                  
                    # Merging with GeoDimension
                     CustomsDuties_base<-left_join(CustomsDuties_base,GeoDimension,by =c("iso2c"))
         
@@ -82,8 +66,6 @@ options(scipen=999)
                    
                     rm(split_columns_hs,split_columns_countries)
             
-                    
-
         # 2. Adding FreeTrade agreements --------------------------------------------
 
             TreatmentOfGoods<-data.frame(FreeTradeAgreements=c("EU27","CEFTA","NoFreeTradeAgreement","TR","GBR"),
@@ -115,22 +97,12 @@ options(scipen=999)
                                            Netweight=sum(Netweight,na.rm = TRUE),
                                            CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
                                            ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
-                                           VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE))#,
-                                          # CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
-                                           #CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
-                        
+                                           VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE))
+
                         
                         CustomsDuties_TE_agg_countries$HS_code<-NULL
                         CustomsDuties_TE_agg_countries$HS_code_s<-NULL
-                        
-                        # 
-                        # CustomsDuties_TE_agg_countries <- CustomsDuties_TE_agg_countries %>%
-                        # #  dplyr::select(iso3c,CustomsDuties_TE)%>%
-                        #   dplyr::select(iso3c)%>%
-                        #   dplyr::group_by(iso3c) %>%
-                        #   dplyr::summarise(across(where(is.numeric), sum))
-                          
-    
+
                 # 3.2 Harmonized System-HS  --------------------------------------------------------------------
     
                       CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
@@ -143,10 +115,8 @@ options(scipen=999)
                                          ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
                                          VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
                                          Effective_Excise_rate=round((ExciseRevenue)/Quantity,3)
-                                         #Effective_Excise_rate=ifelse(Quantity=0,0,(round((ExciseRevenue)/Quantity,3)))
-                                         ) #,
-                                        # CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
-                                         #CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
+                                         ) 
+
                       
     
                         # Adding desegregation by HS codes
@@ -256,7 +226,7 @@ options(scipen=999)
                                 #   )
 
 
-            # Adding emission factors -------------------------------------------------
+            # 4.1a Adding emission factors -------------------------------------------------
 
                                 # Create a data frame
                                 EmmisionFactors <- data.frame(Subdataset =  c("AVIATION GASOLINE", "EURO DIESEL", "EUROSUPER BC 95", "EUROSUPER BS 100", "HEAVY OILS", "LPG BUTANE", "LPG PROPANE"),
@@ -450,7 +420,7 @@ options(scipen=999)
                                               OtherFermentedBeveragesQuantity$ExciseRate<-as.numeric(500)
 
 
-                        # 4.3.5a Undenatured ethyl alcohol of an alcoholic strength by volume of 80 % vol or higher; ethyl alcohol and other spirits, denatured, of any strength:-----------------------------------------
+                  # 4.3.5a Undenatured ethyl alcohol of an alcoholic strength by volume of 80 % vol or higher; ethyl alcohol and other spirits, denatured, of any strength:-----------------------------------------
 
                                               # Not included ! With 80 strength by volume of 80 % vol or higher is not for driniking
                                               # 
@@ -461,7 +431,7 @@ options(scipen=999)
                                               # 
                                               
                                               
-                        # 4.3.6 Undenatured ethyl alcohol ---------------------------------------------
+                  # 4.3.6 Undenatured ethyl alcohol ---------------------------------------------
                           
                                   # Undenatured ethyl alcohol of an alcoholic strength by volume of less than 80 % vol; spirits, liqueurs and other spirituous beverages
                                   UndenaturedEthylAlcoholQuantity  <- CustomsDuties_TE_agg_HS %>%
@@ -558,15 +528,13 @@ options(scipen=999)
                     
                    # View(Cars_tbl)
                                     
-        # 6.Merging Data Sets and estimation of TE'S -------------------------------------------------------
+           # 6.Merging Data Sets and estimation of TE'S -------------------------------------------------------
                   
                     #ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl,Cars_tbl)
                     ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl)
-                    
                     ExciseFinal_tbl$ExciseRate[is.nan(ExciseFinal_tbl$ExciseRate)]<-0
                     ExciseFinal_tbl$Alc_Content[is.nan(ExciseFinal_tbl$Alc_Content)]<-0
                     ExciseFinal_tbl$Pure_Alc[is.nan( ExciseFinal_tbl$Pure_Alc)]<-0
-                    
                    # Benchmark_ExciseFuels<-1
                     
                     calculate_benchmark_fun <- function(data) {
@@ -588,21 +556,14 @@ options(scipen=999)
                         )
                     }
                     
-                    
-                    
-                    
-                    
-                    
-                    
+                  
                     # Apply the function 
                     Estimation_TE <- calculate_benchmark_fun(ExciseFinal_tbl)%>%
                       dplyr::rename("Excise_BenchmarkRevenue"="result")%>%
                       dplyr::mutate(Excise_TE=Excise_BenchmarkRevenue-ExciseRevenue)
                     
-                    
                     # Remove NaN
                     Estimation_TE[is.na(Estimation_TE)] <- 0
-                    
                     
                     # Define a function to round up two columns
                     round_up_columns <- function(data, columns) {
@@ -611,16 +572,10 @@ options(scipen=999)
                     }
                     
                     # Apply the function to round up 
-                    
                     Estimation_TE <- round_up_columns(Estimation_TE, c("Excise_BenchmarkRevenue", "Excise_TE"))
                     
-                    
-                    
                    # View(Estimation_TE)
-                    
-                 
 
-                    
 # II.Preparing data and charts --------------------------------------------
         # 1.1 Historic Data Tab -----------------------------------------------------------
             #  1.1.1 Excise_Pct Of GDP ---------------------------------------
@@ -869,7 +824,7 @@ options(scipen=999)
                             # #facet_plot
                             
                             
-            # 1.1.9 Structure of excise pure alcohol-----------------------------------------------
+            #  1.1.9 Structure of excise pure alcohol-----------------------------------------------
 
                             Alcohol_tbl_subset<-Alcohol_tbl%>%
                               dplyr::select(Subdataset,DataSet,Pure_Alc)
@@ -894,12 +849,12 @@ options(scipen=999)
                             #              grid.col = col.pal,
                             #              title(main = "Distribution of Pure Alcohol,by Excise products"))
 
-                            library(cowplot)
-                            #plot(runif(10))
-                            chordDiagram(Alcohol_tbl_subset,
-                                         grid.col = col.pal,
-                                         title(main = "Distribution of Pure Alcohol,by Excise products"))
-                            
+                            # library(cowplot)
+                            # #plot(runif(10))
+                            # chordDiagram(Alcohol_tbl_subset,
+                            #              grid.col = col.pal,
+                            #              title(main = "Distribution of Pure Alcohol,by Excise products"))
+                            # 
                             # Alcohol_ChordPlot <- recordPlot()
                             # #ggdraw(Alcohol_ChordPlot)
                             # 
@@ -909,36 +864,6 @@ options(scipen=999)
                             # Da se proba ovaa varijanta https://r-graph-gallery.com/chord-diagram-interactive.html
                             
                             # Alcohol_tbl_subset<-as.matrix(Alcohol_tbl_subset)
-                            # ####
-                            # https://r-graph-gallery.com/chord-diagram-interactive.html
-                            # # Set the RowNames column as the row names of the data frame
-                            # rownames(Alcohol_tbl_subset) <- Alcohol_tbl_subset
-                            # Alcohol_tbl_subset$RowNames <- NULL  # Remove the original RowNames column
-                            # 
-                            # # Use xtabs to create a square matrix
-                            # square_matrix <- xtabs(cbind(A, B, C) ~ rownames(Alcohol_tbl_subset) + colnames(Alcohol_tbl_subset), data = Alcohol_tbl_subset)
-                            # 
-                            # # Convert the result to a matrix
-                            # result_matrix <- as.matrix(square_matrix)
-                            # 
-                            # 
-                            # 
-                            
-                            ######
-                            
-                            # # A vector of 4 colors for 4 groups
-                            # haircolors <- c("black", "blonde", "brown", "red")
-                            # 
-                            # dimnames(m) <- list(have = haircolors,
-                            #                     prefer = haircolors)
-                            # groupColors <- c("#000000", "#FFDD89", "#957244", "#F26223")
-                            # 
-                            # # Build the chord diagram:
-                            # p <- chorddiag(Alcohol_tbl_subset, groupColors = groupColors, groupnamePadding = 20)
-                            # p
-                            # 
-                          
-                            
         # 1.2 Tax Expenditures Tab -----------------------------------------------------
             # 1.2.1 TE's by Chapters ---------------------------------------------------------
                       Excise_TE_Chapters<-Estimation_TE%>%
@@ -1218,16 +1143,7 @@ options(scipen=999)
                                                                     num_col = "total",
                                                                     title = "Distribution of Tax Expenditures")
                       
-                      
-                      
-                     
-                    #  DistributionOfTE <- plotly::last_plot()
-                    #  
-                    # # DistributionOfTE<-plotly::DistributionOfTE
-                    #  
-                    # plotly::add_annotations(DistributionOfTE, c("HS CHAPTERS", "HS FOUR DIGITS" ), x = c(0.2, 0.5), y = c(1, 1), showarrow = FALSE)
-                    
-                     
+                  
                      DistributionOfTE<-plotly::add_annotations(DistributionOfTE,
                                                                text= c("HS CHAPTERS", "HS FOUR DIGITS" ), 
                                                                x = c(0.2, 0.5), 
@@ -1366,67 +1282,7 @@ options(scipen=999)
                                                                   
                                                                    MainResultsExciseFinal<-cbind(MainResultsExcise,MainResultsExcise_1)
                                                                   
-                                                                  
-                                                                  
-                                                                  
-                                                                   
-                                                                   
-                                # Do tuka !! Da se dozavrsi tabelata 
-                                
-                                
-                                # MainResultsExcise<-MacroFiscalData%>%
-                                #   dplyr::filter(Year==actual_year_simulation)%>%
-                                #   dplyr::mutate(
-                                #     # Total
-                                #     `Actual Total Import`=sum(Estimation_TE$Value,na.rm=TRUE)/1e+06,
-                                #     `Actual Total Excise Revenues`=sum(Estimation_TE$ExciseRevenue,na.rm=TRUE)/1e+06,
-                                #     
-                                #     # Approach 1 
-                                #     
-                                #     `Excise Revenue Benchmark-Approach 1`=sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
-                                #     
-                                #     `    Tax Expenditures`=sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
-                                #     `    Tax Expenditures as % of GDP`=(`    Tax Expenditures`/GDP)*100,
-                                #     `    Tax Expenditures as % of Government Revenue`=(`    Tax Expenditures`/GeneralGovernmentRevenue)*100,
-                                #     `    Tax Expenditures (as % of Taxes On Products)`=(`    Tax Expenditures`/TaxesOnProducts)*100,
-                                #     `    Tax Expenditures (as % of ExciseRevenue)`=(`    Tax Expenditures`/TaxesOnProducts)*100,
-                                #     
-                                #     # TE's by type of products
-                                #     `    Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
-                                #     `    Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
-                                #     `    Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
-                                #     #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
-                                #     
-
-                                  # )%>%
-                                  # dplyr::select(
-                                  #   `Actual Total Import`,
-                                  #   `Actual Total Excise Revenues`,
-                                  #   
-                                  #   `Excise Revenue Benchmark-Approach 1`,
-                                  #   `    Tax Expenditures`,
-                                  #   `    Tax Expenditures as % of GDP`,
-                                  #   `    Tax Expenditures as % of Government Revenue`,
-                                  #   `    Tax Expenditures (as % of Taxes On Products)`,
-                                  #   `    Tax Expenditures (as % of ExciseRevenue)`,
-                                  #   `    Tax Expenditures by Mineral Oils`,
-                                  #   `    Tax Expenditures by Tobacco Products`,
-                                  #   `    Tax Expenditures by Alcohol Products`,
-                                  #   #`Tax Expenditures by Cars`
-                                  # )
-                                
-                                # 
-                                # 
-                                # MainResultsExcise<-melt(MainResultsExcise)
-                                # MainResultsExcise$value<-round(MainResultsExcise$value,2)
-                                # 
-                                # MainResultsExciseFinal<-MainResultsExcise%>%
-                                #   dplyr::rename("Description"= "variable",
-                                #                 "Value"="value")
-                                
-                                
-                                                      
-          
+                                                                
           # 2.TE's by HS -------------------------------------------------------------------
           
                                                      # Estimation_TE              
@@ -1438,7 +1294,8 @@ options(scipen=999)
                                                         dplyr::select(HS_code,Description,Excise_TE)%>%
                                                         dplyr::group_by(HS_code,Description)%>%
                                                         dplyr::summarise(Excise_TE=sum(Excise_TE))%>%
-                                                        dplyr::arrange(desc(Excise_TE))
+                                                        dplyr::arrange(desc(Excise_TE)) %>%
+                                                        dplyr::mutate(Excise_TE = round(Excise_TE / 1e06, 2))
 
                                                       
 
@@ -1448,5 +1305,7 @@ options(scipen=999)
                                          
           
           
-          print("Simulation is done")
 })
+
+
+print("Simulation is done")
