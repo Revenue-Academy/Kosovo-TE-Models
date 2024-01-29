@@ -308,8 +308,8 @@ ui <- dashboardPage(
                            "Excise_RevenueStructure",
                            "Structure_Excise_MineralOils",
                            "Structure_Excise_TobaccoProducts",
-                           "Structure_Excise_AlcoholProducts",
-                           "Alcohol_ChordPlot"
+                           "Structure_Excise_AlcoholProducts"
+                           
                            
                          ),
                          selected = "Excise_PctOfGDP")
@@ -674,7 +674,7 @@ server <- function(input, output, session) {
     # # Table 1
     output$HS_CODE_EXCISE_TE<-renderDT({
       datatable(Estimation_Excise_TE_HS,
-                caption = tags$caption(paste("Tax expenditures by HS codes in LCU,", actual_year_simulation), class = "table-caption-bold"),
+                caption = tags$caption(paste("Tax expenditures by HS codes in LCU (Millions),", actual_year_simulation), class = "table-caption-bold"),
                 extensions='Buttons',
                 options = list(
                   pageLength = 15,
@@ -722,8 +722,8 @@ server <- function(input, output, session) {
                  "Excise_RevenueStructure" = Excise_RevenueStructure,
                  "Structure_Excise_MineralOils"=Structure_Excise_MineralOils,
                  "Structure_Excise_TobaccoProducts"=Structure_Excise_TobaccoProducts,
-                 "Structure_Excise_AlcoholProducts"=Structure_Excise_AlcoholProducts,
-                 "Alcohol_ChordPlot"=Alcohol_ChordPlot
+                 "Structure_Excise_AlcoholProducts"=Structure_Excise_AlcoholProducts
+                 
 
           )
         })
