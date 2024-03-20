@@ -769,7 +769,7 @@ ChoroplethMap <- map1 + scale_fill_gradient(name= "In LCU million",
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank(),
         legend.position="bottom")+
-  labs(title = paste("                                                                                      Geographic distribution of Kosovo tax expenditures,", actual_year_simulation))
+  labs(title = paste("                                                                                      Geographic distribution of tax expenditures,", actual_year_simulation))
 
 
 
