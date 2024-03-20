@@ -36,6 +36,7 @@ ui <- dashboardPage(
         id = "vertical-tabs",
         title = "",
         tabPanel("CustomsDuties", ""),
+        tabPanel("VAT", ""),
         tabPanel("Excise", "")
       )
     )
@@ -60,6 +61,23 @@ ui <- dashboardPage(
       
       )
     ),
+    # VAT
+      conditionalPanel(
+        condition = 'input["vertical-tabs"] == "VAT"',
+        sidebarMenu(
+          menuItem("Input", tabName = "VAT-input",icon = icon("database")),
+          menuItem("Simulation Parameters", tabName = "VAT-simulationParameters",icon = icon("edit")),
+          menuItem("Run simulation", tabName = "VAT-simulation",icon = icon("calculator")),
+          menuItem("Results",  icon = icon("gauge"),
+                    # menuSubItem("VAT_TaxExpenditures", tabName = "HS_CODES1"),
+                    # menuSubItem("TE_Countries1", tabName = "TE_agg_countries1"),
+                     menuSubItem("Main_Results", tabName = "MainResultsVATFinal")
+          ),
+          menuItem("Charts", tabName = "VAT-charts",icon = icon("chart-line")),
+          menuItem("Summary", tabName = "VAT-summary",icon = icon("info"))
+          
+        )
+      ),
     # Excise
     conditionalPanel(
       condition = 'input["vertical-tabs"] == "Excise"',
@@ -190,12 +208,92 @@ ui <- dashboardPage(
                      )
                    )
                  ),
-                
                 tabItem("CustomsDuties-summary",
                  fluidRow(
                    uiOutput("infoBoxUI"),
                    column(12,
                           plotlyOutput("treemap_final_plt", height = "700px")))),
+          
+  # VAT
+    tabItem(
+      "VAT-input",
+      fluidRow(
+        column(6,
+               h4("VAT Data"),
+               selectInput("inputTypeVAT", "Data Source",
+                           choices = c("Excel File"),
+                           selected = "Excel File"
+               ),
+               conditionalPanel(
+                 condition = "input.inputTypeVAT == 'Excel File'",
+                 fileInput("fileInputVAT", "Upload Excel File", accept = c(".xlsx")),
+                 checkboxInput("hasHeaderVAT", "Header", TRUE)
+               ),
+               actionButton("resetInputVAT", "Reset")
+        )
+      )
+    ),
+    tabItem(
+      "VAT-simulationParameters",
+      fluidRow(
+        column(
+          12,
+          DTOutput("excelDataTableVAT"),  # Updated name for VAT
+          br(),
+          actionButton("updateGlobalDataVAT", "Update"),  # Updated name for VAT
+          actionButton("resetGlobalDataVAT", "Reset Imported Data")  # Updated name for VAT
+        )
+      )
+    ),
+    tabItem("VAT-simulation", 
+            fluidRow(
+              column(2,
+                     h4("VAT benchmark rate"),
+                     sliderInput("simulationSlider_VAT", " ",
+                                 min = 0, max = 1, step = 0.01, value = 0.18),
+                     actionButton("VAT_Simulation", "Run Simulation"),
+                     #actionButton("renderButton", "Generate Dashboard")
+              )
+            )
+    ),
+    # tabItem(
+    #   tabName = "MainResultsVATFinal",
+    #   fluidRow(
+    #    
+    #     column(12,
+    #            DTOutput("TableOutput_VAT")
+    #     ),
+    #     actionButton("renderButton", "Generate Dashboard")
+    # 
+    #   )
+    # ),
+  tabItem(
+    tabName = "MainResultsVATFinal",
+    fluidRow(
+      column(10,
+             DTOutput("TableOutput_VAT")
+      ),
+      column(2,
+             offset = 10, # This will shift the actionButton to the right
+             actionButton("renderButton", "Generate Dashboard")
+      )
+    )
+  ),
+    # tabItem(
+    #   tabName = "HS_VAT",
+    #   fluidRow(
+    #     column(12,
+    #            DTOutput("HS_CODE_VAT_TE")
+    #     )
+    #   )
+    # ),
+  tabItem("VAT-summary",
+          fluidRow(
+            uiOutput("VAT_InfoBox"),
+            column(12,
+                   plotlyOutput("Excise_PctOfGDP12", height = "700px"))
+          )),  
+
     # Excise duties   
      tabItem(
       "Excise-input",
@@ -465,6 +563,60 @@ server <- function(input, output, session) {
     editedExcelDataExcise(originalExcelDataExcise())
   })
   
+# 3a. Import Excel file for VAT model ------------------------------------
+  originalExcelDataVAT <- reactiveVal(NULL)
+  editedExcelDataVAT <- reactiveVal(NULL)
+  
+  observe({
+    if (!is.null(input$fileInputVAT)) {
+      excel_data <- read_excel(input$fileInputVAT$datapath)
+      originalExcelDataVAT(excel_data)
+      editedExcelDataVAT(excel_data)
+    }
+  })
+  
+  output$excelDataTableVAT <- renderDT({
+    data <- editedExcelDataVAT()
+    if (!is.null(data)) {
+      datatable(
+        data,
+        caption = "Taxable proportion",
+        editable = TRUE,
+        options = list(
+          pageLength = 20,
+          columnDefs = list(
+            list(
+              targets = c(0:4),
+              className = "not-editable"
+            )
+          )
+        )
+      )
+    }
+  })
+  
+  observeEvent(input$excelDataTableVAT_cell_edit, {
+    info <- input$excelDataTableVAT_cell_edit
+    
+    if (!is.null(editedExcelDataVAT())) {
+      modifiedData <- editedExcelDataVAT()
+      modifiedData[info$row, info$col] <- info$value
+      
+      editedExcelDataVAT(modifiedData)
+    }
+  })
+  
+  observeEvent(input$updateGlobalDataVAT, {
+    global_data_VAT <- editedExcelDataVAT()
+    assign("TAXABLE_PROPORTION_IMPORT", global_data_VAT, envir = .GlobalEnv)
+  })
+  
+  observeEvent(input$resetGlobalDataVAT, {
+    editedExcelDataVAT(originalExcelDataVAT())
+  })
+  
+
+  
 # 3. Customs Duties model -----------------------------------------------
 # 3.1 Execution of scripts for the Customs Duties model ------------------------------------------------------
   observeEvent(input$runSimulation, {
@@ -611,9 +763,10 @@ server <- function(input, output, session) {
           )
         }) 
 
-# 4. Excise Simulation  ------------------------------------------------------------------
-
-#  4.1 Execution of scripts for the Excise model----------------------------
+  
+  
+#  4. Excise Simulation  ------------------------------------------------------------------
+#  4.1 Execution of scripts for the Excise model ----------------------------
 
   observeEvent(input$ExciseSimulation, {
     setwd(path1)
@@ -645,9 +798,6 @@ server <- function(input, output, session) {
     
     assign("Benchmark_LPG_BUTANE", Benchmark_LPG_BUTANE, envir = .GlobalEnv)
     assign("Benchmark_LPG_PROPANE", Benchmark_LPG_PROPANE, envir = .GlobalEnv)
-    
-    
-    
     
     assign("Benchmark_ExciseTobacco", Benchmark_ExciseTobacco, envir = .GlobalEnv)
     assign("Benchmark_ExciseAlcohol", Benchmark_ExciseAlcohol, envir = .GlobalEnv)
@@ -682,19 +832,6 @@ server <- function(input, output, session) {
                   buttons=c('copy','csv','excel','print','pdf'),
                   lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
     })
-    # 
-    # # Table 2
-    # output$TE_agg_countries <-renderDT({
-    #   datatable(CustomsDuties_TE_agg_countries_tbl,
-    #             caption = tags$caption(paste("Tax expenditures in LCU (Millions),", actual_year_simulation), class = "table-caption-bold"),
-    #             extensions='Buttons',
-    #             options = list(
-    #               pageLength = 15,
-    #               dom = 'Blfrtip',
-    #               buttons=c('copy','csv','excel','print','pdf'),
-    #               lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
-    # })
-    # 
     # 
     # Table 3
     output$TableOutput_Excise <-renderDT({
@@ -784,7 +921,133 @@ server <- function(input, output, session) {
       do.call(tagList, info_boxes)
     })
 
-    # 4.5 Show notification -------------------------------------------------------
+    showModal(
+      modalDialog(
+        title = "Simulation complete !",
+        footer = NULL,
+        easyClose = TRUE,
+        size = "s",
+        draggable = TRUE
+      )
+    )
+  }) 
+    
+    
+#
+  
+  
+
+  
+
+    # 5. VAT Simulation ---------------------------------------------------------------------
+
+
+    observeEvent(input$VAT_Simulation, {
+      setwd(path1)
+      getwd()
+      
+      # Assign input values to in the global environment
+      VAT_benchmark_tax_rate <- input$simulationSlider_VAT
+      
+      assign("VAT_benchmark_tax_rate", VAT_benchmark_tax_rate, envir = .GlobalEnv)
+      
+      # # Check if Import_raw_monthly exists in the global environment
+      if (exists("TAXABLE_PROPORTION_IMPORT", envir = .GlobalEnv)) {
+        # Execute scripts excluding ExciseModel_TE.R
+        source("./Scripts/VAT/Simulation-Parameters-Module.R")
+        source("./Scripts/VAT/VAT estimation-Module.R")
+        source("./Scripts/VAT/TaxCalc-Module.R")
+        source("./Scripts/VAT/Export-Module.R")
+        source("./Scripts/VAT/ChartsParametars-Module.R")
+      } else {
+        
+      }
+      
+      # 4.2 TEST NEW BUTTON-VAT Tables  --------------------------------------------------
+      observeEvent(input$renderButton, {
+
+        myarg <- list()  # Replace with your actual parameters
+        
+        # Render R Markdown document
+        dashboard <- rmarkdown::render(file.path(path, "VAT-Dashboard.Rmd"), params = list(args = myarg))
+        #dashboard <- rmarkdown::render("VAT-Dashboard.Rmd", params = list(args = myarg))
+        
+        # View the rendered document in RStudio Viewer
+        rstudioapi::viewer(dashboard)
+      })
+      
+      # # Historic data import
+      setwd(path)
+      getwd()
+      # 
+      # Show VAT tables
+      # # Table 1
+      output$TableOutput_VAT <- renderDT({
+        datatable(Export_Main_Results,
+                  caption = tags$caption("Main results from simulation", class = "table-caption-bold"),
+                  extensions='Buttons',
+                  options = list(
+                    pageLength = 15,
+                    dom = 'Blfrtip',
+                    buttons=c('copy','csv','excel','print','pdf'),
+                    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
+      })
+
+      # 4.3 Drop down menu for Excise Charts -----------------------------------------------------
+
+      # 4.3.1 Historic Data -----------------------------------------------------
+
+      # output$chartOutputExciseRevenue <- renderPlotly({
+      #   switch(input$chartSelectExciseRevenue,
+      #          "Excise_PctOfGDP" = Excise_PctOfGDP
+      #   )
+      # })
+
+      # 4.3.2 Tax Expenditures Charts -------------------------------------------
+
+      # output$chartOutputExciseTaxExpenditures <- renderPlotly({
+      #   switch(input$chartSelectTaxExpendituresExcise,
+      #          "Chapters_HS1" = Chapters_HS1
+      #   )
+      # })
+
+      # 4.4   Info Boxes ---------------------------------------------
+# 
+      value1 <- Export_Main_Results %>%
+        filter(variable  == "Total_VAT_Gap (in LCU Millions)") %>%
+        select(Actual)
+      
+      
+      value2 <- Export_Main_Results %>%
+        filter(variable  == "Total_VAT_Gap_Pct  (in %)") %>%
+        select(Actual)
+      
+      value3 <- Export_Main_Results %>%
+        filter(variable  == "Policy_Gap (in LCU Millions)") %>%
+        select(Actual)
+      
+      value4 <- Export_Main_Results %>%
+        filter(variable  == "Policy_Gap_Pct (in %)") %>%
+        select(Actual)
+      
+
+      # Update the content of the info boxes
+      output$VAT_InfoBox <- renderUI({
+        info_boxes <- list(
+          infoBox("VAT Gap (in LCU Millions)", value1,  icon = icon("chart-column"), width = 4,color = "maroon"),
+          infoBox("VAT Gap (in %)", value2, icon = icon("chart-pie"), width = 4, color = "red"),
+          infoBox("Tax Expenditures (in LCU Millions) ", value3, icon("hand-holding-dollar"), width = 4, color = "green"),
+          infoBox("Tax Expenditures(in %)", value4,  icon = icon("chart-pie"), width = 4,color = "blue")
+        )
+        do.call(tagList, info_boxes)
+      })
+    #})
+
+    
+    
+    
+    
+    # 6. Show notification -------------------------------------------------------
     # Show a centered modal notification when the simulation is done
     showModal(
       modalDialog(
@@ -795,7 +1058,7 @@ server <- function(input, output, session) {
         draggable = TRUE
       )
     )
-  
+
         })
   
   
