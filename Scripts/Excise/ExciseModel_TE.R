@@ -512,26 +512,39 @@ options(scipen=999)
                    
            # 5.Cars ------------------------------------------------------------------
 
-                     # CarsSet <- CustomsDuties_TE_agg_HS %>%
-                     #          dplyr::filter(Four_digit %in% c('8703'))
-                    #
-                    #
+                    CarsSet <- CustomsDuties_TE_agg_HS %>%
+                             dplyr::filter(Four_digit %in% c('8703'))
+
+                    
+                    Cars_tbl<-left_join(CarsSet,Cars_ExciseRates, by=c("HS_code_s"="HS"))
+                    
+                    
+                    
+                    
+                    Cars_tbl$Subdataset<-c("Cars")
+                    Cars_tbl$DataSet<-c("Cars")
+
+
+                    Cars_tbl$Quantity_HL<-as.numeric(0)
+                    Cars_tbl$PotentialExcise<-as.numeric(0)
+
+                    
+                   
+                    
+                    
+                    
+                    
                     # Cars_tbl<-CarsSet%>%
                     #   dplyr::filter(ExciseRevenue>0)
                     #
-                    # Cars_tbl$Subdataset<-c("Cars")
-                    # Cars_tbl$DataSet<-c("Cars")
-                    #
-                    #
-                    # Cars_tbl$Quantity_HL<-as.numeric(0)
-                    # Cars_tbl$PotentialExcise<-as.numeric(0)
+           
 
                    # View(Cars_tbl)
                                     
            # 6.Merging Data Sets and estimation of TE'S -------------------------------------------------------
                   
                     #ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl,Cars_tbl)
-                    ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl)
+                    ExciseFinal_tbl <- bind_rows(Fuel_tbl, Tobacco_tbl,Alcohol_tbl,Cars_tbl)
                     ExciseFinal_tbl$ExciseRate[is.nan(ExciseFinal_tbl$ExciseRate)]<-0
                     ExciseFinal_tbl$Alc_Content[is.nan(ExciseFinal_tbl$Alc_Content)]<-0
                     ExciseFinal_tbl$Pure_Alc[is.nan( ExciseFinal_tbl$Pure_Alc)]<-0
@@ -551,7 +564,7 @@ options(scipen=999)
                             Subdataset == "LPG PROPANE" ~ Quantity * Benchmark_LPG_PROPANE,
                             DataSet == "Tobacco" ~ (Base_EquivalentOfGramsTobacco / 1000) * Benchmark_ExciseTobacco,
                             DataSet == "Alcohol" ~ Pure_Alc * Benchmark_ExciseAlcohol,
-                            #DataSet == "Cars" ~ Quantity * Benchmark_ExciseCars,
+                            DataSet == "Cars" ~ Quantity * ExciseRate
                           )
                         )
                     }
@@ -575,12 +588,22 @@ options(scipen=999)
                     Estimation_TE <- round_up_columns(Estimation_TE, c("Excise_BenchmarkRevenue", "Excise_TE"))
                     
                    # View(Estimation_TE)
+                    
+                    #write.csv(Estimation_TE,"Estimation_TE.csv")
 
 # II.Preparing data and charts --------------------------------------------
         # 1.1 Historic Data Tab -----------------------------------------------------------
             #  1.1.1 Excise_Pct Of GDP ---------------------------------------
-          
-                    df_plt <- MacroFiscalData %>%
+        
+      MacroFiscalData_plt <- MacroFiscalData[!is.na(MacroFiscalData$`Taxes on imports excluding VAT and duties`), ]
+                    
+                    MacroFiscalData_plt$Year<-as.integer(MacroFiscalData_plt$Year)
+                    
+                    MacroFiscalData_plt<-MacroFiscalData_plt%>%
+                     # filter(Year <=  actual_year_simulation)
+                    filter(Year <  actual_year_simulation+1)
+                   
+                    df_plt <- MacroFiscalData_plt %>%
                       dplyr::select(Year, GDP, Excise_PctOfGDP) %>%
                       mutate(Excise_PctOfGDP = round(Excise_PctOfGDP, 1))
                             
@@ -590,7 +613,7 @@ options(scipen=999)
                             Excise_PctOfGDP <- Excise_PctOfGDP %>% add_trace(x = ~Year, y = ~Excise_PctOfGDP, type = 'scatter', mode = 'lines+markers', name = 'Share of excise revenue in GDP ',
                                                                              yaxis = 'y2', line = list(dash = 'dot', color = "#FFA500", width = 6))
                             
-                            Excise_PctOfGDP <- Excise_PctOfGDP %>% layout(title = 'Nominal GDP and share of excise revenues in GDP,2015-2022',
+                            Excise_PctOfGDP <- Excise_PctOfGDP %>% layout(title = paste("Nominal GDP and share of excise revenues in GDP,2015-", actual_year_simulation),
                                                                            xaxis = list(title = ""),
                                                                            yaxis = list(side = 'left', title = 'In million LCU', showgrid = FALSE, zeroline = FALSE),
                                                                            yaxis2 = list(side = 'right', overlaying = "y", title = 'Percentage', showgrid = FALSE, zeroline = FALSE, font = list(size = 11)), 
@@ -607,7 +630,7 @@ options(scipen=999)
         
             #  1.1.2 Structure Of Tax Revenues Nominal --------------------------------------------------------------
  
-                            year_df <- MacroFiscalData%>%
+                            year_df <- MacroFiscalData_plt%>%
                               dplyr::select(Year, "VAT", "ImportDuties", "Taxes on imports excluding VAT and duties",
                                             "Taxes on products, except VAT and import taxes",
                                             "Other taxes on production", "Property income",
@@ -912,18 +935,8 @@ options(scipen=999)
                       Excise_TE_MTN$Product_group <- factor( Excise_TE_MTN$Product_group)
                       
         
-  
                       
-        
-                      
-            # 1.2.5 Regular Import------------------------------------------
-                      
-                  
-                      
-            # 1.2.6 Pie chart  --------------------------------------------------------------
-                     
-                      
-            # 1.2.7 TE's by Excise Product Categories --------------------------------------
+            # 1.2.3 TE's by Excise Product Categories --------------------------------------
                       
                       ExciseProducts_TE<-Estimation_TE%>%
                         dplyr::select(DataSet,ExciseRevenue)%>%
@@ -953,7 +966,7 @@ options(scipen=999)
                                                           legend = list(orientation = 'v', x = 1.02, y = 0.5)
                                                         )
                       
-            # 1.2.8 TE's by Chapters ---------------------------------------------------------       
+            # 1.2.4 TE's by Chapters ---------------------------------------------------------       
                       
                       Chapters_HS1 <- plot_ly(Excise_TE_Chapters, x = ~reorder(Chapter, -Excise_TE), y = ~Excise_TE, type = 'bar', text = ' ', hoverinfo = 'y+text',#color = ~Treatment, colors = colors,
                                               hovertext = ~Chapters_description) %>%
@@ -975,7 +988,7 @@ options(scipen=999)
                           legend = list(orientation = 'v', x = 1.02, y = 0.5)
                         )
         
-            # 1.2.9 TE's by WTO classification (MTN) Categories---------------------------------------------
+            # 1.2.5 TE's by WTO classification (MTN) Categories---------------------------------------------
                       ProductGroups_MTN <- plot_ly(
                         Excise_TE_MTN, 
                         y = ~reorder(Product_group, Excise_TE), 
@@ -1010,7 +1023,7 @@ options(scipen=999)
 
                               
 
-            # 1.2.10 TE'S by type of Mineral oils----------------------------------------------
+            # 1.2.6 TE'S by type of Mineral oils----------------------------------------------
 
                       ExciseMineralOils_TE<-Estimation_TE%>%
                         dplyr::filter(DataSet=='Fuels')%>%
@@ -1050,7 +1063,7 @@ options(scipen=999)
                                                                   )
                       
                       
-            # 1.2.11 TE'S by type of Tobacco Products----------------------------------------
+            # 1.2.7 TE'S by type of Tobacco Products----------------------------------------
 
 
                       TobaccoProducts_TE<-Estimation_TE%>%
@@ -1090,7 +1103,7 @@ options(scipen=999)
                                                                 
                      
 
-            # 1.2.12 TE'S by type of Alcohol Products---------------------------------
+            # 1.2.8 TE'S by type of Alcohol Products---------------------------------
 
                       AlcoholProducts_TE<-Estimation_TE%>%
                         dplyr::filter(DataSet=='Alcohol')%>%
@@ -1129,10 +1142,11 @@ options(scipen=999)
                                                                           
                       
                       
-            # 1.2.13 TE'S Sankey ------------------------------------------
+            # 1.2.9 TE'S Sankey (Normative approach) ------------------------------------------
 
                       Estimation_TE_subset<-Estimation_TE%>%
                         dplyr::select(Chapter,Four_digit,DataSet,Subdataset,Excise_TE)%>%
+                        dplyr::filter(DataSet %in% c("Fuels","Tobacco","Alcohol","SSB"))%>%
                         dplyr::group_by(Chapter,Four_digit,DataSet,Subdataset)%>%
                         dplyr::summarise(total = sum(Excise_TE), .groups = "drop")
                       
@@ -1141,13 +1155,63 @@ options(scipen=999)
                      DistributionOfTE<-sankey_ly(Estimation_TE_subset,cat_cols = c('RegularImport',"Chapter","Four_digit",
                                                                   "DataSet","Subdataset"), 
                                                                     num_col = "total",
-                                                                    title = "Distribution of Tax Expenditures")
+                                                                    title = "Distribution of Tax Expenditures (Normative approach)")
                       
                   
                      DistributionOfTE<-plotly::add_annotations(DistributionOfTE,
                                                                text= c("HS CHAPTERS", "HS FOUR DIGITS" ), 
                                                                x = c(0.2, 0.5), 
                                                                y = c(1, 1), showarrow = FALSE)
+                     
+
+# 1.2.10 TE'S Sankey (Legal approach) ---------------------------------------------------------
+
+                     # Emissions approach
+                     TE_MineralOils_total <- Estimation_TE %>% select(Chapter,Four_digit,DataSet,Excise_TE)%>%filter(DataSet == "Fuels")%>%group_by(Chapter,Four_digit,DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                     
+                     # Exemption approach
+                     TE_MineralOils_total_exemption_sankey <- Estimation_TE %>% 
+                       ungroup()%>%
+                       select(Chapter,Four_digit,DataSet,ExciseRevenue,PotentialExcise)%>%
+                       #filter(DataSet == "Fuels")%>%
+                       dplyr::filter(DataSet %in% c("Fuels"))%>%
+                       group_by(Chapter,Four_digit,DataSet)%>% 
+                       mutate(PotentialExcise = sum(PotentialExcise, na.rm = TRUE),
+                              ExciseRevenue = sum(ExciseRevenue, na.rm = TRUE),
+                              Excise_TE=(PotentialExcise-ExciseRevenue)/ 1e+06)%>%
+                       distinct()%>%
+                       select(Excise_TE)
+                     
+                    # TE_MineralOils_total_exemption_sankey<-TE_MineralOils_total_exemption$Excise_TE
+                     TE_MineralOils_cars <- Estimation_TE %>% select(Chapter,Four_digit,Subdataset,DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(Chapter,Four_digit,Subdataset,DataSet,)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                     
+                     
+                     # TE_MineralOils_total_exemption_sankey
+                     # TE_MineralOils_cars
+                     
+                     MergedDataSet <- bind_rows(TE_MineralOils_total_exemption_sankey, TE_MineralOils_cars)
+                     
+                     MergedDataSet1<-MergedDataSet%>%
+                       dplyr::select(Chapter,Four_digit,DataSet,Subdataset,Excise_TE)%>%
+                       #dplyr::filter(DataSet %in% c("Fuels","Tobacco","Alcohol","SSB"))%>%
+                       dplyr::group_by(Chapter,Four_digit,DataSet,Subdataset)%>%
+                       dplyr::summarise(total = sum(Excise_TE), .groups = "drop")
+                     
+                     MergedDataSet1$RegularImport<-c('RegularImport')
+                     
+                     DistributionOfTE_sankey<-sankey_ly(MergedDataSet1,cat_cols = c('RegularImport',"Chapter","Four_digit",
+                                                                                   "DataSet","Subdataset"), 
+                                                 num_col = "total",
+                                                 title = "Distribution of Tax Expenditures (Legal approach)")
+                     
+                     
+                     DistributionOfTE_sankey<-plotly::add_annotations(DistributionOfTE_sankey,
+                                                               text= c("HS CHAPTERS", "HS FOUR DIGITS" ), 
+                                                               x = c(0.2, 0.5), 
+                                                               y = c(1, 1), showarrow = FALSE)
+                     
+                     
+                     
                       
 # III.Tables  ------------------------------------------------------
           
@@ -1175,7 +1239,7 @@ options(scipen=999)
                      
                                 TE_TobaccoProducts_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Tobacco")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 TE_Alcohol_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Alcohol")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
-                                #TE_Cars_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
+                                TE_Cars_total <- Estimation_TE %>% select(DataSet,Excise_TE)%>%filter(DataSet == "Cars")%>%group_by(DataSet)%>% summarise(Excise_TE = sum(Excise_TE, na.rm = TRUE) / 1e+06)%>%select(Excise_TE)
                                 
                                 
           
@@ -1196,7 +1260,7 @@ options(scipen=999)
                                                                       `Tax Expenditures by Mineral Oils`= TE_MineralOils_total$Excise_TE,
                                                                       `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
                                                                       `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
-                                                                      #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                                                      `Tax Expenditures by Cars`= 0 #TE_Cars_total$Excise_TE
                                                                       )%>%
                                                                     dplyr::select(
                                                                       `Actual Total Import`,
@@ -1210,7 +1274,7 @@ options(scipen=999)
                                                                       `Tax Expenditures by Mineral Oils`,
                                                                       `Tax Expenditures by Tobacco Products`,
                                                                       `Tax Expenditures by Alcohol Products`,
-                                                                      #`Tax Expenditures by Cars`
+                                                                      `Tax Expenditures by Cars`
                                                                       )
             
             
@@ -1221,7 +1285,7 @@ options(scipen=999)
                                                                   MainResultsExcise<-MainResultsExcise%>%
                                                                     dplyr::rename("Description"= "variable",
                                                                                   #"Value"="value")
-                                                                                  "Approach_1"="value")
+                                                                                  "Normative_Approach"="value")
                                                       
                             
                           ## Second table
@@ -1237,7 +1301,8 @@ options(scipen=999)
                                                                         
                                                                         #sum(Estimation_TE$Excise_BenchmarkRevenue,na.rm=TRUE)/1e+06,
                                                                       
-                                                                      `Tax Expenditures`= (TE_MineralOils_total_exemption + TE_TobaccoProducts_total$Excise_TE +TE_Alcohol_total$Excise_TE),
+                                                                      #`Tax Expenditures`= (TE_MineralOils_total_exemption + TE_TobaccoProducts_total$Excise_TE +TE_Alcohol_total$Excise_TE),
+                                                                      `Tax Expenditures`= (TE_MineralOils_total_exemption + TE_Cars_total$Excise_TE),
                                                                         
                                                                         #sum(Estimation_TE$Excise_TE,na.rm=TRUE)/1e+06,
                                                                       `Tax Expenditures as % of GDP`=(`Tax Expenditures`/GDP)*100,
@@ -1246,9 +1311,9 @@ options(scipen=999)
                                                                       `Tax Expenditures (as % of ExciseRevenue)`=(`Tax Expenditures`/TaxesOnProducts)*100,
                                                                       # TE's by type of products
                                                                       `Tax Expenditures by Mineral Oils`= TE_MineralOils_total_exemption,
-                                                                      `Tax Expenditures by Tobacco Products`= TE_TobaccoProducts_total$Excise_TE,
-                                                                      `Tax Expenditures by Alcohol Products`= TE_Alcohol_total$Excise_TE,
-                                                                      #`Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
+                                                                      `Tax Expenditures by Tobacco Products`= 0, #TE_TobaccoProducts_total$Excise_TE,
+                                                                      `Tax Expenditures by Alcohol Products`= 0, #TE_Alcohol_total$Excise_TE,
+                                                                      `Tax Expenditures by Cars`= TE_Cars_total$Excise_TE
                                                                     )%>%
                                                                     dplyr::select(
                                                                       `Actual Total Import`,
@@ -1262,7 +1327,7 @@ options(scipen=999)
                                                                       `Tax Expenditures by Mineral Oils`,
                                                                       `Tax Expenditures by Tobacco Products`,
                                                                       `Tax Expenditures by Alcohol Products`,
-                                                                      #`Tax Expenditures by Cars`
+                                                                      `Tax Expenditures by Cars`
                                                                     )
                                                                   
                                                                   
@@ -1273,7 +1338,7 @@ options(scipen=999)
                                                                    MainResultsExcise_1<-MainResultsExcise_1%>%
                                                                     dplyr::rename("Description"= "variable",
                                                                                   #"Value"="value")%>%
-                                                                                  "Approach_2"="value")%>%
+                                                                                  "Legal_Approach"="value")%>%
                                                                      select(-c(Description))
                                                                     
                                                                      #MainResultsExciseFinal

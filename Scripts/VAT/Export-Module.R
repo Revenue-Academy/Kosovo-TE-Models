@@ -23,6 +23,10 @@
       writeData(wb, "Results_1", Simulation_Results_1, startRow = 1, startCol = 1)
       writeData(wb, "Est_Rev1", Est_Rev1, startRow = 1, startCol = 1)
       writeData(wb, "Est_Rev_BU", Est_Rev_BU, startRow = 1, startCol = 1)
+      # NEw
+      # Est_Rev_BU<-CPA_PRODUCTS_BU$Est_Rev
+      # writeData(wb, "Est_Rev_BU", Est_Rev_BU, startRow = 1, startCol = 1)
+     
       writeData(wb, "revenue_vat_total_bu", revenue_vat_total_bu, startRow = 1, startCol = 1)
       writeData(wb, "Est_Rev_BU_TE", Est_Rev_BU_TE, startRow = 1, startCol = 1)
       writeData(wb, "Supply_export", Supply_export, startRow = 1, startCol = 1)

@@ -425,7 +425,7 @@ ui <- dashboardPage(
       column(6,
              selectInput("chartSelectTaxExpendituresExcise", "Select Chart",
                          choices = c(
-                           "Chapters_HS1","ProductGroups_MTN1","ExciseStructure_MineralOils","ExciseStructure_TobaccoProducts","ExciseStructure_AlcoholProducts","DistributionOfTE"
+                           "Chapters_HS1","ProductGroups_MTN1","ExciseStructure_MineralOils","ExciseStructure_TobaccoProducts","ExciseStructure_AlcoholProducts","DistributionOfTE","DistributionOfTE_sankey"
                          ),
                          selected = "Chapters_HS1")
       )
@@ -875,37 +875,39 @@ server <- function(input, output, session) {
              "ExciseStructure_MineralOils"=ExciseStructure_MineralOils,
              "ExciseStructure_TobaccoProducts"=ExciseStructure_TobaccoProducts,
              "ExciseStructure_AlcoholProducts"=ExciseStructure_AlcoholProducts,
-             "DistributionOfTE"=DistributionOfTE
+             "DistributionOfTE"=DistributionOfTE,
+             "DistributionOfTE_sankey"=DistributionOfTE_sankey
              
       )
     })
     
     
     # 4.4   Info Boxes ---------------------------------------------
-
+   
+    
     value1 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures") %>%
-      select(Approach_1)
+      select(Normative_Approach)
     
     value2 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures as % of GDP") %>%
-      select(Approach_1)
+      select(Normative_Approach)
     
     value3 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures by Mineral Oils") %>%
-      select(Approach_1)
+      select(Normative_Approach)
     
     value4 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures by Tobacco Products") %>%
-      select(Approach_1)
+      select(Normative_Approach)
     
     value5 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures by Alcohol Products") %>%
-      select(Approach_1)
+      select(Normative_Approach)
     
     value6 <- MainResultsExciseFinal %>%
       filter(Description == "Tax Expenditures as % of Government Revenue") %>%
-      select(Approach_1)
+      select(Normative_Approach)
     
     # Update the content of the info boxes
     output$exciseInfoBox <- renderUI({
@@ -1012,7 +1014,8 @@ server <- function(input, output, session) {
       # })
 
       # 4.4   Info Boxes ---------------------------------------------
-# 
+
+      
       value1 <- Export_Main_Results %>%
         filter(variable  == "Total_VAT_Gap (in LCU Millions)") %>%
         select(Actual)
