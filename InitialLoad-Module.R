@@ -1,15 +1,13 @@
 
 'Install packages and importing of data
                                           '
-
-
 'Step 1. Set your local path to the  model'
 
 path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
 
-# I.  Installing libraries -------------------------------------------------
+# I.  INSTALLING LIBRARIES  -------------------------------------------------
 
 
         list.of.packages <- c("shinydashboard",
@@ -41,12 +39,14 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
 
 
 
-# II. Importing raw data from Excel into R environment -------------------------
+# II. IMPORTING RAW DATA  -------------------------
            library(tidyverse)
            library(readxl)
            library(countrycode)
            library(maps)
            library(ggplot2)
+           library(reshape2)
+           library(rccmisc) 
            
     # 1.Customs Duties --------------------------------------------------------
 
@@ -116,7 +116,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                   getwd()
                   
                   
-                
+                  Cars_ExciseRates <- read_excel("HS_ExciseCarsClean.xlsx")
                   
                   
                   
@@ -130,22 +130,13 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                   
                   
                   
-                  library(tidyverse)
-                  library(readxl)
-                  library(reshape2)
-                  library(rccmisc) 
-                  
-                  
-                  #excel_file<- "EgyptData_SUT_v1.2.xlsx"  #' <-- Set name of the file with data which include SUTs
                   excel_file<- "Data_SUT_XK_v1.6.xlsx"  #' <-- Set name of the file with data which include SUTs
-                  
-                  
-                  
+  
                   GDP_2022 <- 8895.728 # Data in billion of LCU
                   
                   
                   
-                  # 1. DEFINE FUNCTIONS ----
+                  # 3.1. Define functions ----
                   
                   #  The function creates an ntile group vector:
                   qgroup = function(numvec, n, na.rm=TRUE){
@@ -195,8 +186,8 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                   }
                   
                   
-                  # 2. RAW DATA IMPORT AND PREPROCESS  ----- 
-                  # 3. IMPORT RAW DATA (SUTS) ------------------------------------
+                  # 3.2. Raw data import and preprocess   ----- 
+                  # 3.3 Import raw data (SUTs)  ------------------------------------
                   
                   TAXABLE_PROPORTION_BU<-read_excel(excel_file, sheet = "TaxableProportion")
                   
@@ -223,7 +214,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                   
                   USE_BASIC$INDUSTRY_CODE<-as.numeric(USE_BASIC$INDUSTRY_CODE) 
                   
-                  # 4. AGGREGATE DATA IN LISTS -----
+                  # 3.4 Aggregate data in list  -----
                   
                   ' For calculation of rows'
                   CPA_PRODUCTS <- as.list(c(1:4))
@@ -234,7 +225,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                   names(NACE_INDUSTRIES) = c("Supply", "Use_Purchaser", "Use_VAT", "Use_Basic")
                   
                   
-                  # 4.1 Supply matrix -----
+                  # 3.5 Supply matrix -----
                   
                   CPA_PRODUCTS$Supply <- SUPPLY %>% 
                     dplyr::filter(PRODUCT_INDUSTRY_CODE != "NA" & INDUSTRY_CODE != "NA") %>%
@@ -274,7 +265,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                     dplyr::group_by(INDUSTRY_CODE, INDUSTRY_NAME) %>%
                     dplyr::summarise(Total_output_by_industries_at_basic_prices = sum(value, na.rm = T))
                   
-                  # 4.2 Use Purchaser matrix ----
+                  # 3.6 Use Purchaser matrix ----
                   
                   CPA_PRODUCTS$Use_Purchaser <- USE_PURCHASER %>% 
                     dplyr::filter(PRODUCT_INDUSTRY_CODE != "NA" & INDUSTRY_CODE != "NA") %>%
@@ -342,7 +333,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                     dplyr::summarise(Total_intermediate_consumption_by_industries_at_purchasers_prices = sum(value, na.rm = T))
                   
                   
-                  # 4.3 Use Basic matrix ----
+                  # 3.7 Use Basic matrix ----
                   CPA_PRODUCTS$Use_Basic <- USE_BASIC %>% 
                     dplyr::filter(PRODUCT_INDUSTRY_CODE != "NA" & INDUSTRY_CODE != "NA") %>%
                     dplyr::group_by(PRODUCT_INDUSTRY_CODE, PRODUCT_INDUSTRY_NAME) %>%
@@ -411,7 +402,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                     dplyr::summarise(Total_intermediate_consumption_by_industries_at_basic_prices = sum(value, na.rm = T))
                   
                   
-                  # 4.4 Use VAT matrix ----
+                  # 3.8 Use VAT matrix ----
                   
                   CPA_PRODUCTS$Use_VAT <- USE_VAT %>% 
                     dplyr::filter(PRODUCT_INDUSTRY_CODE != "NA" & INDUSTRY_CODE != "NA") %>%
@@ -487,7 +478,8 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                   
                   
                   
-# III.Saving data in R environment (RDS file) --------------------------------
+                  
+# III. SAVING DATA IN R ENVIROMENT (RDS FILE)--------------------------------
 
                   path <- paste0(path1, "/Data/VAT")
                   setwd(path)
@@ -502,7 +494,7 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                 
                 rm(list = ls()[!ls() %in% c("GeoDimension","HS_Sections","path",                    
                                             "path1","WTO_MTN","BEC",
-                                            "mapdata_iso3c","MacroFiscalData","CPA_CN","CPA_NACE","mapdata_iso3c",
+                                            "mapdata_iso3c","MacroFiscalData","CPA_CN","CPA_NACE","mapdata_iso3c","Cars_ExciseRates",
                                             "SUPPLY", "USE_BASIC", "USE_PURCHASER", "USE_VAT", "TAXABLE_PROPORTION_BU", "NACE_INDUSTRIES", "CPA_PRODUCTS","GDP_2022"
                                             )])
                 
