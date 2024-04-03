@@ -858,31 +858,31 @@ options(scipen=999)
                               dplyr::group_by(Subdataset,DataSet)%>%
                               dplyr::summarise(Pure_Alc=sum(Pure_Alc,na.rm = TRUE))
 
-                           # Alcohol_tbl_subset <- Alcohol_tbl_subset[order(Alcohol_tbl_subset$Category), ]
+                           # # Alcohol_tbl_subset <- Alcohol_tbl_subset[order(Alcohol_tbl_subset$Category), ]
+                           # 
+                           #  #old version
+                           #  col.pal = c("ALCHOLIC BEVERAGE" = "red",
+                           #              "WINE" = "maroon",
+                           #              BEER  = "blue"
+                           #              )
+                           # 
+                           # 
+                           # 
+                           #   Alcohol_ChordPlot<-chordDiagram(Alcohol_tbl_subset,
+                           #                grid.col = col.pal,
+                           #                title(main = "Distribution of Pure Alcohol,by Excise products"))
+                           # 
+                           #  library(cowplot)
+                           #  #plot(runif(10))
+                           #  chordDiagram(Alcohol_tbl_subset,
+                           #               grid.col = col.pal,
+                           #               title(main = "Distribution of Pure Alcohol,by Excise products"))
+                           # 
+                           #  Alcohol_ChordPlot <- recordPlot()
+                           #  #ggdraw(Alcohol_ChordPlot)
+                           # 
+                           #  Alcohol_ChordPlot <- ggplotly(Alcohol_ChordPlot)
 
-                            #old version
-                            col.pal = c("ALCHOLIC BEVERAGE" = "red",
-                                        "WINE" = "maroon",
-                                        BEER  = "blue"
-                                        )
-
-
-
-                            # Alcohol_ChordPlot<-chordDiagram(Alcohol_tbl_subset,
-                            #              grid.col = col.pal,
-                            #              title(main = "Distribution of Pure Alcohol,by Excise products"))
-
-                            # library(cowplot)
-                            # #plot(runif(10))
-                            # chordDiagram(Alcohol_tbl_subset,
-                            #              grid.col = col.pal,
-                            #              title(main = "Distribution of Pure Alcohol,by Excise products"))
-                            # 
-                            # Alcohol_ChordPlot <- recordPlot()
-                            # #ggdraw(Alcohol_ChordPlot)
-                            # 
-                            # Alcohol_ChordPlot <- ggplotly(Alcohol_ChordPlot)
-                            # 
                             # new version
                             # Da se proba ovaa varijanta https://r-graph-gallery.com/chord-diagram-interactive.html
                             
@@ -1211,6 +1211,7 @@ options(scipen=999)
                                                                y = c(1, 1), showarrow = FALSE)
                      
                      
+                     write.csv(Estimation_TE,"Estimation_TE.csv")
                      
                       
 # III.Tables  ------------------------------------------------------

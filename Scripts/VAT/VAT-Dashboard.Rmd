@@ -1,0 +1,425 @@
+---
+title:  "VAT Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    css: css/styles-default.css
+    logo: img/WB_pic.ico
+---
+
+<style type="text/css">
+.value-box .value {
+    color: white;
+}
+.value-box .caption {
+    color: white;
+}
+</style>
+
+```{r setup, include=FALSE}
+
+# Setting icons
+# https://www.angularjswiki.com/fontawesome/logistics/
+ 
+
+```
+
+# Intro
+
+This dashboard include several types of results:
+
+-	Decomposition of VAT GAP
+-	Policy Simulation
+-	Structure of non-refundable VAT by sectors
+-	Estimation of tax expenditures
+-	Estimation of effective VAT rates
+-	Distributional impacts of a policy on households by COICOP
+
+
+Definitions for VAT-GAP:
+
+- Total VAT Gap: difference between the VAT control total and benchmark VAT;
+- Policy Gap: additional revenue that would be gained if the tax relief granted through
+policy decisions was eliminated; and
+- Compliance Gap: Total VAT gap less the component attributable to policy decisions.
+
+
+Exec Summary
+=======================================================================
+
+
+Column {data-width=250}
+-----------------------------------------------------------------------
+
+### Benchmark_VAT
+
+```{r}
+
+valueBox(Benchmark_VAT,
+         icon="fa-coins",
+          color = "#17becf")
+
+```
+
+### Uncalibrated_VAT
+
+```{r}
+
+valueBox(Uncalibrated_VAT,
+          icon="fa-balance-scale-left",
+          color = "green")
+
+
+```
+
+### Calibrated_VAT
+
+```{r}
+
+valueBox(Calibrated_VAT,
+         icon="fa-balance-scale",
+          color = "red")
+
+```
+
+
+### Total_VAT_Gap
+
+```{r}
+
+valueBox(Total_VAT_Gap,
+         icon="fa-money-check-alt",
+         color = '#103d5d')
+
+
+```
+
+### Policy_Gap
+
+```{r}
+
+valueBox(Policy_Gap,
+         icon="fa-hand-holding-usd",
+          color = '#e377c2'
+          )
+
+
+```
+
+
+### Compliance_Gap
+
+```{r}
+
+valueBox(Compliance_Gap,
+         icon="fa-chart-area",
+          color = "#bcbd22")
+
+
+```
+
+### VAT_Benchmark_Rate
+
+```{r}
+
+valueBox(VAT_Benchmark_Rate,
+         icon="fa-percent",
+          color = "orange")
+
+
+```
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### VAT GAP (%)
+
+```{r}
+  gauge_vat_gap_pct<-gauge(Total_VAT_Gap_Pct$Actual,min=0,max=100,
+           gaugeSectors(danger = c(71,100),
+                        warning = c(31,70),
+                        success = c(0,30)))
+
+gauge_vat_gap_pct
+
+```
+
+### Policy Gap (%)
+
+```{r}
+
+  gauge_vat_policy_pct<-gauge(Policy_Gap_Pct$Actual,min=0,max=100,
+           gaugeSectors(danger = c(71,100),
+                        warning = c(31,70),
+                        success = c(0,30)))
+                      
+gauge_vat_policy_pct
+
+```
+
+
+### Compliance Gap (%)
+
+```{r}
+
+  gauge_vat_policy_compliance_pct<-gauge(Compliance_Gap_Pct$Actual,min=0,max=100,
+           gaugeSectors(danger = c(71,100),
+                        warning = c(31,70),
+                        success = c(0,30)))
+                      
+gauge_vat_policy_compliance_pct
+
+```
+
+
+### C-Efficency
+
+```{r}
+
+  gauge_vat_policy_compliance_pct<-gauge(C_Efficiency$Actual,min=0,max=1,
+           gaugeSectors(success = c(0.70,1),
+                        warning = c(0.31,0.69),
+                        danger = c(0,0.3)))
+                      
+gauge_vat_policy_compliance_pct
+
+```
+
+
+
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### 
+
+```{r}
+BarChart_TE
+
+```
+
+
+Historic
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### 
+
+```{r}
+
+
+VAT_PctOfGDP
+
+```
+
+### 
+
+```{r}
+    
+                           
+VAT_Revenues_Nominal
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### 
+
+```{r,eval=TRUE}
+
+ 
+                            
+                            StructureOfTaxRevenues_Nominal
+
+```
+
+
+### 
+
+```{r,eval=TRUE}
+
+
+                            
+                            VAT_StructureOfTaxRevenuesPct
+
+
+
+                       
+```
+
+
+VAT Structure
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### VAT revenues from Industries (in LCU millions)
+```{r,eval=TRUE}
+
+valueBox(round(sum(VAT_Industries$Total_Revenues_from_Intermediate_Inputs)/1000,0),
+         icon="fa-industry",
+          color = "blue")
+```
+
+
+### VAT revenues from industries 
+
+```{r,eval=TRUE}
+
+              
+VAT_revenues_industries_treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from NPISH (in LCU millions)
+```{r,eval=TRUE}
+
+
+valueBox(round(sum(VAT_NPISH$Final_Demand_NPISH)/1000,0),
+         icon="fa-chart-pie",
+          color = "red"
+         )
+```
+
+
+### VAT revenues from NPISH 
+```{r,eval=TRUE}
+
+VAT_revenues_NPISH_treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+### VAT revenues from Government (in LCU millions)
+```{r,eval=TRUE}
+
+valueBox(round(sum(VAT_Government$Final_Demand_Government)/1000,0),
+         icon="fa-landmark",
+          color = "orange")
+```
+
+
+### VAT revenues from Government 
+
+```{r,eval=TRUE}
+
+    VAT_revenues_Government_treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from households (in LCU millions)
+```{r,eval=TRUE}
+
+
+
+
+valueBox(round(sum(VAT_Households$Final_Demand_HH)/1000,0),
+         icon="fa-home",
+          color = "green")
+```
+
+
+### VAT revenues from households 
+```{r,eval=TRUE}
+
+    
+    VAT_revenues_Households_treemap
+``` 
+
+
+Tax Expenditures
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Total tax expenditures (in LCU millions)
+```{r,eval=TRUE}
+
+valueBox(round(te_agg_value_box,0),
+         icon="fa-chart-line",
+          color = "blue")
+```
+
+
+### 
+
+```{r,eval=TRUE}
+
+
+Plot_Standard_Actual_Rates
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Percentage change in VAT revenues
+```{r,eval=TRUE}
+
+valueBox(round(te_agg_value_pct,1),
+         icon="fa-chart-pie",
+          color = "red")
+
+```
+
+
+### 
+
+```{r,eval=TRUE}
+
+
+BarChart_TE
+
+
+
+```
+
+
+Simulation Results
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Fiscal impact of simulation (in LCU millions)
+```{r,eval=TRUE}
+
+valueBox(round(filtered_results_value_box,0),
+         icon="fa-cash-register",
+          color = "blue")
+```
+
+
+### 
+
+```{r,eval=TRUE}
+ 
+
+
+
+BarChart_Simulation
+
+
+```
+
+
+
+
+
+
+
+

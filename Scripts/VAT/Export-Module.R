@@ -56,6 +56,10 @@
       #                             "VAT_benchmark_tax_rate","Standard_VAT_rate","Preferential_VAT_rate","TAXABLE_PROPORTION_BU","GDP_2018"
       # 
       #                             )])
+      
+      # New
+      rm(TAXABLE_PROPORTION_IMPORT)
+      
       gc(TRUE)
       setwd(path1)
       getwd()

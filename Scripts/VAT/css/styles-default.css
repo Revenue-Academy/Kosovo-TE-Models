@@ -1,0 +1,9 @@
+/* NAVBAR */
+.navbar {
+    overflow: hidden; /* Clear float */
+}
+
+.navbar-logo {
+    width: 67px;
+    float: right; /* Float the logo to the right */
+}
