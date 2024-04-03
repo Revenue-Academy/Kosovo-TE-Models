@@ -17,6 +17,7 @@ library(base64enc)
 library(countrycode)
 library(sfo)
 library(circlize)
+library(flexdashboard)
 
 #Day 1 training
 #Besart testing
@@ -961,6 +962,8 @@ server <- function(input, output, session) {
         source("./Scripts/VAT/TaxCalc-Module.R")
         source("./Scripts/VAT/Export-Module.R")
         source("./Scripts/VAT/ChartsParametars-Module.R")
+        source("./Scripts/VAT/ChartsPlotting-Module.R")
+        #source("./Scripts/VAT/CleaningObjects-Module.R")
       } else {
         
       }
@@ -971,11 +974,13 @@ server <- function(input, output, session) {
         myarg <- list()  # Replace with your actual parameters
         
         # Render R Markdown document
-        dashboard <- rmarkdown::render(file.path(path, "VAT-Dashboard.Rmd"), params = list(args = myarg))
+        dashboard <- rmarkdown::render(file.path(paste0(path1, "/Scripts/VAT"), "VAT-Dashboard.Rmd"), params = list(args = myarg))
+        #dashboard <- rmarkdown::render(file.path(path, "VAT-Dashboard1.Rmd"), params = list(args = myarg))
         #dashboard <- rmarkdown::render("VAT-Dashboard.Rmd", params = list(args = myarg))
         
         # View the rendered document in RStudio Viewer
         rstudioapi::viewer(dashboard)
+        
       })
       
       # # Historic data import
