@@ -1,12 +1,7 @@
 '
     ESTIMATION-MODULE
                         '
-# From Data processing
-
-# nEW
-#standard_VAT_rate = VAT_Input
-
-#suppressMessages({ 
+suppressMessages({ 
   
 
 colnames(SIMULATION) <- column_names
@@ -282,8 +277,6 @@ colnames(SIMULATION) <- column_names
         dplyr::summarise(Total_output_by_industries_at_basic_prices = sum(value, na.rm = T))
       
       
-#})    
+})    
 
     
-      
-      # We use the data from "Use_K_NetPurch" instead of "Use_K_Dom_NetPurch" to avoid redundancies because it is the same data.

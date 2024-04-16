@@ -21,7 +21,7 @@ conversion_factor=1000
                                             Simulated_Policy_Reduced_Rate = ifelse(is.na(Simulation_Toggles_Reduced_Rate), Current_Policy_Reduced_Rate, Simulation_Toggles_Reduced_Rate),
                                             Simulated_Policy_Fully_Taxable = 1-Simulated_Policy_Exempt-Simulated_Policy_Reduced_Rate)
                             
-    #suppressMessages({                         
+suppressMessages({                         
                               # 1.1.1 Aggregate table ----------------------------------------
                               
                               SUPPLY_DOM_AGGREGATE_1<-SUPPLY_DOM%>%
@@ -981,4 +981,4 @@ conversion_factor=1000
                           
                           
                             
-#})    
+})    
