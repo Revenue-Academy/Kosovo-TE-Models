@@ -1,5 +1,5 @@
 
-path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"
+#path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"
 revenue_vat_total_bu <- read_excel("Data/VAT/export_data.xlsx",sheet="Est_Rev_BU")
 est_rev_bu_te<- read_excel("Data/VAT/export_data.xlsx",sheet="Est_Rev_BU_TE")
 result_simulation <- read_excel("Data/VAT/export_data.xlsx",sheet="Result_Simulation")
