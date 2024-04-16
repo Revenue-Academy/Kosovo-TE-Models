@@ -30,13 +30,20 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--
                               "base64enc",
                               "maps",
                               "sfo",
-                              "circlize"
+                              "circlize",
+                              "flexdashboard",
+                              "rpivotTable",
+                              "sm",
+                              "ks"
                               )
 
            new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
            if(length(new.packages)) install.packages(new.packages)
 
 
+           # Install package
+           install.packages(file.path(path1, "Data", "rccmisc_0.3.7.tar.gz"), repos = NULL, type = "source")
+           
 
 
 # II. IMPORTING RAW DATA  -------------------------
