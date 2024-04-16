@@ -81,6 +81,10 @@ MacroFiscalData<-read_excel(paste0(path1, "/Data/ImportData/MacroFiscalData/Macr
             Compliance_Gap_Pct <-main_results[9,2] 
             VAT_Benchmark_Rate<-main_results[10,2] 
             C_Efficiency <-main_results[11,2] 
+           
+            
+            
+            
             
 # 1.Nominal GDP and share of VAT revenues in GDP -----------------------------------------------------
         
@@ -89,6 +93,12 @@ MacroFiscalData<-read_excel(paste0(path1, "/Data/ImportData/MacroFiscalData/Macr
         df_plt <- MacroFiscalData %>%
           dplyr::select(Year, GDP, VAT_PctOfGDP) %>%
           mutate(Excise_PctOfGDP = round(VAT_PctOfGDP, 1))
+        
+        
+        # For value box !!!
+        
+        VAT_PctOfGDP_variable<-df_plt[8,3]
+        
         
         # Extract last year
         last_year <- MacroFiscalData$Year[nrow(MacroFiscalData)]                            

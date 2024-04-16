@@ -51,8 +51,21 @@ Exec Summary
 
 Column {data-width=250}
 -----------------------------------------------------------------------
+### **KPIs**
+### VAT Benchmark Rate
 
-### Benchmark_VAT
+```{r}
+
+valueBox(VAT_Benchmark_Rate,
+         icon="fa-percent",
+          color = "orange")
+
+
+```
+
+
+
+### Benchmark VAT (in LCU millions)
 
 ```{r}
 
@@ -62,7 +75,7 @@ valueBox(Benchmark_VAT,
 
 ```
 
-### Uncalibrated_VAT
+### Uncalibrated VAT (in LCU millions)
 
 ```{r}
 
@@ -73,7 +86,7 @@ valueBox(Uncalibrated_VAT,
 
 ```
 
-### Calibrated_VAT
+### Calibrated VAT (in LCU millions)
 
 ```{r}
 
@@ -84,7 +97,7 @@ valueBox(Calibrated_VAT,
 ```
 
 
-### Total_VAT_Gap
+### Total VAT_Gap (in LCU millions)
 
 ```{r}
 
@@ -95,7 +108,7 @@ valueBox(Total_VAT_Gap,
 
 ```
 
-### Policy_Gap
+### Policy Gap (in LCU millions)
 
 ```{r}
 
@@ -108,7 +121,7 @@ valueBox(Policy_Gap,
 ```
 
 
-### Compliance_Gap
+### Compliance Gap (in LCU millions)
 
 ```{r}
 
@@ -119,21 +132,12 @@ valueBox(Compliance_Gap,
 
 ```
 
-### VAT_Benchmark_Rate
 
-```{r}
-
-valueBox(VAT_Benchmark_Rate,
-         icon="fa-percent",
-          color = "orange")
-
-
-```
 
 
 Column {data-width=350}
 -----------------------------------------------------------------------
-
+### **Gauge charts**
 ### VAT GAP (%)
 
 ```{r}
@@ -188,12 +192,24 @@ gauge_vat_policy_compliance_pct
 ```
 
 
+### VAT GAP as share of GDP
+
+```{r}
+
+  gauge_vat_share_pct_gdp<-gauge(round((Total_VAT_Gap/GDP_2022)*100,2)[1,1],min=0,max=100,
+           gaugeSectors(danger = c(71,100),
+                        warning = c(31,70),
+                        success = c(0,30)))
+gauge_vat_share_pct_gdp
+
+```
+
 
 
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### 
+### **Tax Expenditures**
 
 ```{r}
 BarChart_TE

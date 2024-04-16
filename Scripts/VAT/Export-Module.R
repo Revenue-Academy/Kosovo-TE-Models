@@ -49,13 +49,10 @@
       # Export and save 
       saveWorkbook(wb1, file = "simulation.xlsx", overwrite = TRUE)
 
-      #rm(list=ls()[! ls() %in% c("path","path1")])
+
       
       print("Simulation is done")
-      # rm(list = ls()[!ls() %in% c("path", "path1", "SUPPLY", "USE_BASIC", "USE_PURCHASER", "USE_VAT", "TAXABLE_PROPORTION_IMPORT", "NACE_INDUSTRIES", "CPA_PRODUCTS",
-      #                             "VAT_benchmark_tax_rate","Standard_VAT_rate","Preferential_VAT_rate","TAXABLE_PROPORTION_BU","GDP_2018"
-      # 
-      #                             )])
+
       
       # New
       rm(TAXABLE_PROPORTION_IMPORT)
