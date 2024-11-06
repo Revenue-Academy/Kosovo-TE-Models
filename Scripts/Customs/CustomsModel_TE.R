@@ -1,8 +1,71 @@
 ' Data preparation,estimation of tax expenditures and preparation of data for charts
 '
+options(scipen = 999)
+# Define fonts
+t <- list(
+  family = "Arial",
+  size = 12
+)
+
+
+t_8 <- list(
+  family = "Arial",
+  size = 8#,
+  #face="bold"
+)
+
+t_10 <- list(
+  family = "Arial",
+  size = 10,
+  face="bold"
+)
+
+# Define fonts
+t_11 <- list(
+  family = "Arial",
+  size = 11,
+  face="bold"
+)
+
+
+t_16 <- list(
+  family = "Arial",
+  size = 16,
+  face="bold"
+)
+
+
+# Define custom colors
+colors <- c('#1f77b4', '#ff7f0e')
+
+# Original colors
+colr <- c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#17becf', '#57a9e2',
+          '#ffb574', '#5fd35f', '#7f7f7f', '#e77c7c', '#c6aedc', '#bcbd22',
+          '#bc8b81', '#f4cce8', '#b2b2b2', '#9467bd', '#e2e362', '#e377c2',
+          '#5fe0ed', '#8c564b', '#103d5d', '#a74e00')
+
+# Generate additional unique colors
+additional_colors <- colorRampPalette(c("#00FF00", "#FF0000"))(102 - length(colr))
+
+# Combine the original and additional colors
+colr <- c(colr, additional_colors) 
+
+
+
+library(data.table)
+library(plotly)
+library(readxl)
+library(dplyr)
+
+Benchmark_Customs_Rate<-0.1
+
+Import_raw_monthly<-read_excel("~/Models/Kosovo_Models/Data/ImportData/Open_DATA_Import Janar-Dhjetor 2023.xlsx")
+
+
+
 options(warn = -1)
 
-suppressMessages({
+#suppressMessages({
   
 # I. Estimation of tax expenditures for customs duties ----------------------------------------------------------
         # 1.Processing of data ------------------------------------------------------
@@ -79,6 +142,11 @@ suppressMessages({
             CustomsDuties_base$FreeTradeAgreements <- ifelse(is.na(CustomsDuties_base$FreeTradeAgreements), 'NoFreeTradeAgreement', CustomsDuties_base$FreeTradeAgreements)
             CustomsDuties_base$Treatment <- ifelse(is.na(CustomsDuties_base$Treatment), 'NonPreferential', CustomsDuties_base$Treatment)
             
+            
+
+
+            
+            
 
         # 3.Estimation of Tax Expenditures for Customs duties -----------------------
             # 3.1 Countries -----------------------------------------------------------
@@ -108,18 +176,49 @@ suppressMessages({
 
             # 3.2 Harmonized System-HS  --------------------------------------------------------------------
 
-                  CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
-                    dplyr::group_by(HS_code,Treatment,HS_code_s)%>%
-                    dplyr::filter(Treatment=="NonPreferential")%>%
-                    dplyr::summarise(Value=sum(Value,na.rm = TRUE),
-                                     Quantity=sum(Quantity,na.rm = TRUE),
-                                     Netweight=sum(Netweight,na.rm = TRUE),
-                                     CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
-                                     ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
-                                     VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
-                                     CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
-                                     CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
+                    
+                    # 2a. Adding TARIC rates --------------------------------------------------
+                    
+                    
+         
                   
+                    
+                    
+                  # OLD
+                  # CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
+                  #   dplyr::group_by(HS_code,Treatment,HS_code_s)%>%
+                  #   dplyr::filter(Treatment=="NonPreferential")%>%
+                  #   dplyr::summarise(Value=sum(Value,na.rm = TRUE),
+                  #                    Quantity=sum(Quantity,na.rm = TRUE),
+                  #                    Netweight=sum(Netweight,na.rm = TRUE),
+                  #                    CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
+                  #                    ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
+                  #                    VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
+                  #                    CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
+                  #                    CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE))
+                  
+                  # NEW
+                    
+                    CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
+                      dplyr::group_by(HS_code,Treatment,FreeTradeAgreements,HS_code_s)%>%
+                     #dplyr::filter(Treatment=="NonPreferential")%>%
+                      #dplyr::filter(Treatment=="Preferential")%>%
+                      dplyr::summarise(Value=sum(Value,na.rm = TRUE),
+                                       Quantity=sum(Quantity,na.rm = TRUE),
+                                       Netweight=sum(Netweight,na.rm = TRUE),
+                                       CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
+                                       ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
+                                       VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE),
+                                       CustomsDuties_Benchmark=sum(CustomsDuties_Benchmark,na.rm = TRUE),
+                                       CustomsDuties_TE=sum(CustomsDuties_TE,na.rm = TRUE)
+                                       )
+                    
+                    
+                    
+                  
+                    CustomsDuties_TE_agg_HS<-left_join(CustomsDuties_TE_agg_HS,taric_data,by =c("HS_code"))  
+                    
+                    
 
                     # Adding desegregation by HS codes
                     CustomsDuties_TE_agg_HS <- mutate(CustomsDuties_TE_agg_HS,
@@ -132,6 +231,374 @@ suppressMessages({
                                                                         " ",
                                                                         substr(HS_code_s, 8, 9)))
 
+                    
+                    
+
+# I. PREPARATION OF TAXABLE PROPORTION ------------------------------------
+
+                    
+                    CustomsDuties_TE_agg_HS_sub<-CustomsDuties_TE_agg_HS%>%
+                                            select(HS_code,FreeTradeAgreements,Value,CustomsRevenue,CustomsRate_MFN,CustomsRate_TR,CustomsRate_CEFTA,CustomsRate_MSA)%>%
+                                            dplyr::mutate( CalcCustomsRevenues = case_when(
+                                                                                            FreeTradeAgreements == "NoFreeTradeAgreement" ~ Value * (CustomsRate_MFN / 100),
+                                                                                            FreeTradeAgreements %in% c("EU27", "GBR") ~ Value * (CustomsRate_MSA / 100),
+                                                                                            FreeTradeAgreements == "CEFTA" ~ Value * (CustomsRate_CEFTA / 100),
+                                                                                            FreeTradeAgreements == "TR" ~ Value * (CustomsRate_TR / 100),
+                                                                                            TRUE ~ 0  # Default case if no condition matches
+                                                                                            ))%>% 
+                                            dplyr::mutate( CalcCustomsRevenues_MFN=Value * (CustomsRate_MFN / 100),
+                                                          Effective_Customs_rate=(round(CustomsRevenue/(Value),2)*100),
+                                                          Diff=round(CalcCustomsRevenues-CustomsRevenue,1),
+                                                          NonPreferential_share=0,
+                                                          Exempted_share=0,
+                                                          Preferential_share=0
+                                                         
+                                                          )
+
+                    View(CustomsDuties_TE_agg_HS_sub)
+                    
+          # 1. No Free Trade Agreement ------------------------------------------------
+
+
+                    NoFreeTradeAgreement_sub<-CustomsDuties_TE_agg_HS_sub%>%
+                      filter(FreeTradeAgreements=="NoFreeTradeAgreement")
+                    
+                    
+                    
+                    # Assuming NoFreeTradeAgreement_sub is your dataset
+                    
+                    NoFreeTradeAgreement_sub <- NoFreeTradeAgreement_sub %>%
+                                dplyr::mutate(
+                                                    NonPreferential_share = case_when(
+                                                      CustomsRate_MFN == Effective_Customs_rate ~ 100,  # New condition: if CustomsRate_MFN equals Effective_Customs_rate
+                                                      Diff > 1 ~ (CustomsRevenue / (CustomsRate_MFN / 100)) / Value * 100,  # Existing condition
+                                                      TRUE ~ 0  # Default case
+                                                    ),
+                                                    Exempted_share = 100 - NonPreferential_share,  # Calculate Exempted_share as the complement of NonPreferential_share
+                                                    Preferential_share = case_when(
+                                                      Exempted_share == 0 ~ 0,  # Placeholder for Preferential_share (if needed)
+                                                      TRUE ~ 0  # Adjust as needed
+                                              ))%>%
+                                dplyr::mutate(CustomsTest=(Value*(NonPreferential_share/100))*(CustomsRate_MFN/100))%>%
+                                dplyr::mutate(diff1=round(CustomsTest-CustomsRevenue,1))
+
+                    
+                    sum(NoFreeTradeAgreement_sub$CustomsTest,na.rm = TRUE) # 81297908
+                    sum(NoFreeTradeAgreement_sub$CustomsRevenue) # 81122453
+                    
+                    # Diff in pct : ((81297908/81122453)*100)-100  [1] 0.22 PCT
+                    
+                    
+                    View(NoFreeTradeAgreement_sub)
+                    
+
+# 2. CEFTA -------------------------------------------------------------
+
+                    
+                    FreeTradeAgreement_CEFTA<-CustomsDuties_TE_agg_HS_sub%>%
+                      filter(FreeTradeAgreements=="CEFTA")%>%
+                      mutate(Effective_Customs_rate=CustomsRevenue/Value)
+                    
+                             
+                    
+                    # Assuming FreeTradeAgreement_CEFTA is your dataset
+                  
+                    FreeTradeAgreement_CEFTA <- FreeTradeAgreement_CEFTA %>%
+                      dplyr::mutate(
+                        NonPreferential_share = case_when(
+                          Effective_Customs_rate == 0 & CustomsRevenue == 0 ~ 0,  # NonPreferential_share is 0 when both rates and revenue are 0
+                          CustomsRate_CEFTA == Effective_Customs_rate ~ 100,  # If the rates are equal, NonPreferential_share is 100
+                          Effective_Customs_rate > 0 & CustomsRate_CEFTA > 0 ~ pmin((Effective_Customs_rate / CustomsRate_CEFTA) * 100, 100),  # Proportional based on rate ratio
+                          Diff > 1 ~ pmin((Diff / Value) * 100, 100),  # If Diff > 1, calculate proportionally from Diff and Value
+                          CustomsRevenue > 0 & Value > 0 ~ (CustomsRevenue / Value) * 100,  # Calculate NonPreferential_share as percentage of CustomsRevenue over Value
+                          TRUE ~ 0  # Default case
+                        ),
+                        
+                        Preferential_share = case_when(
+                          Effective_Customs_rate == 0 & CustomsRevenue == 0 ~ 100,  # If both are 0, Preferential_share is 100
+                          TRUE ~ 100 - NonPreferential_share  # Otherwise, Preferential_share complements NonPreferential_share
+                        ),
+                        
+                        Exempted_share = 0  # Exempted_share should always be 0
+                      ) %>%
+                      dplyr::mutate(
+                        CustomsTest = ((Value * (NonPreferential_share / 100)) * (CustomsRate_MFN / 100))*10  # Calculate CustomsTest based on NonPreferential_share
+                      ) %>%
+                      dplyr::mutate(
+                        diff1 = round(CustomsTest - CustomsRevenue, 1)  # Calculate the difference
+                      )
+                    
+                
+                    # Check if the sum of NonPreferential_share, Exempted_share, and Preferential_share is valid
+                    check_sums <- FreeTradeAgreement_CEFTA %>%
+                      dplyr::mutate(sum_check = NonPreferential_share + Exempted_share + Preferential_share) %>%
+                      dplyr::summarise(valid = all(sum_check == 100))
+                    
+                    print(check_sums)
+                    
+                    
+                    sum(FreeTradeAgreement_CEFTA$CustomsTest,na.rm = TRUE) # 81297908
+                    sum(FreeTradeAgreement_CEFTA$CustomsRevenue) # 81122453
+                    
+                    # Diff in pct : ((81297908/81122453)*100)-100  [1] 0.22 PCT
+                    
+                    View(FreeTradeAgreement_CEFTA)
+                   
+                  
+                    
+                    
+                  #
+                    
+                    #customs_data_raw<-rbind(NoFreeTradeAgreement_sub,FreeTradeAgreement_CEFTA)
+                    
+
+                    #write.csv(customs_data_raw,"customs_data_raw.csv")
+                    
+# 3.TR -------------------------------------------------------------------
+
+                    'do tuka ova ne e zavrseno i dava gresni rezultati !!!!!'
+  
+                    FreeTradeAgreement_TR<-CustomsDuties_TE_agg_HS_sub%>%
+                      filter(FreeTradeAgreements=="TR")%>%
+                      mutate(Effective_Customs_rate=(CustomsRevenue/Value)*100)
+                    
+                    
+                    
+                    # Assuming FreeTradeAgreement_TR is your dataset
+                    
+                  FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                      dplyr::mutate(
+                        NonPreferential_share = case_when(
+                          Effective_Customs_rate == 0 & CustomsRevenue == 0 ~ 0,  # NonPreferential_share is 0 when both rates and revenue are 0
+                          CustomsRate_TR == Effective_Customs_rate ~ 100,  # If the rates are equal, NonPreferential_share is 100
+                          Effective_Customs_rate > 0 & CustomsRate_TR > 0 ~ pmin((Effective_Customs_rate / CustomsRate_TR) * 100, 100),  # Proportional based on rate ratio
+                          Diff > 1 ~ pmin((Diff / Value) * 100, 100),  # If Diff > 1, calculate proportionally from Diff and Value
+                          CustomsRevenue > 0 & Value > 0 ~ (CustomsRevenue / Value) * 100,  # Calculate NonPreferential_share as percentage of CustomsRevenue over Value
+                          TRUE ~ 0  # Default case
+                        ),
+                        
+                        Preferential_share = case_when(
+                          Effective_Customs_rate == 0 & CustomsRevenue == 0 ~ 100,  # If both are 0, Preferential_share is 100
+                          CustomsRate_MFN == CustomsRate_TR ~ 100,  # New condition: If CustomsRate_MFN is equal to CustomsRate_TR, Preferential_share is 100
+                          TRUE ~ 100 - NonPreferential_share  # Otherwise, Preferential_share complements NonPreferential_share
+                        ),
+                        
+                        Exempted_share = 0  # Exempted_share should always be 0
+                      ) %>%
+                      dplyr::mutate(
+                        CustomsTest1 = ((Value * (Preferential_share / 100)) * (CustomsRate_TR / 100)) * 10,
+                        CustomsTest2 = ((Value * (NonPreferential_share / 100)) * (CustomsRate_MFN / 100))*10 ,
+                        CustomsTest=CustomsTest1+CustomsTest2
+                        # Calculation of CustomsTest based on Preferential_share
+                      ) %>%
+                      dplyr::mutate(
+                        diff1 = round(CustomsTest - CustomsRevenue, 1)  # Calculate the difference
+                      )
+                    
+                    # View the modified dataset
+                    print(FreeTradeAgreement_TR)
+                    
+                    
+                    
+                    # Check if the sum of NonPreferential_share, Exempted_share, and Preferential_share is valid
+                    check_sums <- FreeTradeAgreement_TR %>%
+                      dplyr::mutate(sum_check = NonPreferential_share + Exempted_share + Preferential_share) %>%
+                      dplyr::summarise(valid = all(sum_check == 100))
+                    
+                    print(check_sums)
+                    
+                    
+                    sum(FreeTradeAgreement_TR$CustomsTest,na.rm = TRUE) # 81297908
+                    sum(FreeTradeAgreement_TR$CustomsRevenue) # 81122453
+                    
+                    # Diff in pct : ((81297908/81122453)*100)-100  [1] 0.22 PCT
+                    
+                    View(FreeTradeAgreement_TR)
+                    
+                    
+                    6796452
+                    164070500
+                    
+                    ## NEW TEST
+                    
+                    View(FreeTradeAgreement_TR)
+                    
+                    
+                    FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                      dplyr::mutate(
+                        # calc_customs_revenue_pref= (Value*(CustomsRate_TR/100)),  # All import taxed with preferential rate
+                        # diff_pref_non_pref=round(CustomsRevenue-calc_customs_revenue_pref,1), # Difference between calculated preferential tax revenues and CustomsRevenue
+                        # calc_base_non_pref=round(diff_pref_non_pref/(CustomsRate_TR/100)), # 
+                      # Identifying exempted share
+                      Exempted_share = case_when(
+                                                      CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR > 0~ 100,
+                                                      TRUE ~ 100 #- Preferential_share
+                                                        
+                      ),
+                      Preferential_share = case_when(
+                                                      CustomsRevenue > 0 & CustomsRate_MFN == 0 & CustomsRate_TR == 0 ~ 100,
+                        
+                        TRUE ~ 100 - NonPreferential_share #- Exempted_share  # Otherwise, Preferential_share complements NonPreferential_share
+                      ),
+                      
+                      )
+                    View(FreeTradeAgreement_TR)
+                    
+                    
+                    
+                    
+                    
+                    # FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                    #   dplyr::mutate(
+                    #                 Exempted_share = case_when(
+                    #                   CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR > 0 ~ 100,
+                    #                   TRUE ~ 0  # If not exempt, set it to 0
+                    #                 ),
+                    #                 Preferential_share = case_when(
+                    #                   CustomsRate_TR == round(Effective_Customs_rate,0) ~ 100,
+                    #                   TRUE ~ 0  # If not preferential, set it to 0
+                    #                 ),
+                    #                 NonPreferential_share = case_when(
+                    #                   CustomsRate_MFN == round(Effective_Customs_rate,0) & CustomsRate_TR !=CustomsRate_MFN ~ 100,
+                    #                   CustomsRate_MFN > round(Effective_Customs_rate,0) & CustomsRate_TR ==0  ~ 100,
+                    #                   TRUE ~ 0  # If not preferential, set it to 0
+                    #                 )
+                    #               )
+                    FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                                        dplyr::mutate(
+                                                    Exempted_share = case_when(
+                                                      CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR > 0 ~ 100,
+                                                      CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR == 0 ~ 100,
+                                                      TRUE ~ 0  # If not exempt, set it to 0
+                                                    ),
+                                                    NonPreferential_share = case_when(
+                                                                          CustomsRevenue>0 & CustomsRate_MFN == round(Effective_Customs_rate, 0) & CustomsRate_TR != CustomsRate_MFN ~ 100,
+                                                                          CustomsRate_MFN >= round(Effective_Customs_rate>0, 0) & CustomsRate_TR == 0 ~round(((Value-(CustomsRevenue / (CustomsRate_MFN / 100)))/Value)*100,1),
+                                                                          TRUE ~ 100
+                                                      ),
+                                                     
+                                                      Preferential_share = case_when(
+                                                                        CustomsRevenue>0 & CustomsRate_TR == round(Effective_Customs_rate, 0) ~ 100,
+                                                                        TRUE ~ 100 - (NonPreferential_share + Exempted_share) # If not preferential, set it to 0
+                                                      ),
+                                                    )
+                                                    
+                    
+                    # Cross checking !!!
+                    FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                      dplyr::mutate(
+                        Preferential_share = 100 - NonPreferential_share,
+                        cross_check=NonPreferential_share+Exempted_share+Preferential_share,
+                        NonPreferential_share=if_else(cross_check == 200, 0, NonPreferential_share),
+                        # Preferential_share = if_else(cross_check == 200, 0, Preferential_share),  # Use if_else for vectorized operation
+                       # NonPreferential_share = if_else(cross_check == 200, 0, NonPreferential_share),
+                        cross_check1=NonPreferential_share+Exempted_share+Preferential_share,
+                      )
+                    
+                                    
+                    
+                    View(FreeTradeAgreement_TR)
+         
+
+                    total_non_zero_counts <- data.frame(
+                      Exempted_share_count = sum(FreeTradeAgreement_TR$Exempted_share != 0, na.rm = TRUE),
+                      Preferential_share_count = sum(FreeTradeAgreement_TR$Preferential_share != 0, na.rm = TRUE),
+                      NonPreferential_share_count = sum(FreeTradeAgreement_TR$NonPreferential_share != 0, na.rm = TRUE)
+                    )
+                    
+                    total_non_zero_counts
+                    
+                    # Calculate the sum of the counts in the row
+                    total_sum <- sum(total_non_zero_counts)
+                    
+                    total_sum
+                    
+                    
+                    #  2811
+                    
+                    write.csv(FreeTradeAgreement_TR,"FreeTradeAgreement_TR4.csv")
+                    
+
+# TESTING NEW VERSION -----------------------------------------------------
+
+                    
+                    # FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                    #   dplyr::mutate(
+                    #     Exempted_share = case_when(
+                    #       CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR > 0 ~ 100,
+                    #       #CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR == 0 ~ 100,
+                    #       TRUE ~ 0  # If not exempt, set it to 0
+                    #         ),
+                    #         NonPreferential_share = case_when(
+                    #           CustomsRevenue>0 & CustomsRate_MFN == round(Effective_Customs_rate>0, 0) & CustomsRate_TR != CustomsRate_MFN ~ 100,
+                    #           #CustomsRate_MFN >= round(Effective_Customs_rate>0, 0) & CustomsRate_TR == 0 ~round(((Value-(CustomsRevenue / (CustomsRate_MFN / 100)))/Value)*100,1),
+                    #           TRUE ~ 100
+                    #         ),
+                    #         
+                    #         Preferential_share = case_when(
+                    #           CustomsRevenue>0 & CustomsRate_TR == round(Effective_Customs_rate, 0),
+                    #          # Effective_Customs_rate=CustomsRate_TR,
+                    #           #~ 100,
+                    #           
+                    #           TRUE ~ 100 #- (NonPreferential_share + Exempted_share) # If not preferential, set it to 0
+                    #         ),
+                    #       )
+                    # 
+                    
+                    FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                      dplyr::mutate(
+                        Exempted_share = case_when(
+                          CustomsRevenue == 0 & CustomsRate_MFN > 0 & CustomsRate_TR > 0 ~ 100,
+                          TRUE ~ 0  # If not exempt, set it to 0
+                        ),
+                        NonPreferential_share = case_when(
+                          CustomsRevenue > 0 & Effective_Customs_rate > 0 & CustomsRate_MFN == ceiling(Effective_Customs_rate) ~ 100,
+                          TRUE ~ NA_real_  # Let's set NA here to check what rows are problematic
+                        ),
+                        Preferential_share = case_when(
+                          CustomsRevenue > 0 & Effective_Customs_rate > 0 & CustomsRate_TR == ceiling(Effective_Customs_rate) ~ 100,
+                          TRUE ~ NA_real_  # Let's set NA here to check what rows are problematic
+                        )
+                      )
+                    
+                    
+                    
+                    
+                    
+                    # Cross checking !!!
+                    FreeTradeAgreement_TR <- FreeTradeAgreement_TR %>%
+                      dplyr::mutate(
+                        Preferential_share = 100 - NonPreferential_share,
+                        cross_check=NonPreferential_share+Exempted_share+Preferential_share,
+                        #NonPreferential_share=if_else(cross_check == 200, 0, NonPreferential_share),
+                        # Preferential_share = if_else(cross_check == 200, 0, Preferential_share),  # Use if_else for vectorized operation
+                        # NonPreferential_share = if_else(cross_check == 200, 0, NonPreferential_share),
+                        cross_check1=NonPreferential_share+Exempted_share+Preferential_share,
+                      )
+                    
+                    
+                    
+                    View(FreeTradeAgreement_TR)
+                    
+                    
+                    total_non_zero_counts <- data.frame(
+                      Exempted_share_count = sum(FreeTradeAgreement_TR$Exempted_share != 0, na.rm = TRUE),
+                      Preferential_share_count = sum(FreeTradeAgreement_TR$Preferential_share != 0, na.rm = TRUE),
+                      NonPreferential_share_count = sum(FreeTradeAgreement_TR$NonPreferential_share != 0, na.rm = TRUE)
+                    )
+                    
+                    total_non_zero_counts
+                    
+                    # Calculate the sum of the counts in the row
+                    total_sum <- sum(total_non_zero_counts)
+                    
+                    total_sum
+                   
+                    
+                    write.csv(FreeTradeAgreement_TR,"FreeTradeAgreement_TR5.csv")
+                    
+                    
+                    
                     
 # II.Preparing data for charts and for the main table --------------------------------------------
 
@@ -522,7 +989,7 @@ ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>% layout(
 ImportDuties_PctOfGDP <- ImportDuties_PctOfGDP %>%
   layout(
     images = list(
-      source = base64_image,  # Use the base64-encoded image data
+     # source = base64_image,  # Use the base64-encoded image data
       xref = "paper",
       yref = "paper",
       x = 0,
@@ -776,4 +1243,4 @@ ChoroplethMap <- map1 + scale_fill_gradient(name= "In LCU million",
 rm(Import_raw_monthly)
         
 
-})
+#})
