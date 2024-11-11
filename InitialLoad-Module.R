@@ -45,8 +45,9 @@ list.of.packages <- unique(c("shinydashboard",
                              "purrr",
                              "tidyr",
                              "RColorBrewer",
-                             "Hmisc",
-                             "rccmisc"))
+                             "Hmisc"
+                             #"rccmisc"
+                             ))
 
 # Check for missing packages and install them
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -64,7 +65,7 @@ if (length(new.packages)) install.packages(new.packages)
            library(maps)
            library(ggplot2)
            library(reshape2)
-           library(rccmisc) 
+           #library(rccmisc) 
            library(openxlsx)
            library(readxl)
                   # 1.Customs Duties --------------------------------------------------------
@@ -124,7 +125,8 @@ if (length(new.packages)) install.packages(new.packages)
               
                                 # NEW DATA for 2023
                                 
-                                taric_data <- read_excel("~/Models/Kosovo_Models/Data/ImportData/Tarifa_Per_WEB-2023 ..xlsx")%>%
+                                #taric_data <- read_excel("~/Models/Kosovo_Models/Data/ImportData/Tarifa_Per_WEB-2023 ..xlsx")
+                                taric_data <- read_excel("Tarifa_Per_WEB-2023 ..xlsx")%>%
                                   select(-c("TAR_ALL","TAR_DSC2","TAR_DSC","TAR_ALL2","TAR_ALL3","Përshkrimi Akcizës","MPT_IMPORT","MPT_EKSPORT",'VALID_FROM'))%>%
                                   dplyr::rename('HS_code'='TAR_10',
                                                 'Description_EN'='TAR_DSC3',
