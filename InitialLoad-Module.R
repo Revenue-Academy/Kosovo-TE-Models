@@ -3,55 +3,53 @@
                                           '
 'Step 1. Set your local path to the model directory'
 
+rm(list = ls())
 path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
-
-
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
 
 # I. INSTALLING LIBRARIES  -------------------------------------------------
 
 
-# Define the list of required packages, removing duplicates
-list.of.packages <- unique(c("shinydashboard",
-                             "DT",
-                             "readxl",
-                             "openxlsx",
-                             "shinyjs",
-                             "plotly",
-                             "ggplot2",
-                             "data.table",
-                             "fontawesome",
-                             "tidyverse",
-                             "countrycode",
-                             "shiny",
-                             "kableExtra",
-                             "stringr",
-                             "reshape2",
-                             "base64enc",
-                             "maps",
-                             "sfo",
-                             "circlize",
-                             "flexdashboard",
-                             "rpivotTable",
-                             "sm",
-                             "ks",
-                             "shinyWidgets",
-                             "plyr",
-                             "shinycssloaders",
-                             "future",
-                             "promises",
-                             "parallel",
-                             "purrr",
-                             "tidyr",
-                             "RColorBrewer",
-                             "Hmisc"
-                             #"rccmisc"
-                             ))
-
-# Check for missing packages and install them
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-if (length(new.packages)) install.packages(new.packages)
+# # Define the list of required packages, removing duplicates
+# list.of.packages <- unique(c("shinydashboard",
+#                              "DT",
+#                              "readxl",
+#                              "openxlsx",
+#                              "shinyjs",
+#                              "plotly",
+#                              "ggplot2",
+#                              "data.table",
+#                              "fontawesome",
+#                              "tidyverse",
+#                              "countrycode",
+#                              "shiny",
+#                              "kableExtra",
+#                              "stringr",
+#                              "reshape2",
+#                              "base64enc",
+#                              "maps",
+#                              "sfo",
+#                              "circlize",
+#                              "flexdashboard",
+#                              "rpivotTable",
+#                              "sm",
+#                              "ks",
+#                              "shinyWidgets",
+#                              "plyr",
+#                              "shinycssloaders",
+#                              "future",
+#                              "promises",
+#                              "parallel",
+#                              "purrr",
+#                              "tidyr",
+#                              "RColorBrewer",
+#                              "Hmisc",
+#                              "stringr"))
+# 
+# # Check for missing packages and install them
+# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+# if (length(new.packages)) install.packages(new.packages)
 
 # # Load all packages
 # lapply(list.of.packages, library, character.only = TRUE)
@@ -59,6 +57,9 @@ if (length(new.packages)) install.packages(new.packages)
 
 
 # II. IMPORTING RAW DATA  -------------------------
+
+
+
            library(tidyverse)
            library(readxl)
            library(countrycode)
@@ -68,6 +69,7 @@ if (length(new.packages)) install.packages(new.packages)
            #library(rccmisc) 
            library(openxlsx)
            library(readxl)
+          library(stringr)
                   # 1.Customs Duties --------------------------------------------------------
               
                       
@@ -87,8 +89,8 @@ if (length(new.packages)) install.packages(new.packages)
                                 # https://unstats.un.org/unsd/classifications/Econ#corresp-hs
               
                                 
-                                BEC<-read_excel("BEC/HS-BEC.xlsx",sheet = "HS SITC BEC")%>%
-                                  dplyr::select(HS17,HS22,BEC5)
+                                # BEC<-read_excel("BEC/HS-BEC.xlsx",sheet = "HS SITC BEC")%>%
+                                #   dplyr::select(HS17,HS22,BEC5)
                                 
                                 # HS-Sections
                                 HS_Sections <- read_excel("WTO-CORRELATION/WTO_HS.xlsx", 
@@ -97,19 +99,19 @@ if (length(new.packages)) install.packages(new.packages)
                                 HS_Sections <- HS_Sections %>%
                                   mutate(Section_description = str_to_title(Section_description))
                                 
-                                # Countries
+                                # # Countries
                                 GeoDimension <- read_excel("GEO-DIMENSION/GeoDimension.xlsx")%>%
                                   dplyr::select(iso2c,iso3c,countries,FreeTradeAgreements)
-                                
-                                
+                                # 
+                                # 
                                 # Maps
                                 mapdata <- map_data("world")
                                 iso3c <- data.frame(iso3=countrycode(mapdata$region, "country.name", "iso3c"))
                                 mapdata_iso3c<-cbind(mapdata,iso3c)
-                                
+
                                 # Removing Antarctica and Nan values
                                 mapdata_iso3c<-mapdata_iso3c[!(mapdata_iso3c$region=="Antarctica"),]
-                                
+
                       
                                 # Import Macro Fiscal Data
                                 
@@ -120,17 +122,17 @@ if (length(new.packages)) install.packages(new.packages)
                                 # CPA LINKS FOR DATA 
                                 # https://op.europa.eu/en/web/eu-vocabularies/dataset/-/resource?uri=http://publications.europa.eu/resource/dataset/cpa21
               
-                                CPA_CN <- read_excel("CPA-CORRELATION/CPA21_CN2018_2023.xlsx")
-                                CPA_NACE <- read_excel("CPA-CORRELATION/CPA21_NACE2_Table.xlsx")
+                                # CPA_CN <- read_excel("CPA-CORRELATION/CPA21_CN2018_2023.xlsx")
+                                # CPA_NACE <- read_excel("CPA-CORRELATION/CPA21_NACE2_Table.xlsx")
               
                                 # NEW DATA for 2023
                                 
-                                #taric_data <- read_excel("~/Models/Kosovo_Models/Data/ImportData/Tarifa_Per_WEB-2023 ..xlsx")
-                                taric_data <- read_excel("Tarifa_Per_WEB-2023 ..xlsx")%>%
-                                  select(-c("TAR_ALL","TAR_DSC2","TAR_DSC","TAR_ALL2","TAR_ALL3","Përshkrimi Akcizës","MPT_IMPORT","MPT_EKSPORT",'VALID_FROM'))%>%
+                                taric_data <- read_excel("~/Models/Kosovo_Models/Data/ImportData/Tarifa_Per_WEB-2023 ..xlsx")%>%
+                                  select(-c("TAR_ALL","TAR_DSC2","TAR_DSC","TAR_ALL2","TAR_ALL3","MPT_IMPORT","MPT_EKSPORT",'VALID_FROM'))%>%
                                   dplyr::rename('HS_code'='TAR_10',
                                                 'Description_EN'='TAR_DSC3',
                                                 'SupplementaryUnit'='UOM_COD1',
+                                                'Excise_Description'='Përshkrimi Akcizës',
                                                 'CustomsRate_MFN'='TAR_T01_DOGANA',
                                                 'CustomsRate_CEFTA'='TAR_T04_CEFTA',
                                                 'CustomsRate_MSA'='TAR_T05_MSA',
@@ -147,10 +149,14 @@ if (length(new.packages)) install.packages(new.packages)
                                 taric_data$CustomsRate_MSA<-as.double(taric_data$CustomsRate_MSA)
                                 taric_data$CustomsRate_TR <-as.double(taric_data$CustomsRate_TR)
                                 
-                                #
+                                
                                 
                                 taric_data <- mutate(taric_data,Chapter = substr(HS_code, 1, 2))
                                 
+                                
+                                # Add Excise description on English
+                                
+
                                 
                                 customs_simulation_parameters_raw<-left_join(taric_data,HS_Sections,by=c("Chapter"))%>%
                                   select(Chapter, Chapters_description, everything()) %>%
@@ -183,8 +189,12 @@ if (length(new.packages)) install.packages(new.packages)
                                   dplyr::select(-Chapter,-HS6_COD, -HS4_COD, -`Description_Chapters `)
                                 
                                 
+                                # OLD 21-11-2024
                                 customs_simulation_parameters <- customs_simulation_parameters %>%
                                   dplyr::select(Chapters_description, Description_Chapters, HS_code, everything())
+                                
+                                
+                                
               
                   # 1.1 Regular Import ----------------------------------------------------------
               
@@ -237,8 +247,15 @@ if (length(new.packages)) install.packages(new.packages)
                                     Netweight = sum(Netweight, na.rm = TRUE),
                                     CustomsRevenue = sum(CustomsRevenue, na.rm = TRUE),
                                     ExciseRevenue = sum(ExciseRevenue, na.rm = TRUE),
-                                    Effective_Customs_rate = round(sum(CustomsRevenue, na.rm = TRUE) / sum(Value, na.rm = TRUE), 4)*100
+                                    Effective_Customs_rate = round(sum(CustomsRevenue, na.rm = TRUE) / sum(Value, na.rm = TRUE), 4) * 100,
+                                    Effective_Excise_rate = round(sum(ExciseRevenue, na.rm = TRUE) / sum(Quantity), 3),#*100,
+                                    Effective_VAT_rate = round(
+                                      sum(VAT_Revenue, na.rm = TRUE) / 
+                                        (sum(Value, na.rm = TRUE) +sum(CustomsRevenue, na.rm = TRUE)+ sum(ExciseRevenue, na.rm = TRUE)), 2
+                                    ) * 100
+                                    
                                   )
+                                
               
                              # Final merging
                                   
@@ -252,26 +269,304 @@ if (length(new.packages)) install.packages(new.packages)
               
                                   customs_simulation_parameters_final$CN_CODE<-NULL
                                   customs_simulation_parameters_final$Description_EN<-NULL
-                                  customs_simulation_parameters_final$Year=2023
+                                  #customs_simulation_parameters_final$Year=2023
+                                  
+                                  customs_simulation_parameters_final$Year=as.numeric( unique(Import_raw_monthly$Year))
                                   
                                   
                                   customs_simulation_parameters_final$HS_code<-NULL
                                   
-                                  customs_simulation_parameters_final1<-customs_simulation_parameters_final%>%
-                                    dplyr::rename("HS_code"="HS_code1")%>%
-                                    select(-c("Value","Quantity","Netweight","CustomsRevenue","ExciseRevenue"))
-              
+
+                                  customs_simulation_parameters_final<-customs_simulation_parameters_final%>%
+                                     dplyr::rename("HS_code"="HS_code1")
+
+# 1.2 Adding base for calculation of Excise Base ------------------------------
+                                  # 1.2.1 Alcohol and SSB  -----------------------------------------------------------          
+                                        # 1.2.2 Beer --------------------------------------------------------------------
+                                        customs_simulation_parameters_final$Description_Chapters <- ifelse(
+                                          customs_simulation_parameters_final$Description_Chapters == "2203-NA","2203-Beer made from malt",
+                                          customs_simulation_parameters_final$Description_Chapters
+                                        )
                                   
-                                write.xlsx(customs_simulation_parameters_final1, "customs_simulation_parameters_final.xlsx")
+                                        customs_simulation_parameters_final$Description_Chapters <- ifelse(
+                                          customs_simulation_parameters_final$Description_Chapters == "2206-NA","2206-Other fermented beverages",
+                                          customs_simulation_parameters_final$Description_Chapters
+                                        )
+                                        
                                   
                                   
-              
+                                  
+                            # 1.Conversion excise in statutory rates
+                                  
+                            customs_simulation_parameters_final_excise <- customs_simulation_parameters_final %>%
+                                                mutate(
+                                                  ExciseRate = case_when(
+                                                    Description_Chapters == "2203-Beer made from malt" ~ ExciseRate * 100,
+                                                    Description_Chapters == "2204-Wine of fresh grapes, including fortified wines; grape must other than that of heading 2009" ~ ExciseRate * 100,
+                                                    Description_Chapters == "2205-Vermouth and other wine of fresh grapes flavoured with plants or aromatic substances" ~ ExciseRate * 100,
+                                                    Description_Chapters == "2206-Other fermented beverages" ~ ExciseRate * 100,
+                                                    Description_Chapters == "2207-Undenatured ethyl alcohol of an alcoholic strength by volume of 80 % vol or higher; ethyl alcohol and other spirits, denatured, of any strength" ~ ExciseRate * 100,
+                                                    Description_Chapters == "2208-Undenatured ethyl alcohol of an alcoholic strength by volume of less than 80 % vol; spirits, liqueurs and other spirituous beverages"~ ExciseRate * 100,
+                                                    TRUE ~ ExciseRate # Keeps the original ExciseRate for all other rows
+                                                  )
+                                                )
+                                              
+                            # 2. Commercial names
+                            
+                            customs_simulation_parameters_final_excise_names <- customs_simulation_parameters_final_excise %>%
+                              mutate(
+                                Category = case_when(
+                                # SSB
+                                  Description_Chapters == "2202-Waters, including mineral waters and aerated waters, containing added sugar or other sweetening matter or flavoured, and other non-alcoholic beverages, not including fruit, nut or vegetable juices of heading 2009" ~ "SSB",
+                                # Alcohol
+                                  Description_Chapters == "2203-Beer made from malt" ~ "BEER",
+                                  Description_Chapters == "2204-Wine of fresh grapes, including fortified wines; grape must other than that of heading 2009" ~ "WINE",
+                                  Description_Chapters == "2205-Vermouth and other wine of fresh grapes flavoured with plants or aromatic substances" ~ "WINE",
+                                  Description_Chapters == "2206-Other fermented beverages" ~ "OTHER FERMENTED BEVERAGES",
+                                  Description_Chapters == "2207-Undenatured ethyl alcohol of an alcoholic strength by volume of 80 % vol or higher; ethyl alcohol and other spirits, denatured, of any strength" ~ "INDUSTRIAL ALCOHOL",
+                                  Description_Chapters == "2208-Undenatured ethyl alcohol of an alcoholic strength by volume of less than 80 % vol; spirits, liqueurs and other spirituous beverages" ~ "ALCHOLIC BEVERAGE",
+                                # Tobacco
+                                  Description_Chapters == "2401-Unmanufactured tobacco; tobacco refuse" ~ "TOBACCO",
+                                  str_detect(HS_code, "^2402100") ~ "CIGARS AND CIGARILLOS",
+                                  str_detect(HS_code, "^24022010") ~ "CIGARETTES",
+                                  str_detect(HS_code, "^24022090") ~ "CIGARETTES",
+                                  Description_Chapters == "2403-Other manufactured tobacco and manufactured tobacco substitutes; 'homogenised' or 'reconstituted' tobacco; tobacco extracts and essences" ~ "TOBACCO",
+                                  Description_Chapters == "2404-Products containing tobacco, reconstituted tobacco, nicotine, or tobacco or nicotine substitutes, intended for inhalation without combustion; other nicotine containing products intended for the intake of nicotine into the human body" ~ "TOBACCO",
+                                # Fuels
+                                  str_detect(HS_code, "^27101943") ~ "EURO DIESEL",
+                                  str_detect(HS_code, "^27101249") ~ "EUROSUPER BC 95",
+                                  str_detect(HS_code, "^27101249") ~ "EUROSUPER BS 100",
+                                  str_detect(HS_code, "^27111294") ~ "LPG PROPANE",
+                                  str_detect(HS_code, "^27101981") ~ "LUBRICATING OILS",
+                                  str_detect(HS_code, "^27111397") ~ "LPG BUTANE",
+                                  str_detect(HS_code, "^27101999") ~ "LUBRICATING OILS",
+                                  str_detect(HS_code, "^27101967") ~ "HEAVY OILS",
+                                  str_detect(HS_code, "^27111397") ~ "LPG BUTANE",
+                                  str_detect(HS_code, "^27101983") ~ "LUBRICATING OILS",
+                                  str_detect(HS_code, "^27101987") ~ "LUBRICATING OILS",
+                                  str_detect(HS_code, "^27111297") ~ "LPG PROPANE",
+                                  str_detect(HS_code, "^27111211") ~ "LPG PROPANE",
+                                  str_detect(HS_code, "^27111391") ~ "LPG BUTANE",
+                                  str_detect(HS_code, "^27101993") ~ "LUBRICATING OILS",
+                                  str_detect(HS_code, "^27111219") ~ "LPG PROPANE",
+                                  str_detect(HS_code, "^27101947") ~ "HEAVY OILS",
+                                  str_detect(HS_code, "^27101948") ~ "HEAVY OILS",
+                                  str_detect(HS_code, "^27073000") ~ "LUBRICATING OILS",
+                                  str_detect(HS_code, "^27101231") ~ "AVIATION GASOLINE",
+                                  str_detect(HS_code, "^27101290") ~ "AVIATION GASOLINE",
+                                # Chemical Products
+                                  str_detect(HS_code, "^2901") ~ "CHEMICAL PRODUCTS",
+                                  str_detect(HS_code, "^2902") ~ "CHEMICAL PRODUCTS",
+                                  str_detect(HS_code, "^3811") ~ "CHEMICAL PRODUCTS",
+                                  str_detect(HS_code, "^3814") ~ "CHEMICAL PRODUCTS",
+                                  str_detect(HS_code, "^3817") ~ "CHEMICAL PRODUCTS",
+                                # CARS
+                                  str_detect(HS_code, "^8703") ~ "CARS",
+                                  TRUE ~ NA_character_
+                                )
+                              )
+                            
+                            
+                            # Create a vector with the categories
+                            categories <- c(
+                              "SSB", 
+                              "BEER", "WINE", "OTHER FERMENTED BEVERAGES",
+                              "INDUSTRIAL ALCOHOL", "ALCHOLIC BEVERAGE", 
+                              "TOBACCO","CIGARS AND CIGARILLOS", "CIGARETTES", 
+                              "LUBRICATING OILS","AVIATION GASOLINE", "EUROSUPER BC 95", "EURO DIESEL",
+                              "HEAVY OILS", "LPG PROPANE", "LPG BUTANE",
+                              "CHEMICAL PRODUCTS", 
+                              "CARS"
+                            )
+                            
+                            # Create a corresponding vector for the group
+                            groups <- c(
+                              "Beverages", 
+                              "Alcohol", "Alcohol",  "Alcohol",
+                              "Alcohol", "Alcohol", 
+                              
+                              "Tobacco","Tobacco", "Tobacco",
+                              
+                              "Fuels",
+                              "Fuels", "Fuels", "Fuels",
+                              "Fuels", "Fuels", "Fuels",
+                              "Chemicals", "Vehicles"
+                            )
+                            
+                            # Combine into a data frame
+                            categories_df <- data.frame(Category = categories, Group = groups)
+                            
+                            customs_simulation_parameters_final_excise_names<-left_join(customs_simulation_parameters_final_excise_names,categories_df,by=c("Category"="Category"))
+                            
+                            
+                          #View(customs_simulation_parameters_final_excise_names)
+                                              
+
+#   # 2. Excise Base ------------------------------------------------------
+
+                          customs_simulation_parameters_final_excise_base <- customs_simulation_parameters_final_excise_names %>%
+                            mutate(
+                              ExciseBase = case_when(
+                                Group == "Alcohol" & Quantity > 0 & ExciseRate > 0 ~ ExciseRevenue / (Quantity / 100 * ExciseRate), # kolicinata da se mnozi so standardna stapka i so ovoj izraz
+                                Category=="CIGARS AND CIGARILLOS"& Quantity > 0 & ExciseRate > 0 ~ Quantity * 1000, 
+                                TRUE ~ NA_real_ # Assign NA_real_ for numeric columns
+                              )
+                            )
+
+                                        
+                                        # # 1.2.3 Sugar-sweetened beverages(SSB) ------------------------------------------------------------------
+                                        # 
+                                        # # Non Alcoholic Beer is included here
+                                        # SSB_Quantity <- CustomsDuties_TE_agg_HS %>%
+                                        #   filter(Four_digit == 2202)
+                                        # 
+                                        # SSB_Quantity$Subdataset<-c("SSB")
+                                        # 
+                                        # 
+                                        # # 1.2.3 Wine of fresh grapes ----------------------------------------------------
+                                        # 
+                                        # # Wine of fresh grapes, including fortified wines; grape must other than that of heading 2009)                    
+                                        # WineQuantity <- CustomsDuties_TE_agg_HS %>%
+                                        #   filter(Four_digit == 2204)
+                                        # 
+                                        # WineQuantity$Subdataset<-c("WINE")
+                                        # # Adding excis rate
+                                        # WineQuantity$ExciseRate<-as.numeric(500)
+                                        # 
+                                        # # View(WineQuantity)
+                                        # # sum(WineQuantity$Quantity)/1e06
+                                        # 
+                                        # # 1.2.4 Vermouth ---------------------------------------------------
+                                        # 
+                                        # # Vermouth and other wine of fresh grapes flavoured with plants or aromatic substances
+                                        # VermouthQuantity <- CustomsDuties_TE_agg_HS %>%
+                                        #   filter(Four_digit == 2205)
+                                        # 
+                                        # 
+                                        # # View(VermouthQuantity)
+                                        # # sum(VermouthQuantity$Quantity)/1e06
+                                        # VermouthQuantity$Subdataset<-c("VERMOUTH")
+                                        # 
+                                        # # Adding excis rate
+                                        # VermouthQuantity$ExciseRate<-as.numeric(500)
+                                        # 
+                                        # 
+                                        # # 1.2.5 Other fermented beverages --------------------------------------------------
+                                        # 
+                                        # # Other fermented beverages (for example, cider, perry, mead); mixtures of fermented beverages and mixtures of fermented beverages and non-alcoholic beverages, not elsewhere specified or included
+                                        # 
+                                        # OtherFermentedBeveragesQuantity  <- CustomsDuties_TE_agg_HS %>%
+                                        #   filter(Four_digit == 2206)
+                                        # 
+                                        # OtherFermentedBeveragesQuantity$Subdataset<-c("OTHER FERMENTED BEVERAGES")
+                                        # 
+                                        # # Adding excis rate
+                                        # OtherFermentedBeveragesQuantity$ExciseRate<-as.numeric(500)
+                                        # 
+                                        # 
+                                        # # 1.2.6 Undenatured ethyl alcohol of an alcoholic strength by volume of 80 % vol or higher; ethyl alcohol and other spirits, denatured, of any strength:-----------------------------------------
+                                        # 
+                                        # # Not included ! With 80 strength by volume of 80 % vol or higher is not for driniking
+                                        # # 
+                                        # UndenaturedethylAlcoholQuantity_1  <- CustomsDuties_TE_agg_HS %>%
+                                        #   filter(Four_digit == 2207)
+                                        # 
+                                        # UndenaturedethylAlcoholQuantity_1$Subdataset<-c("UndenaturedEthylAlcoholVolume_80")
+                                        # UndenaturedethylAlcoholQuantity_1$ExciseRate<-as.numeric(500)
+                                        # 
+                                        # 
+                                        # # 1.2.7 Undenatured ethyl alcohol ---------------------------------------------
+                                        # 
+                                        # # Undenatured ethyl alcohol of an alcoholic strength by volume of less than 80 % vol; spirits, liqueurs and other spirituous beverages
+                                        # UndenaturedEthylAlcoholQuantity_2  <- CustomsDuties_TE_agg_HS %>%
+                                        #   dplyr::filter(Four_digit == 2208)
+                                        # 
+                                        # 
+                                        # # View(UndenaturedEthylAlcoholQuantity)
+                                        # #  sum(UndenaturedEthylAlcoholQuantity$Quantity)/1e06
+                                        # UndenaturedEthylAlcoholQuantity_2$Subdataset<-c("ALCHOLIC BEVERAGE")
+                                        # 
+                                        # # Adding excis rate
+                                        # UndenaturedEthylAlcoholQuantity_2$ExciseRate<-as.numeric(800)
+                                        # 
+                                        # # 1.2.8 Merging data --------------------------------------------------
+                                        # 
+                                        # AlcoholQuantity <- bind_rows(BeerQuantity,WineQuantity,VermouthQuantity,OtherFermentedBeveragesQuantity,UndenaturedethylAlcoholQuantity_1,UndenaturedEthylAlcoholQuantity_2,
+                                        #                              SSB_Quantity)
+                                        # 
+                                        # 
+                                        # # Removing Nan from effective tax rates
+                                        # AlcoholQuantity$Effective_Excise_rate<-ifelse(AlcoholQuantity$Quantity==0,0,AlcoholQuantity$Effective_Excise_rate)
+                                        # 
+                                        # 
+                                        # 
+                                        # Alcohol_tbl<-AlcoholQuantity%>%
+                                        #   dplyr::filter(ExciseRevenue>0)                    
+                                        # 
+                                        # Alcohol_tbl$DataSet<-c("Alcohol")
+                                        # 
+                                        # # Calculation of abs. alc 100%
+                                        # 
+                                        # Alcohol_tbl<-Alcohol_tbl%>%
+                                        #   dplyr::mutate(Quantity_HL=Quantity/100, # Conversion in HL
+                                        #                 PotentialExcise=Quantity_HL*ExciseRate,
+                                        #                 Alc_Content=ExciseRevenue/PotentialExcise,
+                                        #                 Pure_Alc=Quantity_HL*Alc_Content,
+                                        #                 test=ExciseRate*Pure_Alc
+                                        #   )
+                                        # 
+                                        # Alcohol_tbl$Quantity_HL<-NULL
+                                        # Alcohol_tbl$PotentialExcise<-NULL
+                                        # 
+                                        # # Cross check
+                                        # sum(Alcohol_tbl$ExciseRevenue)
+                                        # sum(Alcohol_tbl$test)
+                                        # 
+                                        # Alcohol_tbl$Alc_Content<-round(Alcohol_tbl$Alc_Content,2)
+                                        # 
+                                        # 
+                                        # Alcohol_tbl <- Alcohol_tbl %>%
+                                        #   mutate(DataSet  = case_when(
+                                        #     grepl("SSB", Subdataset, ignore.case = TRUE) ~ "SSB",
+                                        #     TRUE ~ DataSet  # If not containing 'SSB', keep the original value
+                                        #   ))
+                                        # 
+                                        # 
+                                        # Alcohol_tbl_subset_export<-Alcohol_tbl%>%
+                                        #   select(Subdataset,ExciseRate,Alc_Content,Pure_Alc,Quantity,ExciseRevenue)%>%
+                                        #   group_by(Subdataset,ExciseRate,Alc_Content)%>%
+                                        #   summarise(Pure_Alc=sum(Pure_Alc),
+                                        #             Quantity=sum(Quantity),
+                                        #             ExciseRevenue=sum(ExciseRevenue)
+                                        #             
+                                        #   )
+                                        # 
+                                        # View(Alcohol_tbl_subset_export)
+
+                                        
+                                        
+                                        # END ---------------------------------------------------------------------                                     
+                                        
+                                        Cars_ExciseRates<-read_excel("HS_ExciseCarsClean.xlsx")
+
+                          
+                                      customs_simulation_parameters_final1<-customs_simulation_parameters_final_excise_base%>%
+                                        select(-c("CustomsRevenue","ExciseRevenue"))
+
+                          
+                          
+                          
+                                      write.xlsx(customs_simulation_parameters_final1, "customs_simulation_parameters_final.xlsx")
+      
+                                
+
+                                
+                                
                   # 1.2 Preparation of data list -------------------------------------------------
               
                                 
                                 customs_data<-customs_simulation_parameters_final%>%
-                                  select("HS_code1", "Value","Quantity","Netweight","CustomsRevenue","ExciseRevenue","TypeOfProducts")%>%
-                                  dplyr::rename("HS_code"="HS_code1")
+                                        select("HS_code", "Value","Quantity","Netweight","CustomsRevenue","ExciseRevenue","TypeOfProducts")
                                 
                                 customs_data <- customs_data %>%
                                   dplyr::mutate(across(where(is.numeric), ~ replace_na(., 0)))
@@ -394,22 +689,22 @@ if (length(new.packages)) install.packages(new.packages)
                   
                   
                   # 3.3 Adding TARIC rates --------------------------------------------------
-                  
-                  
-                  
-                  CustomsDuties_TE_agg_HS<-CustomsDuties_base%>%
-                    dplyr::group_by(HS_code,Treatment,FreeTradeAgreements,HS_code_s)%>%
-                    #dplyr::filter(Treatment=="NonPreferential")%>%
-                    #dplyr::filter(Treatment=="Preferential")%>%
-                    dplyr::summarise(Value=sum(Value,na.rm = TRUE),
-                                     Quantity=sum(Quantity,na.rm = TRUE),
-                                     Netweight=sum(Netweight,na.rm = TRUE),
-                                     CustomsRevenue=sum(CustomsRevenue,na.rm = TRUE),
-                                     ExciseRevenue=sum(ExciseRevenue,na.rm = TRUE),
-                                     VAT_Revenue=sum(VAT_Revenue,na.rm = TRUE))
-                   
-                  
-                  
+                  CustomsDuties_TE_agg_HS <- CustomsDuties_base %>%
+                    dplyr::group_by(HS_code, Treatment, FreeTradeAgreements, HS_code_s) %>%
+                    dplyr::summarise(
+                      Value = sum(Value, na.rm = TRUE),
+                      Quantity = sum(Quantity, na.rm = TRUE),
+                      Netweight = sum(Netweight, na.rm = TRUE),
+                      CustomsRevenue = sum(CustomsRevenue, na.rm = TRUE),
+                      ExciseRevenue = sum(ExciseRevenue, na.rm = TRUE),
+                      VAT_Revenue = sum(VAT_Revenue, na.rm = TRUE),
+                      Effective_Customs_rate = sum(CustomsRevenue, na.rm = TRUE) / sum(Value, na.rm = TRUE) * 100,
+                      Effective_Excise_rate = sum(ExciseRevenue, na.rm = TRUE) / sum(Quantity), #*100,
+                      Effective_VAT_rate = 
+                            sum(VAT_Revenue, na.rm = TRUE) / 
+                               (sum(Value, na.rm = TRUE) +sum(CustomsRevenue, na.rm = TRUE)+ sum(ExciseRevenue, na.rm = TRUE)
+                           ) * 100
+                    )
                   
                   CustomsDuties_TE_agg_HS<-left_join(CustomsDuties_TE_agg_HS,taric_data,by =c("HS_code"))  
                   
@@ -425,12 +720,7 @@ if (length(new.packages)) install.packages(new.packages)
                                                                          substr(HS_code_s, 5, 7),
                                                                          " ",
                                                                          substr(HS_code_s, 8, 9)))
-                  
-                  
-                  
-                 # View(CustomsDuties_TE_agg_HS)
-                  
-                  
+
              
 # III. SAVING DATA IN R ENVIROMENT (RDS FILE)--------------------------------
 
@@ -443,7 +733,7 @@ if (length(new.packages)) install.packages(new.packages)
                 rm(list = ls()[!ls() %in% c("GeoDimension","HS_Sections","path",                    
                                             "path1","WTO_MTN","BEC","taric_data",
                                             "mapdata_iso3c","MacroFiscalData","CPA_CN","CPA_NACE","mapdata_iso3c","CustomsDuties_TE_agg_HS",
-                                            "customs_data","Import_raw_monthly","taric_data"
+                                            "customs_data","Import_raw_monthly","taric_data","Cars_ExciseRates"
                                             )])
                 
                 save.image(file=".RData") 
