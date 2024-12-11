@@ -1,8 +1,8 @@
 'Preparation of Aggregated Revenue Tables
 '
 start.time <- proc.time()
-# 
-# # I. Customs Revenues  --------------------------------------------
+
+# I. Customs Revenues  --------------------------------------------
 
 
               # Function to extract columns and add scenario
