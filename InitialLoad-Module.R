@@ -3,8 +3,8 @@
 'Step 1. Set your local path to the model directory'
 
 rm(list = ls())
-path1<-" "# <--------Set your path here
-
+#path1<-" "# <--------Set your path here
+path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
 
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
@@ -803,23 +803,24 @@ CPA_TAXABLE_PROPORTIONS_SIM_list <- list()
 
 # Created empty dataframe
 
+# 1/23/2025
+# CPA_TAXABLE_PROPORTIONS_BASELINE <- data.frame(
+#   PRODUCT_INDUSTRY_CODE = character(64),
+#   PRODUCT_INDUSTRY_NAME = character(64),
+#   Current_Policy_Exempt = numeric(64),
+#   Current_Policy_Reduced_Rate = numeric(64),
+#   Current_Policy_Fully_Taxable = numeric(64),
+#   PreferentialVATRate_1 = numeric(64),
+#   PreferentialVATRate_2 = numeric(64),
+#   StandardVATRate = numeric(64),
+#   stringsAsFactors = FALSE
+# )
+# 
+# 
+# 
+# CPA_TAXABLE_PROPORTIONS_BASELINE_BU<-CPA_TAXABLE_PROPORTIONS_BASELINE
 
-CPA_TAXABLE_PROPORTIONS_BASELINE <- data.frame(
-  PRODUCT_INDUSTRY_CODE = character(64),
-  PRODUCT_INDUSTRY_NAME = character(64),
-  Current_Policy_Exempt = numeric(64),
-  Current_Policy_Reduced_Rate = numeric(64),
-  Current_Policy_Fully_Taxable = numeric(64),
-  PreferentialVATRate_1 = numeric(64),
-  PreferentialVATRate_2 = numeric(64),
-  StandardVATRate = numeric(64),
-  stringsAsFactors = FALSE
-)
-
-
-
-CPA_TAXABLE_PROPORTIONS_BASELINE_BU<-CPA_TAXABLE_PROPORTIONS_BASELINE
-
+#1/23/2025
 
 ' 
                     In this section data are imported from five files:
@@ -834,12 +835,7 @@ CPA_TAXABLE_PROPORTIONS_BASELINE_BU<-CPA_TAXABLE_PROPORTIONS_BASELINE
 # Name of the version of model
 version_vat_model<-c("Data_SUT_XK_v1.6.xlsx")
 
-# macro_fiscal_raw <- read_excel("MACRO_FISCAL_INDICATORS.xlsx", 
-#                                sheet = "MediumTermForecast")
-# 
-# New
-#taxable_proportions_raw <- read_excel("TaxableProportions-4a.xlsx")
-#taxable_proportions_raw <- read_excel("TaxableProportions-5.xlsx")
+# Taxable proportions
 taxable_proportions_raw <- read_excel("VAT_TaxableProportions.xlsx")
 
 # 2.1 SUTs ------------------------------------
@@ -860,20 +856,13 @@ USE_BASIC_raw <- read_excel(version_vat_model, sheet = "Use_Purchaser_Basic_XK",
 
 # 2.2 COICOP table ------------------------------------------------------------
 # Please import VAT rates that are available at the moment of producing of VAT COICOP
-# vat_bu_rate_preferential1<-0.05
-# vat_bu_rate_preferential2<-0.05
-# vat_bu_rate_standard<-0.18
-# RC_prc_of_Constructions_and_construction_works = 0.3
-# vat_rate_on_residential_construction = 0.05
-# 
-# 
-# 
+
 base_year_VAT<-2022 # <-This is the same year as the year from which the data originates.
 
 max_time_horizon<-base_year_VAT+5
 
 time_horizon<-seq(base_year_VAT,max_time_horizon)
-# 
+
 
 
 # # Create empty data frame 
@@ -882,50 +871,53 @@ time_horizon<-seq(base_year_VAT,max_time_horizon)
 
 
 ## Data from COICOP table
-VAT_COICOP_NAMES <- read_excel(version_vat_model, sheet = "COICOP", col_names = F)[-c(1:2),c(2)]
-VAT_COICOP_NAMES<-VAT_COICOP_NAMES[1:178,1]
+
+# 1/23/2025
+
+# VAT_COICOP_NAMES <- read_excel(version_vat_model, sheet = "COICOP", col_names = F)[-c(1:2),c(2)]
+# VAT_COICOP_NAMES<-VAT_COICOP_NAMES[1:178,1]
+# 
+# 
+# VAT_COICOP_FC <- read_excel(version_vat_model, sheet = "COICOP", col_names = F)[-c(1:2),c(4:9)]
+# VAT_COICOP_FC<-VAT_COICOP_FC[1:178,1:6]
+# 
+# 
+# VAT_COICOP_FINAL_RAW<-cbind(VAT_COICOP_NAMES,VAT_COICOP_FC)
+# 
+# VAT_COICOP_FINAL_RAW<-VAT_COICOP_FINAL_RAW%>%
+#   dplyr:: rename(c("COICOP_Descriptions"= "...2",
+#                    "FC"="...4",
+#                    "EX"= "...5",
+#                    "Reduced_Rate_5"="...6",
+#                    "Standard_Rate_18"= "...7",
+#                    "VAT_Revenue_5"="...8",
+#                    "VAT_Revenue_18"="...9"
+#                    
+#   ))
+# 
+# # Select NACE industries on four digits for calculation  
+# 
+# VAT_COICOP_FINAL_RAW<-subset(VAT_COICOP_FINAL_RAW, grepl("^\\d{2}\\.\\d\\.\\d\\s+", COICOP_Descriptions))
+# 
+# # Extract NACE codes
+# VAT_COICOP_FINAL_RAW$Four_digits<-substr(VAT_COICOP_FINAL_RAW$COICOP_Descriptions, 1, 6)
+# VAT_COICOP_FINAL_RAW$Two_digits<-substr(VAT_COICOP_FINAL_RAW$COICOP_Descriptions, 1, 2)
+# VAT_COICOP_FINAL_RAW[is.na(VAT_COICOP_FINAL_RAW)] <- 0
+# VAT_COICOP_FINAL_RAW$EX<-as.numeric(VAT_COICOP_FINAL_RAW$EX)
+# VAT_COICOP_FINAL_RAW$VAT_Revenue_5<-as.numeric(VAT_COICOP_FINAL_RAW$VAT_Revenue_5)
 
 
-VAT_COICOP_FC <- read_excel(version_vat_model, sheet = "COICOP", col_names = F)[-c(1:2),c(4:9)]
-VAT_COICOP_FC<-VAT_COICOP_FC[1:178,1:6]
-
-
-VAT_COICOP_FINAL_RAW<-cbind(VAT_COICOP_NAMES,VAT_COICOP_FC)
-
-VAT_COICOP_FINAL_RAW<-VAT_COICOP_FINAL_RAW%>%
-  dplyr:: rename(c("COICOP_Descriptions"= "...2",
-                   "FC"="...4",
-                   "EX"= "...5",
-                   "Reduced_Rate_5"="...6",
-                   "Standard_Rate_18"= "...7",
-                   "VAT_Revenue_5"="...8",
-                   "VAT_Revenue_18"="...9"
-                   
-  ))
-
-# Select NACE industries on four digits for calculation  
-
-VAT_COICOP_FINAL_RAW<-subset(VAT_COICOP_FINAL_RAW, grepl("^\\d{2}\\.\\d\\.\\d\\s+", COICOP_Descriptions))
-
-# Extract NACE codes
-VAT_COICOP_FINAL_RAW$Four_digits<-substr(VAT_COICOP_FINAL_RAW$COICOP_Descriptions, 1, 6)
-VAT_COICOP_FINAL_RAW$Two_digits<-substr(VAT_COICOP_FINAL_RAW$COICOP_Descriptions, 1, 2)
-VAT_COICOP_FINAL_RAW[is.na(VAT_COICOP_FINAL_RAW)] <- 0
-VAT_COICOP_FINAL_RAW$EX<-as.numeric(VAT_COICOP_FINAL_RAW$EX)
-VAT_COICOP_FINAL_RAW$VAT_Revenue_5<-as.numeric(VAT_COICOP_FINAL_RAW$VAT_Revenue_5)
-
-
-# Input raw concordance table
-ConcordanceVAT_COICOP_CPA <- read_excel(version_vat_model, sheet = "Concordance", col_names = T)
-
-
-
-
-# Merging table <--- This table will be used in GUI NEW 1.6.2024
-VAT_COICOP_FINAL<-left_join(VAT_COICOP_FINAL_RAW,ConcordanceVAT_COICOP_CPA,by = c("COICOP_Descriptions"))
-
-ConcordanceVAT_COICOP_CPA<-ConcordanceVAT_COICOP_CPA %>% filter(!is.na(Four_digits))
-ConcordanceVAT_COICOP_CPA<-ConcordanceVAT_COICOP_CPA %>% filter(!is.na(CPA_CODE))
+# # Input raw concordance table
+# ConcordanceVAT_COICOP_CPA <- read_excel(version_vat_model, sheet = "Concordance", col_names = T)
+# 
+# 
+# 
+# 
+# # Merging table <--- This table will be used in GUI NEW 1.6.2024
+# VAT_COICOP_FINAL<-left_join(VAT_COICOP_FINAL_RAW,ConcordanceVAT_COICOP_CPA,by = c("COICOP_Descriptions"))
+# 
+# ConcordanceVAT_COICOP_CPA<-ConcordanceVAT_COICOP_CPA %>% filter(!is.na(Four_digits))
+# ConcordanceVAT_COICOP_CPA<-ConcordanceVAT_COICOP_CPA %>% filter(!is.na(CPA_CODE))
 
 
 # # Adjustment of CPA codes with Concordance table
@@ -943,11 +935,18 @@ ConcordanceVAT_COICOP_CPA<-ConcordanceVAT_COICOP_CPA %>% filter(!is.na(CPA_CODE)
 #   dplyr::arrange(PRODUCT_INDUSTRY_CODE)
 # 
 
+# 1/23/2025
+
 
 # 2.5 Concordance table NACE_SUT ----------------------------------
 
-NACE_SUT_table <- read_excel(version_vat_model, sheet = "NACE")
-CPA_COICOP_CONCORDANCE <- read_excel(version_vat_model, sheet = "CPA_COICOP_CONCORDANCE")
+# 1/23/2025
+# NACE_SUT_table <- read_excel(version_vat_model, sheet = "NACE")
+# 
+# 
+# CPA_COICOP_CONCORDANCE <- read_excel(version_vat_model, sheet = "CPA_COICOP_CONCORDANCE")
+
+# 1/23/2025
 
 
 # 2.6 HBS  ----------------------------------------
