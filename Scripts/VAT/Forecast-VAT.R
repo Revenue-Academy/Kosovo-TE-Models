@@ -211,16 +211,16 @@ forecast_horizon <- seq(base_year_VAT, end_year)
           
           # BU
           te_benchmark_tbl_bu<-CPA_PRODUCTS_EST_TE_BU$BM_Rev%>%
-            select(PRODUCT_INDUSTRY_CODE,PRODUCT_INDUSTRY_NAME,Final_Demand_Total)%>%
-            rename("BenchmarkRevenue"="Final_Demand_Total")
+            dplyr::select(PRODUCT_INDUSTRY_CODE,PRODUCT_INDUSTRY_NAME,Final_Demand_Total)%>%
+            dplyr::rename("BenchmarkRevenue"="Final_Demand_Total")
           
           
           te_est_tbl_bu<-CPA_PRODUCTS_EST_CAL_FACTOR_BU$Est_Rev%>%
-            select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
-            rename("EstimationRevenue"="Final_Demand_Total")
+            dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+            dplyr::rename("EstimationRevenue"="Final_Demand_Total")
           
           te_merged_bu<-left_join(te_benchmark_tbl_bu,te_est_tbl_bu, by=c("PRODUCT_INDUSTRY_CODE"))%>%
-            mutate(te_bu=BenchmarkRevenue-EstimationRevenue)
+            dplyr:: mutate(te_bu=BenchmarkRevenue-EstimationRevenue)
           
           te_merged_bu <- te_merged_bu %>%
             dplyr::mutate(Scenario = "Baseline")
@@ -298,16 +298,16 @@ forecast_horizon <- seq(base_year_VAT, end_year)
           # 2.Simulation -----------------------------------------------------------
           
           te_benchmark_tbl_sim<-CPA_PRODUCTS_EST_TE_SIM$BM_Rev%>%
-            select(PRODUCT_INDUSTRY_CODE,PRODUCT_INDUSTRY_NAME,Final_Demand_Total)%>%
-            rename("BenchmarkRevenue"="Final_Demand_Total")
+            dplyr::select(PRODUCT_INDUSTRY_CODE,PRODUCT_INDUSTRY_NAME,Final_Demand_Total)%>%
+            dplyr::rename("BenchmarkRevenue"="Final_Demand_Total")
           
           
           te_est_tbl_sim<-CPA_PRODUCTS_EST_CAL_FACTOR_SIM$Est_Rev%>%
-            select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
-            rename("EstimationRevenue"="Final_Demand_Total")
+            dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+            dplyr::rename("EstimationRevenue"="Final_Demand_Total")
           
           te_merged_sim<-left_join(te_benchmark_tbl_sim,te_est_tbl_sim, by=c("PRODUCT_INDUSTRY_CODE"))%>%
-            mutate(te_sim=BenchmarkRevenue-EstimationRevenue)
+            dplyr::mutate(te_sim=BenchmarkRevenue-EstimationRevenue)
           
           
           #View(te_merged_sim)
