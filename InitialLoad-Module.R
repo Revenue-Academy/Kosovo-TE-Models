@@ -4,7 +4,6 @@
 
 rm(list = ls())
 #path1<-" "# <--------Set your path here
-path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
 
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
