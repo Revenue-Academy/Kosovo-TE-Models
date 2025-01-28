@@ -19,8 +19,6 @@ library(reshape2)
 library(base64enc)
 library(sm)
 library(ks)
-library(ineq)
-library(IC2)
 library(rccmisc)
 
 
