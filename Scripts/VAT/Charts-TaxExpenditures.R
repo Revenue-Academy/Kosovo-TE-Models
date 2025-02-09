@@ -104,7 +104,7 @@ VAT_TE_fun <- function(VAT_TE_tbl,forecast_combined_te_selected,forecast_TE_tbl_
                                   ) %>%
                                   layout(
                                     title = list(
-                                      text = paste("Breakdown of Tax Expenditures by Sector, ", SimulationYear), 
+                                      text = paste("Breakdown of Tax Expenditures by Sector, ", SimulationYear), font = list(size = 12),
                                       x = 0.5, # Center the title
                                       y = 0.95, # Adjust vertical position (optional)
                                       font = list(size = 12) # Adjust font size
@@ -158,7 +158,7 @@ VAT_TE_fun <- function(VAT_TE_tbl,forecast_combined_te_selected,forecast_TE_tbl_
                           line = list(color = custom_colors[2], width = 4, dash = "dot")  # Dotted line for simulation
                         ) %>%
                         layout(
-                          title = paste("Tax Expenditures as Pct Of GDP(PCT of GDP),", min(forecast_horizon), "-", max(forecast_horizon)),font = list(size = 12), 
+                          title = paste("Tax Expenditures (as Pct Of GDP),", min(forecast_horizon), "-", max(forecast_horizon)),font = list(size = 12), 
                           xaxis = list(title = '', tickformat = 'd'),
                           yaxis = list(title = ' ', rangemode = 'tozero'),
                           annotations = list(
