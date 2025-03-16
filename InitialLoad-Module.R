@@ -4,7 +4,7 @@
 
 rm(list = ls())
 #path1<-" "# <--------Set your path here
-
+path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
 
@@ -121,8 +121,8 @@ MacroFiscalData <- read_excel("MacroFiscalData/MacroFiscalData.xlsx",
 # CPA LINKS FOR DATA 
 # https://op.europa.eu/en/web/eu-vocabularies/dataset/-/resource?uri=http://publications.europa.eu/resource/dataset/cpa21
 
-# CPA_CN <- read_excel("CPA-CORRELATION/CPA21_CN2018_2023.xlsx")
-# CPA_NACE <- read_excel("CPA-CORRELATION/CPA21_NACE2_Table.xlsx")
+ CPA_CN <- read_excel("CPA-CORRELATION/CPA21_CN2018_2023.xlsx")
+CPA_NACE <- read_excel("CPA-CORRELATION/CPA21_NACE2_Table.xlsx")
 
 # NEW DATA for 2023
 
@@ -832,7 +832,7 @@ CPA_TAXABLE_PROPORTIONS_SIM_list <- list()
                     '
 
 # Name of the version of model
-version_vat_model<-c("Data_SUT_XK_v1.6.xlsx")
+version_vat_model<-c("Data_SUT_XK_v1.6a.xlsx")
 
 # Taxable proportions
 taxable_proportions_raw <- read_excel("VAT_TaxableProportions.xlsx")
@@ -1023,6 +1023,271 @@ forecast_combined_agg_tbl_wide <- data.table(
   `Simulation (Pct of GDP)` = numeric(),
   `Fiscal Impact (Pct of GDP)` = numeric()
 )
+
+
+
+# PIT ---------------------------------------------------------------------
+
+###############################################################################
+# 1) Setup and Data Preparation
+###############################################################################
+# Define Unit of measurement e.g 1e06,1e03,1e09
+
+LCU_unit<-1e03
+
+
+
+library(data.table)
+# options(scipen = 999)
+# set.seed(123)
+# n <- 300000  # Example size
+# 
+# 
+# 
+# 
+# categories <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U")
+# 
+# # Assign specific probabilities and evenly distribute the rest
+# probabilities <- ifelse(categories %in% c("C", "G", "O", "Q", "J"), 
+#                         c(0.18, 0.19, 0.09, 0.08, 0.06)[match(categories, c("C", "G", "O", "Q", "J"))], 
+#                         (1 - sum(c(0.18, 0.19, 0.09, 0.08, 0.06))) / (length(categories) - 5))
+# 
+# 
+# 
+# # Baseline dt with your columns
+# dt <- data.table(
+#   id_n = as.character(seq(1, n)),
+#   year_birth = as.character(as.integer(runif(n, 1957, 2003))),
+#   gender = sample(x=c("M","F"), prob = c(.6, .4), size=n, replace=TRUE),
+#   nace_section=sample(categories, size = n, replace = TRUE, prob = probabilities),
+#   total_ssc = sample(c(0, 1), size = n, replace = TRUE),
+#   g_Wages_l = runif(n, 0, 200000),
+#   g_total_personal_allowance_l = runif(n, 0, 30000),
+#   g_d_total_tax_reduction_l = sample(c(0, 1), size = n, replace = TRUE),
+#   g_AgriculturalProductsOwn_l = runif(n, 0, 50000),
+#   g_TemporaryContracts_l = runif(n, 0, 10000),
+#   g_IndustrialPropertyRights_c = runif(n, 0, 30000),
+#   g_Lease_c = runif(n, 0, 20000),
+#   g_SolidWaste_c = runif(n, 0, 15000),
+#   g_CapitalGainsSaleShareCapital_c = runif(n, 0, 40000),
+#   g_IndustrialPropertyRightsSuccessor_c = runif(n, 0, 20000),
+#   g_OtherIncome_c = runif(n, 0, 20000)
+# )
+# 
+# # Just an example additional column
+# dt[, Year := 2021L]
+# 
+# 
+# dt[,g_total_gross:=g_Wages_l+g_AgriculturalProductsOwn_l+g_TemporaryContracts_l+g_IndustrialPropertyRights_c+g_Lease_c+g_SolidWaste_c+g_CapitalGainsSaleShareCapital_c+
+#      g_IndustrialPropertyRightsSuccessor_c+g_OtherIncome_c
+# ]
+# 
+# dt[,total_gross_l:=g_Wages_l+g_AgriculturalProductsOwn_l+g_TemporaryContracts_l
+# ]
+# 
+# 
+# dt[,total_gross_c:=g_IndustrialPropertyRights_c+g_Lease_c+g_SolidWaste_c+g_CapitalGainsSaleShareCapital_c+
+#      g_IndustrialPropertyRightsSuccessor_c+g_OtherIncome_c
+# ]
+
+
+
+dt<- read_csv("~/Models/Kosovo_Models/Data/PIT/dataset_pit_xk_2023.csv")%>%data.table()
+
+
+dt<-dt%>%
+  dplyr::mutate(TaxpayerType_en=ifelse(TaxpayerType=="PERSON FIZIK","Others","Individual_businesses"))
+
+dt$City <- iconv(dt$City, from = "latin1", to = "UTF-8")
+
+
+
+###############################################################################
+# 2) Growth Factors & Scenario Mapping
+###############################################################################
+# We have 5 scenarios t0..t4 that map to years 2021..2025
+growth_factors_pit <- data.table(
+  Year = c(2023, 2024, 2025, 2026, 2027),
+  scenarios = c("t0", "t1", "t2", "t3", "t4"),
+  gross_wage=c(1, 1.089, 1.076, 1.074, 1.07),
+  net_income_business=c(1, 1.089, 1.076, 1.074, 1.07),
+  net_income_partnership=c(1, 1.089, 1.076, 1.074, 1.07),
+  gross_rents=c(1, 1.089, 1.076, 1.074, 1.07),
+  gross_i_interest_pen_pay=c(1, 1.089, 1.076, 1.074, 1.07),
+  gross_i_interest=c(1, 1.089, 1.076, 1.074, 1.07),
+  gross_i_inta_prop=c(1, 1.089, 1.076, 1.074, 1.07),
+  capital_gain=c(1, 1.089, 1.076, 1.074, 1.07),
+  foreign_s_inc=c(1, 1.089, 1.076, 1.074, 1.07),
+  other_inc_gifts=c(1, 1.089, 1.076, 1.074, 1.07),
+  ded_rents_expen_rents10pct=c(1, 1.089, 1.076, 1.074, 1.07),
+  ded_pen_cont=c(1, 1.089, 1.076, 1.074, 1.07),
+  ded_exp_int_prop= c(1, 1.089, 1.076, 1.074, 1.07),
+  other_allowed_ded=c(1, 1.089, 1.076, 1.074, 1.07),
+  dis_charity_contribution=c(1, 1.089, 1.076, 1.074, 1.07),
+  loss_carried_for=c(1, 1.089, 1.076, 1.074, 1.07)
+  
+)
+
+# The 5 scenario labels
+scenarios_5 <- c("t0","t1","t2","t3","t4")
+
+# We'll define a convenient vector so we can map scenario -> its numeric index
+#  t0-> index 1 => year=2021
+#  t1-> index 2 => year=2022
+#  t2-> index 3 => year=2023
+#  t3-> index 4 => year=2024
+#  t4-> index 5 => year=2025
+#scenario_years <- c(2022, 2023, 2024, 2025, 2026)
+scenario_years <- c(2023, 2024, 2025, 2026, 2027)
+
+
+###############################################################################
+# 3) Weights
+###############################################################################
+
+n= NROW(dt)
+
+weights_pit <- data.table(
+  t0 = runif(n, 0, 2),
+  t1 = runif(n, 0, 2),
+  t2 = runif(n, 0, 2),
+  t3 = runif(n, 0, 2),
+  t4 = runif(n, 0, 2)
+)
+# For demonstration, set all weights to 1
+weights_pit[, (names(weights_pit)) := lapply(.SD, function(x) 1)]
+
+
+
+
+
+
+
+
+
+
+# NACE PIT NAMES
+
+# NACE NAMES
+df_nace_names<-structure(list(section = c("A", "B", "C", "D", "E", "F", "G", 
+                                          "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", 
+                                          "U", "Other"), description = c("Agriculture, forestry and fishing", 
+                                                                         "Mining and quarrying", "Manufacturing", "Electricity, gas, steam and air conditioning supply", 
+                                                                         "Water supply; sewerage; waste managment and remediation activities", 
+                                                                         "Construction", "Wholesale and retail trade; repair of motor vehicles and motorcycles", 
+                                                                         "Transporting and storage", "Accommodation and food service activities", 
+                                                                         "Information and communication", "Financial and insurance activities", 
+                                                                         "Real estate activities", "Professional, scientific and technical activities", 
+                                                                         "Administrative and support service activities", "Public administration and defence; compulsory social security", 
+                                                                         "Education", "Human health and social work activities", "Arts, entertainment and recreation", 
+                                                                         "Other services activities", "Activities of households as employers; undifferentiated goods - and services - producing activities of households for own use", 
+                                                                         "Activities of extraterritorial organisations and bodies", "Other"
+                                          )), row.names = c(NA, -22L), class = c("tbl_df", "tbl", "data.frame"
+                                          ))
+
+
+# 1.1 RAW DATA IMPORT AND PREPOCESS -----------------------------------------
+path3 <- paste0(path1, "/Data/PIT")
+setwd(path3)
+getwd()
+
+library(sfo)
+library(sf)
+
+region_data <- read_excel("CorrelationNames.xlsx")
+
+kosovo_regions <- st_read("polbnda_rks.shp")
+
+
+NACE_SUT_table <- read_excel("NACE_SUT_table.xlsx")%>%
+  dplyr::select(nace_num,section,description)%>%
+  distinct(nace_num, .keep_all = TRUE)
+
+
+
+NACE_SUT_table$nace_num<-as.double(NACE_SUT_table$nace_num)
+
+
+ComapaniesTypes <- read_excel("ComapaniesTypes.xlsx")      
+
+
+
+dt<-left_join(dt,ComapaniesTypes,by=c("companytype"="Name_AL"))%>%
+  dplyr::rename("companytype_en"="Name_EN")
+
+
+
+dt$sector<-as.double(dt$sector)
+
+dt<-left_join(dt,NACE_SUT_table,by=c('sector'='nace_num'))
+#test<-left_join(dt,NACE_SUT_table,by=c('sector'='nace_num'))
+
+dt$Name_Own<-NULL
+
+
+# CIT ---------------------------------------------------------------------
+
+
+###############################################################################
+# 1) Data
+###############################################################################
+
+path4 <- paste0(path1, "/Data/CIT")
+setwd(path4)
+getwd()
+
+
+cit_raw<- read_csv("~/Models/Kosovo_Models/Data/CIT/dataset_cit_xk.csv")%>%data.table()
+
+
+NACE_SUT_table_cit <- read_excel("NACE_SUT_table.xlsx")%>%
+  dplyr::select(nace,section,description)%>%
+  distinct(nace, .keep_all = TRUE)
+
+
+cit_raw<-left_join(cit_raw,NACE_SUT_table_cit,by=c("sector"="nace"))
+
+TypeOfCompanies_CIT <- read_excel("TypeOfCompanies.xlsx")
+
+
+cit_raw<-left_join(cit_raw,TypeOfCompanies_CIT,by=c("companytype_al"="name_al"))
+
+
+
+growth_factors_cit<- read_csv("~/Models/Kosovo_Models/Data/CIT/growfactors_cit_kosovo.csv")%>%data.table()
+
+
+scenarios_5 <- c("t0","t1","t2","t3","t4")
+
+scenario_years <- c(2023, 2024, 2025, 2026, 2027)
+
+
+# Weights
+
+
+n= NROW(cit_raw)
+
+weights_cit <- data.table(
+  t0 = runif(n, 0, 2),
+  t1 = runif(n, 0, 2),
+  t2 = runif(n, 0, 2),
+  t3 = runif(n, 0, 2),
+  t4 = runif(n, 0, 2)
+)
+# For demonstration, set all weights to 1
+weights_cit[, (names(weights_cit)) := lapply(.SD, function(x) 1)]
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # III. SAVING DATA IN R ENVIROMENT (RDS FILE)--------------------------------

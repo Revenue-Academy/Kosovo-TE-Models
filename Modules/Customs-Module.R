@@ -490,15 +490,25 @@ server <- function(input, output, session) {
     ))
     
     future({
-      source("Scripts/Customs/Functions.R")
-      source("Scripts/Customs/TaxCalculator.R")
-      source("Scripts/Customs/Calc-Customs-Revenues.R")
-      source("Scripts/Customs/Calc-Excise-Revenues.R")
-      source("Scripts/Customs/Calc-VAT-Revenues.R")
-      source("Scripts/Customs/Calc-Import-Duties.R")
+      # source("Scripts/Customs/Functions.R")
+      # source("Scripts/Customs/TaxCalculator.R")
+      # source("Scripts/Customs/Calc-Customs-Revenues.R")
+      # source("Scripts/Customs/Calc-Excise-Revenues.R")
+      # source("Scripts/Customs/Calc-VAT-Revenues.R")
+      # source("Scripts/Customs/Calc-Import-Duties.R")
+      
+      source(paste0(path1, "/Scripts/Customs/Functions.R"))
+      source(paste0(path1, "/Scripts/Customs/TaxCalculator.R"))
+      source(paste0(path1, "/Scripts/Customs/Calc-Customs-Revenues.R"))
+      source(paste0(path1, "/Scripts/Customs/Calc-Excise-Revenues.R"))
+      source(paste0(path1, "/Scripts/Customs/Calc-VAT-Revenues.R"))
+      source(paste0(path1, "/Scripts/Customs/Calc-Import-Duties.R"))
+      
       
       if (input$toggleSimulationRates) {
-        source("Scripts/Customs/Calc-TaxExpenditures.R")
+        #source("Scripts/Customs/Calc-TaxExpenditures.R")
+        source(paste0(path1, "/Scripts/Customs/Calc-TaxExpenditures.R"))
+        
         summary_TE_SIM <- get("summary_TE_SIM", envir = .GlobalEnv)
         summary_TE_SIM_Excise <- get("summary_TE_SIM_Excise", envir = .GlobalEnv)
       } else {
@@ -958,7 +968,9 @@ server <- function(input, output, session) {
           return()
         } else if (chart_type == "Tax_Expenditures_Charts_Customs" && input$toggleSimulationRates) {
           cat("Preparing Tax Expenditures Charts because toggle is ON\n")
-          source("Scripts/Customs/Charts-TaxExpenditures_Customs.R")
+          #source("Scripts/Customs/Charts-TaxExpenditures_Customs.R")
+          source(paste0(path1, "/Scripts/Customs/Charts-TaxExpenditures_Customs.R"))
+          
           charts_te <- TE_Charts_Customs_fun(
             ProjectionTE_customs,CustomsDuties_TE_agg_countries_tbl_agg,
             CustomsDuties_TE_Chapters,CustomsDuties_TE_MTN,
@@ -1013,7 +1025,8 @@ server <- function(input, output, session) {
         # Ovde test
         else if (chart_type == "Tax_Expenditures_Charts_Excise" && input$toggleSimulationRates) {
           cat("Preparing Tax Expenditures Charts because toggle is ON\n")
-          source("Scripts/Customs/Charts-TaxExpenditures_Excise.R")
+          #source("Scripts/Customs/Charts-TaxExpenditures_Excise.R")
+          source(paste0(path1, "/Scripts/Customs/Charts-TaxExpenditures_Excise.R"))
           charts_te <- TE_Charts_Excise_fun(
             ProjectionTE_Excise,summary_TE_SIM_Excise,Legal_Fuels_Cars_Products,
             range(forecast_horizon), 
@@ -1073,8 +1086,8 @@ server <- function(input, output, session) {
             cat("Warning: merged_Customs_BU_SIM not found in the global environment.\n")
             return()
           }
-          
-          source("Scripts/Customs/Charts-Customs_Revenues.R")
+          # source("Scripts/Customs/Charts-Customs_Revenues.R")
+          source(paste0(path1, "/Scripts/Customs/Charts-Customs_Revenues.R"))
           charts <- Revenue_Impact(
             merged_Customs_BU_SIM, 
             TypeRev_customs_data, 
@@ -1134,7 +1147,8 @@ server <- function(input, output, session) {
             return()
           }
           
-          source("Scripts/Customs/Charts-Excise_Revenues.R")
+          #source("Scripts/Customs/Charts-Excise_Revenues.R")
+          source(paste0(path1, "/Scripts/Customs/Charts-Excise_Revenues.R"))
           charts <- Revenue_Impact_Excise_fun(
             merged_Customs_BU_SIM,
             TypeRev_Excise_data,
@@ -1194,7 +1208,8 @@ server <- function(input, output, session) {
             return()
           }
           
-          source("Scripts/Customs/Charts-Import_Duties.R")
+          #source("Scripts/Customs/Charts-Import_Duties.R")
+          source(paste0(path1, "/Scripts/Customs/Charts-Import_Duties.R"))
           charts <- Total_Import_duties_fun(
             merged_Customs_BU_SIM,
             TypeRev_import_duties_data,
@@ -1259,7 +1274,10 @@ server <- function(input, output, session) {
             return()
           }
           
-          source("Scripts/Customs/Charts-VAT_Revenues.R")
+          #source("Scripts/Customs/Charts-VAT_Revenues.R")
+          source(paste0(path1, "/Scripts/Customs/Charts-VAT_Revenues.R"))
+          
+          
           charts <- Revenue_Impact_VAT_fun(
             merged_Customs_BU_SIM, 
             TypeRev_VAT_data, 
