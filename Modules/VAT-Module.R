@@ -234,12 +234,20 @@ mainServer <- function(input, output, session) {
     # 2) Asynchronous future block
     future({
       # Source your scripts
-      source("Scripts/VAT/VAT-DataTransformation.R")
-      source("Scripts/VAT/TaxCalculator_BU.R")
-      source("Scripts/VAT/TaxCalculator_SIM.R")
-      source("Scripts/VAT/Forecast-VAT.R")
-      source("Scripts/VAT/ChartsPreparation-VAT.R")
+      # source("Scripts/VAT/VAT-DataTransformation.R")
+      # source("Scripts/VAT/TaxCalculator_BU.R")
+      # source("Scripts/VAT/TaxCalculator_SIM.R")
+      # source("Scripts/VAT/Forecast-VAT.R")
+      # source("Scripts/VAT/ChartsPreparation-VAT.R")
       
+      
+      source(paste0(path1, "/Scripts/VAT/VAT-DataTransformation.R"))
+      source(paste0(path1, "/Scripts/VAT/TaxCalculator_BU.R"))
+      source(paste0(path1, "/Scripts/VAT/TaxCalculator_SIM.R"))
+      source(paste0(path1, "/Scripts/VAT/Forecast-VAT.R"))
+      source(paste0(path1, "/Scripts/VAT/ChartsPreparation-VAT.R"))
+     
+   
       # Return whatever objects you need
       list(
         forecast_combined_agg_tbl_wide = get("forecast_combined_agg_tbl_wide", envir = .GlobalEnv),
@@ -941,7 +949,9 @@ mainServer <- function(input, output, session) {
       
       # Load the chart preparation script
       tryCatch({
-        source("Scripts/VAT/Charts-VAT_GAP_METRICS.R")
+        # source("Scripts/VAT/Charts-VAT_GAP_METRICS.R")
+        source(paste0(path1, "/Scripts/VAT/Charts-VAT_GAP_METRICS.R"))
+        
       }, error = function(e) {
         cat("Error sourcing Charts-VAT_GAP_METRICS.R:", e$message, "\n")
         return()
@@ -1018,7 +1028,9 @@ mainServer <- function(input, output, session) {
     } else if (chart_type == "Sectoral Breakdown of VAT Revenues") {
       cat("Preparing Tax Expenditures Charts\n")
       tryCatch({
-        source("Scripts/VAT/Charts-VAT_Sectors_Revenues.R")
+        #source("Scripts/VAT/Charts-VAT_Sectors_Revenues.R")
+        source(paste0(path1, "/Scripts/VAT/Charts-VAT_Sectors_Revenues.R"))
+        
       }, error = function(e) {
         cat("Error sourcing Charts-VAT_Sectors_Revenues.R:", e$message, "\n")
         return()
@@ -1114,7 +1126,9 @@ mainServer <- function(input, output, session) {
     else if (chart_type == "Fiscal Impact") {
       cat("Preparing Tax Expenditures Charts\n")
       tryCatch({
-        source("Scripts/VAT/Charts-VAT_AggregateRevenues.R")
+        #source("Scripts/VAT/Charts-VAT_AggregateRevenues.R")
+        source(paste0(path1, "/Scripts/VAT/Charts-VAT_AggregateRevenues.R"))
+        
       }, error = function(e) {
         cat("Error sourcing Charts-VAT_AggregateRevenues.R:", e$message, "\n")
         return()
@@ -1208,7 +1222,9 @@ mainServer <- function(input, output, session) {
     else if (chart_type == "Tax Expenditures") {
       cat("Preparing Tax Expenditures Charts\n")
       tryCatch({
-        source("Scripts/VAT/Charts-TaxExpenditures.R")
+        #source("Scripts/VAT/Charts-TaxExpenditures.R")
+        source(paste0(path1, "/Scripts/VAT/Charts-TaxExpenditures.R"))
+        
       }, error = function(e) {
         cat("Error sourcing Charts-TaxExpenditures.R:", e$message, "\n")
         return()
