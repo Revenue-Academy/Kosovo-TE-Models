@@ -29,9 +29,10 @@ ui <- dashboardPage(
                menuSubItem("PIT Module", tabName = "pitModule", icon = icon("chart-pie")),
                menuSubItem("CIT Module", tabName = "citModule", icon = icon("industry"))
       ),
-      menuItem("Indirect Taxes", icon = icon("shopping-bag"),
-               menuSubItem("VAT Module", tabName = "vatModule", icon = icon("shopping-cart")),
-               menuSubItem("Import Taxes Module", tabName = "customsModule", icon = icon("truck"))
+      menuItem("Indirect Taxes", icon = icon("shopping-cart"),
+               menuSubItem("Import Taxes Module", tabName = "customsModule", icon = icon("truck")),
+               menuSubItem("VAT Module", tabName = "vatModule", icon = icon("cash-register"))
+              
                #menuSubItem("Excise Module", tabName = "exciseModule", icon = icon("beer"))
       )
       # menuItem("Revenue Forecasting", icon = icon("chart-line"),
