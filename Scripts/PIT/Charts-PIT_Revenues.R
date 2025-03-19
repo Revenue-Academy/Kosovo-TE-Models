@@ -9,7 +9,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   PIT_RevenuesTotal_plt <- plot_ly(
                                     merged_PIT_BU_SIM,
                                     x = ~year,
-                                    y = ~pitax_bu,
+                                    y = ~pitax_bu*1e06,
                                     name = "Baseline",
                                     type = 'scatter',
                                     mode = 'lines',
@@ -17,12 +17,12 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
                                     ) %>%
                                         add_trace(
                                           x = ~year,
-                                          y = ~pitax_sim,
+                                          y = ~pitax_sim*1e06,
                                           name = 'Simulation',
                                           line = list(width = 4, dash = "dot")
                                       ) %>%
                               layout(
-                                title = paste("Total PIT Revenues,", min(forecast_horizon), "-", max(forecast_horizon)),
+                                title = paste("PIT Revenues (in LCU),", min(forecast_horizon), "-", max(forecast_horizon)),
                                               xaxis = list(title = '', tickformat = 'd'),
                                               yaxis = list(title = ' ', rangemode = 'tozero'),
                                               annotations = list(
@@ -39,37 +39,8 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
  
   
   
-  # Chart 2. Comparison of PIT Revenues from Capital  ------------------------- 
-  # PIT_GrossIncome_plt <- plot_ly(
-  #                               merged_PIT_BU_SIM,
-  #                               x = ~year,
-  #                               y = ~calc_total_inc_bu,
-  #                               name = "Baseline",
-  #                               type = 'scatter',
-  #                               mode = 'lines',
-  #                               line = list(width = 4, dash = "solid")
-  #                             ) %>%
-  #                               # add_trace(
-  #                               #   x = ~year,
-  #                               #   y = ~calc_total_inc_sim,
-  #                               #   name = 'Simulation',
-  #                               #   line = list(width = 4, dash = "dot")
-  #                               # ) %>%
-  #                               layout(
-  #                                 title = paste("Total Gross Income,", min(forecast_horizon), "-", max(forecast_horizon)),
-  #                                 xaxis = list(title = '', tickformat = 'd'),
-  #                                 yaxis = list(title = ' ', rangemode = 'tozero'),
-  #                                 annotations = list(
-  #                                   x = -0.02,
-  #                                   y = -0.1,
-  #                                   text = "Source: WB staff estimation",
-  #                                   showarrow = FALSE,
-  #                                   xref = 'paper',
-  #                                   yref = 'paper',
-  #                                   align = 'left'
-  #                                 )
-  #                               )
-
+  # Chart 2. Distribution of Tax Revenues by Gender ------------------------- 
+  
   pit_gender_summary$Gender<-as.factor(pit_gender_summary$Gender)
   
   
@@ -98,37 +69,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   
   
   # Chart 3. Comparison of PIT Revenues from Labor and capital  ------------------------- 
-  
-  # PIT_deduction_plt <- plot_ly(
-  #                           merged_PIT_BU_SIM,
-  #                           x = ~year,
-  #                           y = ~calc_total_ded_bu,
-  #                           name = "Baseline",
-  #                           type = 'scatter',
-  #                           mode = 'lines',
-  #                           line = list(width = 4, dash = "solid")
-  #                         ) %>%
-  #                           add_trace(
-  #                             x = ~year,
-  #                             y = ~calc_total_ded_sim,
-  #                             name = 'Simulation',
-  #                             line = list(width = 4, dash = "dot")
-  #                           ) %>%
-  #                           layout(
-  #                             title = paste("TOTAL Deduction ,", min(forecast_horizon), "-", max(forecast_horizon)),
-  #                             xaxis = list(title = '', tickformat = 'd'),
-  #                             yaxis = list(title = ' ', rangemode = 'tozero'),
-  #                             annotations = list(
-  #                               x = -0.02,
-  #                               y = -0.1,
-  #                               text = "Source: WB staff estimation",
-  #                               showarrow = FALSE,
-  #                               xref = 'paper',
-  #                               yref = 'paper',
-  #                               align = 'left'
-  #                             )
-  #                           )
-  
+
   treemap_nace_pit_bu_type_plt <- plot_ly(
                         data = pit_nace_summary, 
                         type = "treemap", 
@@ -161,128 +102,11 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   
   
   
-  # 
-  # PIT_RevenuesLabor_plt <- plot_ly(
-  #   merged_PIT_BU_SIM,
-  #   x = ~year,
-  #   y = ~((pit_w_bu - (pit_tax_agr_bu))),
-  #   name = "Baseline",
-  #   type = 'scatter',
-  #   mode = 'lines',
-  #   line = list(width = 4, dash = "solid")
-  # ) %>%
-  #   add_trace(
-  #     x = ~year,
-  #     y = ~((pit_w_sim - (pit_tax_agr_sim))),
-  #     name = 'Simulation',
-  #     line = list(width = 4, dash = "dot")
-  #   ) %>%
-  #   layout(
-  #     title = paste("PIT Revenues Labor,", min(forecast_horizon), "-", max(forecast_horizon)),
-  #     xaxis = list(title = '', tickformat = 'd'),
-  #     yaxis = list(title = ' ', rangemode = 'tozero'),
-  #     annotations = list(
-  #       x = -0.02,
-  #       y = -0.1,
-  #       text = "Source: WB staff estimation",
-  #       showarrow = FALSE,
-  #       xref = 'paper',
-  #       yref = 'paper',
-  #       align = 'left'
-  #     )
-  #   )
-  # 
-  # 
   
-  
-  # df_barchart<-merged_PIT_BU_SIM%>%
-  #   select(year,pit_w_bu,pit_c_bu)
-  # 
-  # 
-  # library(tidyr)
-  # library(dplyr)
-  # 
-  # # Assuming df_barchart is your data frame
-  # df_long <- df_barchart %>%
-  #   pivot_longer(
-  #     cols = c(pit_w_bu, pit_c_bu),
-  #     names_to = "source of income",
-  #     values_to = "value"
-  #   ) %>%
-  #   mutate(`source of income` = recode(`source of income`, 
-  #                                      pit_w_bu = "PIT from labor", 
-  #                                      pit_c_bu = "PIT from capital"))
-  # 
-  #  
-  # # Define custom colors for the tax incentive categories
-  # custom_colors <- c("PIT from labor" = '#ff7f0e', "PIT from capital" = '#1f77b4')
-  # 
-  # # Create a stacked bar chart with Plotly and custom colors
-  # PIT_RevenuesLabor_plt <- plot_ly(df_long,
-  #                                     x = ~year,
-  #                                     y = ~round(value, 1),  # Rounding values in the y-axis
-  #                                     color = ~`source of income`,  # Corrected column reference with backticks
-  #                                     colors = custom_colors,
-  #                                     text = ~round(value, 1),  # Rounded values for the hover text
-  #                                     hoverinfo = 'text',
-  #                                     type = 'bar',
-  #                                     barmode = 'stack',
-  #                                     textposition = 'inside',  # Position text inside the bars
-  #                                     insidetextfont = list(color = 'white')  # Ensure text is readable inside bars
-  # ) %>%
-  #   layout(
-  #     title = paste("Structure of PIT revenues by Type of Income,", min(forecast_horizon), "-", max(forecast_horizon)),
-  #     xaxis = list(title = " "),
-  #     yaxis = list(title = " "),
-  #     barmode = 'stack',
-  #     bargap = 0.6,  # Adjust this value to control the bar width
-  #     annotations = list(
-  #       x = -0.02,
-  #       y = -0.1,
-  #       text = "Source: WB staff estimation",
-  #       showarrow = FALSE,
-  #       xref = 'paper',
-  #       yref = 'paper',
-  #       align = 'left'
-  #     )
-  #   )
-  # 
-  
-  
-
   
   # Chart 4. Comparison of PIT Revenues from Wages  ------------------------- 
 
-  # PIT_deduction_plt <- plot_ly(
-  #                                   merged_PIT_BU_SIM,
-  #                                   x = ~year,
-  #                                   y = ~calc_total_ded_bu,
-  #                                   name = "Baseline",
-  #                                   type = 'scatter',
-  #                                   mode = 'lines',
-  #                                   line = list(width = 4, dash = "solid")
-  #                                 ) %>%
-  #                                   add_trace(
-  #                                     x = ~year,
-  #                                     y = ~calc_total_ded_sim,
-  #                                     name = 'Simulation',
-  #                                     line = list(width = 4, dash = "dot")
-  #                                   ) %>%
-  #                                   layout(
-  #                                     title = paste("TOTAL Deduction ,", min(forecast_horizon), "-", max(forecast_horizon)),
-  #                                     xaxis = list(title = '', tickformat = 'd'),
-  #                                     yaxis = list(title = ' ', rangemode = 'tozero'),
-  #                                     annotations = list(
-  #                                       x = -0.02,
-  #                                       y = -0.1,
-  #                                       text = "Source: WB staff estimation",
-  #                                       showarrow = FALSE,
-  #                                       xref = 'paper',
-  #                                       yref = 'paper',
-  #                                       align = 'left'
-  #                                     )
-  #                                   )
-
+  
   treemap_nace_pit_sim_type_plt <- plot_ly(
                                 data = pit_nace_summary, 
                                 type = "treemap", 

@@ -19,7 +19,7 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
                     gross_inc_plt <- plot_ly(
                                         gross_income_BU_SIM,
                                         x = ~year,
-                                        y = ~calc_total_inc_sim,
+                                        y = ~calc_total_inc_sim*1e06,
                                         name = "Baseline",
                                         type = 'scatter',
                                         mode = 'lines+markers+text',
@@ -29,7 +29,7 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
                                         line = list(width = 4, dash = "solid")
                                       ) %>%
                                         layout(
-                                          title = paste("Total Gross Income,", min(forecast_horizon), "-", max(forecast_horizon)),
+                                          title = paste("Total Gross Income (in LCU),", min(forecast_horizon), "-", max(forecast_horizon)),
                                           xaxis = list(title = '', tickformat = 'd'),
                                           yaxis = list(title = ' ', rangemode = 'tozero'),
                                           annotations = list(

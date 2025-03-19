@@ -98,8 +98,8 @@
                         
                         pit_decile_distribution_bu <- combined_dt[, .(
                                         sum_calc_pitax = sum(pitax, na.rm = TRUE),
-                                        mean_calc_pitax = mean(pitax, na.rm = TRUE),
-                                        sum_total_gross_income = sum(calc_total_inc, na.rm = TRUE)
+                                        mean_calc_pitax = mean(pitax, na.rm = TRUE)
+                                        #sum_total_gross_income = sum(calc_total_inc, na.rm = TRUE)
                         ), by = .(scenario, decile_group)]
                         
                      
@@ -124,8 +124,8 @@
                         
                         pit_decile_distribution_sim <- combined_dt[, .(
                                                       sum_calc_pitax = sum(pitax, na.rm = TRUE),
-                                                      mean_calc_pitax = mean(pitax, na.rm = TRUE),
-                                                      sum_total_gross_income = sum(calc_total_inc, na.rm = TRUE)
+                                                      mean_calc_pitax = mean(pitax, na.rm = TRUE)
+                                                      #sum_total_gross_income = sum(calc_total_inc, na.rm = TRUE)
                                                     ), by = .(scenario, decile_group)]
                         
                         # Calculate ETR
@@ -148,10 +148,15 @@
                         pit_decile_distribution_bu_sim$decile_group<-as.character(pit_decile_distribution_bu_sim$decile_group)
                         
                         pit_decile_distribution_bu_sim<-setnames(pit_decile_distribution_bu_sim,
-                                 old = c('decile_group','sum_calc_pitax_bu', 'mean_calc_pitax_bu', 'sum_total_gross_income_bu','sum_calc_pitax_sim', 'mean_calc_pitax_sim', 'sum_total_gross_income_sim'),
-                                 new = c( 'Decile groups', 'Total PIT liability (business as usual)', 'Average PIT liability (business as usual)', 'Total gross income (business as usual)',
-                                         'Total PIT liability (simulation)', 'Average PIT liability (simulation)', 'Total gross income (simulation)'
-                                 ))
+                                 old = c('decile_group','sum_calc_pitax_bu', 'mean_calc_pitax_bu', 
+                                         #'sum_total_gross_income_bu',
+                                         'sum_calc_pitax_sim', 'mean_calc_pitax_sim'),
+                                         #'sum_total_gross_income_sim'),
+                                 new = c( 'Decile groups', 'Total PIT liability (business as usual)', 'Average PIT liability (business as usual)', 
+                                        #'Total gross income (business as usual)',
+                                         'Total PIT liability (simulation)', 'Average PIT liability (simulation)')
+                                        #'Total gross income (simulation)'
+                                 )
       
       
                         
@@ -189,10 +194,11 @@
                         
                         cols_to_divide <- c("Total PIT liability (business as usual)", 
                                             #"Average PIT liability (business as usual)", 
-                                            "Total gross income (business as usual)", 
-                                            "Total PIT liability (simulation)", 
+                                            #"Total gross income (business as usual)", 
+                                            "Total PIT liability (simulation)"
                                             #"Average PIT liability (simulation)", 
-                                            "Total gross income (simulation)")
+                                            #"Total gross income (simulation)")
+                        )
 
                         pit_decile_distribution_bu_sim[, (cols_to_divide) := lapply(.SD, function(x) round(x / 1e6, 1)), .SDcols = cols_to_divide]
                         
@@ -211,10 +217,15 @@
                         
                         
                         pit_decile_distribution_bu_sim<-setnames(pit_decile_distribution_bu_sim,
-                                                                 old = c('Decile groups', 'Total PIT liability (business as usual)', 'Average PIT liability (business as usual)', 'Total gross income (business as usual)',
-                                                                         'Total PIT liability (simulation)', 'Average PIT liability (simulation)', 'Total gross income (simulation)'),
-                                                                 new = c( 'Decile groups', 'Total PIT liability (business as usual) in MIL', 'Average PIT liability (business as usual) in THOUSAND', 'Total gross income (business as usual) in MIL',
-                                                                          'Total PIT liability (simulation) in MIL', 'Average PIT liability (simulation) in THOUSAND', 'Total gross income (simulation) in MIL'
+                                                                 old = c('Decile groups', 'Total PIT liability (business as usual)', 'Average PIT liability (business as usual)', 
+                                                                         #'Total gross income (business as usual)',
+                                                                         'Total PIT liability (simulation)', 'Average PIT liability (simulation)'
+                                                                         #'Total gross income (simulation)'
+                                                                           ),
+                                                                 new = c( 'Decile groups', 'Total PIT liability (business as usual) in MIL', 'Average PIT liability (business as usual) in THOUSAND', 
+                                                                          #'Total gross income (business as usual) in MIL',
+                                                                          'Total PIT liability (simulation) in MIL', 'Average PIT liability (simulation) in THOUSAND'
+                                                                          #'Total gross income (simulation) in MIL'
                                                                  ))
                         
                         
@@ -313,17 +324,17 @@
               select(-c(scenario,year))
             
             
-            # Calculate the sum of the 'sum_calc_pitax' column
-            # total_pitax <- sum(pit_result_bins_sim_sub$sum_calc_pitax)
-            # pit_result_bins_sim_sub[, percentage_structure := (sum_calc_pitax / total_pitax) * 100]
-            # pit_result_bins_sim_sub[, sum_calc_pitax := round(sum_calc_pitax / 1e06, 1)]
-            # 
-            # pit_result_bins_sim_sub$percentage_structure<-round(pit_result_bins_sim_sub$percentage_structure,1)
-            # 
-            # 
-            # # OVDE TREBA DA SE INTERVENIRA
-            # 
-            # pit_result_bins_sim_sub <- pit_result_bins_sim_sub[order(percentage_structure)]
-            # 
-            # pit_result_bins_sim_sub_plt<-pit_result_bins_sim_sub
-         
+                      # Reorder the bin_group factor
+                      pit_result_bins_sim_sub[, bin_group := factor(bin_group, levels = c("<0", "0-0.5m", "0.5-1m", "1-1.5m","1.5-2m","2-3m"))]
+                      
+                      
+                      
+                    # Order the data.table by the new factor levels
+                      setorder(pit_result_bins_sim_sub, bin_group)
+                      
+                      
+                      pit_result_bins_sim_sub$sum_calc_pitax<-pit_result_bins_sim_sub$sum_calc_pitax/1e06
+                      
+                      pit_result_bins_sim_sub$sum_calc_pitax<-round(pit_result_bins_sim_sub$sum_calc_pitax,1)
+            
+          

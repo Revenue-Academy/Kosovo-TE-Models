@@ -1,7 +1,8 @@
 base_year <- unique(dt$Year)[1]
 end_year <- base_year + 4
-SimulationYear <- SimulationYear  # Year from slider
+simulation_year <- SimulationYear  # Year from slider
 forecast_horizon <- seq(base_year, end_year)
+
 
 # Define the scenarios
 scenarios <- c("t0", "t1", "t2", "t3", "t4")
@@ -130,20 +131,6 @@ for (s in scenarios) {
 }
 
 # 4. Simulation --------------------------------------------------------------
-# (Starting from SimulationYear)
-# Let's define SimulationYear. Suppose it's 2024 (but we can pick any 2021..2025).
-
-# SimulationYear <- 2024
-
-# We'll figure out which scenario index that corresponds to.
-# scenario_years = c(2021, 2022, 2023, 2024, 2025)
-# scenarios_5    = c("t0", "t1", "t2", "t3", "t4")
-#
-# If SimulationYear=2021 => start_index=1 => t0
-# If SimulationYear=2022 => start_index=2 => t1
-# If SimulationYear=2023 => start_index=3 => t2
-# If SimulationYear=2024 => start_index=4 => t3
-# If SimulationYear=2025 => start_index=5 => t4
 start_index <- match(SimulationYear, scenario_years) # 1..5
 
 PIT_SIM_list <- list()
@@ -204,111 +191,77 @@ merged_PIT_BU_SIM$year <- as.character(forecast_horizon)
 merged_PIT_BU_SIM <- merged_PIT_BU_SIM[, c("year", names(merged_PIT_BU_SIM)[-length(merged_PIT_BU_SIM)])]
 
 numeric_columns <- sapply(merged_PIT_BU_SIM, is.numeric)
-merged_PIT_BU_SIM[, numeric_columns] <- merged_PIT_BU_SIM[, numeric_columns] / LCU_unit
+merged_PIT_BU_SIM[, numeric_columns] <- merged_PIT_BU_SIM[, numeric_columns] / 1e06
 
 
 
 # 6. Decile ------------------------------------------------------------------
+            # # Define the function for weighted deciles
 
-# # Define the function for weighted deciles
+                #Apply the functions to each data frame in the PIT_BU_list
+                for (name in names(PIT_BU_list)) {
+                  df <- PIT_BU_list[[name]]
+                  df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
+                  df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
+                  PIT_BU_list[[name]] <- df
+                }
+                
+                # Apply the functions to each data frame in the PIT_SIM_list
+                for (name in names(PIT_SIM_list)) {
+                  df <- PIT_SIM_list[[name]]
+                  df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
+                  df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
+                  PIT_SIM_list[[name]] <- df
+                }
+                
+                
+                # Convert data for presentation in GUI
+                pit_summary_df <- merged_PIT_BU_SIM %>%
+                  pivot_longer(cols = -year, 
+                               names_to = c("variable", ".value"), 
+                               names_pattern = "(.*)_(bu|sim)")
+                
+                # Calculate the difference between _sim and _bu columns
+                pit_summary_df <- pit_summary_df %>%
+                  mutate(difference = sim - bu)
+                
+                
+                pit_summary_df <- pit_summary_df %>%
+                  mutate(across(c(bu, sim, difference), ~ round(., 1)))%>%
+                  filter(variable=='pitax')
+                
+                # Arrange the columns
+                pit_summary_df <- pit_summary_df %>%
+                            select(year, bu, sim, difference)%>%
+                            dplyr::rename(
+                              "Current law (LCU MIL)"="bu",
+                              "Simulation (LCU MIL)"="sim",
+                              "Fiscal impact (LCU MIL)"="difference",
+                            )
+                
+                
+                MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
+                
+                pit_summary_df<-left_join(pit_summary_df,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
+                  select(year,"Current law (LCU MIL)","Simulation (LCU MIL)","Fiscal impact (LCU MIL)",Nominal_GDP)%>%
+                  dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU MIL)`/Nominal_GDP*100,2),
+                                 `Simulation (Pct of GDP)`=round(`Simulation (LCU MIL)`/ Nominal_GDP*100,2),
+                                 `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU MIL)`/ Nominal_GDP*100,2))%>%
+                  dplyr::select(-c(Nominal_GDP))
+                
+                
+                pit_summary_df <- as.data.table(pit_summary_df)
+                
+                
+                
+                print(merged_PIT_BU_SIM)
+                
+                end.time <- proc.time()
+                save.time <- end.time - start.time
+                cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
 
-# # Apply the functions to each data frame in the PIT_BU_list
-# for (name in names(PIT_BU_list)) {
-#   df <- PIT_BU_list[[name]]
-#   df$decile_group <- cal_weighted_deciles_fun(df$total_inc, df$weight)
-#   df$centile_group <- cal_weighted_centiles_fun(df$total_inc, df$weight)
-#   PIT_BU_list[[name]] <- df
-# }
-# 
-# # Apply the functions to each data frame in the PIT_SIM_list
-# for (name in names(PIT_SIM_list)) {
-#   df <- PIT_SIM_list[[name]]
-#   df$decile_group <- cal_weighted_deciles_fun(df$total_inc, df$weight)
-#   df$centile_group <- cal_weighted_centiles_fun(df$total_inc, df$weight)
-#   PIT_SIM_list[[name]] <- df
-# }
-
-# total_inc_adjusted
-
-
-#Apply the functions to each data frame in the PIT_BU_list
-for (name in names(PIT_BU_list)) {
-  df <- PIT_BU_list[[name]]
-  df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-  df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-  PIT_BU_list[[name]] <- df
-}
-
-# Apply the functions to each data frame in the PIT_SIM_list
-for (name in names(PIT_SIM_list)) {
-  df <- PIT_SIM_list[[name]]
-  df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-  df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-  PIT_SIM_list[[name]] <- df
-}
-
-# for (name in names(PIT_BU_list)) {
-#   df <- PIT_BU_list[[name]]
-#   df$decile_group <- cal_weighted_deciles_fun(df$total_inc, df$weight)
-#   df$centile_group <- cal_weighted_centiles_fun(df$total_inc, df$weight)
-#   PIT_BU_list[[name]] <- df
-# }
-# 
-# # Apply the functions to each data frame in the PIT_SIM_list
-# for (name in names(PIT_SIM_list)) {
-#   df <- PIT_SIM_list[[name]]
-#   df$decile_group <- cal_weighted_deciles_fun(df$total_inc, df$weight)
-#   df$centile_group <- cal_weighted_centiles_fun(df$total_inc, df$weight)
-#   PIT_SIM_list[[name]] <- df
-# }
-# 
-
-
-# Convert data for presentation in GUI
-pit_summary_df <- merged_PIT_BU_SIM %>%
-  pivot_longer(cols = -year, 
-               names_to = c("variable", ".value"), 
-               names_pattern = "(.*)_(bu|sim)")
-
-# Calculate the difference between _sim and _bu columns
-pit_summary_df <- pit_summary_df %>%
-  mutate(difference = sim - bu)
-
-
-pit_summary_df <- pit_summary_df %>%
-  mutate(across(c(bu, sim, difference), ~ round(., 1)))%>%
-  filter(variable=='pitax')
-
-# Arrange the columns
-pit_summary_df <- pit_summary_df %>%
-            select(year, bu, sim, difference)%>%
-            dplyr::rename(
-              "Current law (LCU Mil)"="bu",
-              "Simulation (LCU Mil)"="sim",
-              "Fiscal impact (LCU Mil)"="difference",
-            )
-
-
-MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
-
-pit_summary_df<-left_join(pit_summary_df,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
-  select(year,"Current law (LCU Mil)","Simulation (LCU Mil)","Fiscal impact (LCU Mil)",Nominal_GDP)%>%
-  dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU Mil)`/Nominal_GDP*100,2),
-                 `Simulation (Pct of GDP)`=round(`Simulation (LCU Mil)`/ Nominal_GDP*100,2),
-                 `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU Mil)`/ Nominal_GDP*100,2))%>%
-  dplyr::select(-c(Nominal_GDP))
-
-
-pit_summary_df <- as.data.table(pit_summary_df)
-
-
-
-print(merged_PIT_BU_SIM)
-
-end.time <- proc.time()
-save.time <- end.time - start.time
-cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
-
+                
+              
 
 
 # 7. Revenues by NACE sections----------------------------------------------------------------------
@@ -340,7 +293,8 @@ cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
             pit_nace_summary<-pit_nace_summary%>%
               dplyr::filter(year==SimulationYear)
 
-            pit_nace_summary$value<-"Value"
+            #pit_nace_summary$value<-"Value"
+            pit_nace_summary$value<-"In LCU"
             
             
 # 8. Revenues by Gender------------------------------------------------------

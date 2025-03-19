@@ -84,7 +84,8 @@ long_labor_capital_type$income_type<-factor( long_labor_capital_type$income_type
 
 
 
-long_labor_capital_type$TypeOfIncome <- "In million LCU"
+#long_labor_capital_type$TypeOfIncome <- "In million LCU"
+long_labor_capital_type$TypeOfIncome <- "In LCU"
 
 
 
@@ -112,5 +113,7 @@ gross_nace_tbl <- selected_gross_nace_tbl %>%
 gross_nace_tbl <- na.omit(gross_nace_tbl)
 gross_nace_tbl<-left_join(gross_nace_tbl,df_nace_names,by=c("section"="section"))
 gross_nace_tbl$nace_section<-factor(gross_nace_tbl$section)
-gross_nace_tbl$TypeOfIncome <- "In billion LCU"
+#gross_nace_tbl$TypeOfIncome <- "In billion LCU"
+
+gross_nace_tbl$TypeOfIncome <- "In LCU"
 
