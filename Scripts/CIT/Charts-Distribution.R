@@ -25,7 +25,7 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
                                       annotations = list(
                                         list(
                                           x = -0.02,
-                                          y = -0.1,
+                                          y = -0.13,
                                           text = "Source: WB staff estimation",
                                           showarrow = FALSE,
                                           xref = 'paper',

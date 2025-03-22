@@ -404,7 +404,7 @@ cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
           # Preparation of subsets fo estimation of decile and percentiles
           big_corporations_CIT_BU_list <- lapply(CIT_BU_list, function(table) {
             table %>%
-              filter(TypeOfTax == 0) %>%
+              #filter(TypeOfTax == 0) %>%
               select(-calc_tqi_3pct, -calc_tqi_9pct, -calc_tot_amount_3pct_9pct, -calc_rent_tax, -totax, -calc_turnover_small)
           })
           
@@ -422,7 +422,7 @@ cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
           # Preparation of subsets fo estimation of decile and percentiles
           big_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
             table %>%
-              filter(TypeOfTax == 0) %>%
+              #filter(TypeOfTax == 0) %>%
               select(-calc_tqi_3pct, -calc_tqi_9pct, -calc_tot_amount_3pct_9pct, -calc_rent_tax, -totax, -calc_turnover_small)
           })
           
@@ -433,14 +433,7 @@ cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
             df$centile_group <- cal_weighted_centiles_fun(df$calc_grossinc, df$weight)
             big_corporations_CIT_SIM_list[[name]] <- df
           }
-          
-          
-          
-          
-          
-          
-          
-          
+
 
     # 1.2 Small corporations  ----------------------------------------------------
           'ova ne e napraveno !!!'
@@ -449,7 +442,7 @@ cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
           #           # Preparation of subsets fo estimation of decile and percentiles
                     small_corporations_CIT_BU_list <- lapply(CIT_BU_list, function(table) {
                       table %>%
-                        filter(TypeOfTax == 1) %>%
+                       # filter(TypeOfTax == 1) %>%  <-- ovde
                         select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax,calc_turnover_small,weight)
                     })
           #           
@@ -486,7 +479,7 @@ cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
                       #           # Preparation of subsets fo estimation of decile and percentiles
                       small_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
                         table %>%
-                          filter(TypeOfTax == 1) %>%
+                          #filter(TypeOfTax == 1) %>% <--OVDE
                           select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax,calc_turnover_small,weight)
                       })
           
