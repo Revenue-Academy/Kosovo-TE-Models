@@ -1,19 +1,4 @@
 
-# SimulationYear<-2023
-# 
-# library(readxl)
-# library(dplyr)
-# library(tidyverse)
-# library(reshape2)
-# library(data.table)
-# library(plyr)
-# library(purrr)
-# library(Hmisc)
-# 
-# 
-# cit_simulation_parameters_raw <- read_excel("CIT_Parameters.xlsx")
-# cit_simulation_parameters_updated<-cit_simulation_parameters_raw
-
 base_year <- unique(cit_raw$Year)[1]
 end_year <- base_year + 4
 SimulationYear <- SimulationYear  # Year from slider
@@ -382,15 +367,20 @@ cit_summary_df <- cit_summary_df %>%
 
 MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
 
+cit_summary_df$`Current law (LCU Mil)`<-round(cit_summary_df$`Current law (LCU Mil)`/1e03,1)
+cit_summary_df$`Simulation (LCU Mil)`<-round(cit_summary_df$`Simulation (LCU Mil)`/1e03,1)
+cit_summary_df$`Fiscal impact (LCU Mil)`<-round(cit_summary_df$`Fiscal impact (LCU Mil)`/1e03,1)
+
 cit_summary_df<-left_join(cit_summary_df,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
   select(year,"Current law (LCU Mil)","Simulation (LCU Mil)","Fiscal impact (LCU Mil)",Nominal_GDP)%>%
   dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU Mil)`/Nominal_GDP*100,2),
                  `Simulation (Pct of GDP)`=round(`Simulation (LCU Mil)`/ Nominal_GDP*100,2),
                  `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU Mil)`/ Nominal_GDP*100,2))%>%
-  dplyr::select(-c(Nominal_GDP))
+  dplyr::select(-c(Nominal_GDP))%>%
+  as.data.table()
 
 
-cit_summary_df <- as.data.table(cit_summary_df)
+#cit_summary_df <- as.data.table(cit_summary_df)
 
 
 
@@ -400,8 +390,8 @@ end.time <- proc.time()
 save.time <- end.time - start.time
 cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
 
-sum(CIT_BU_list$t0$calc_cit)
-sum(CIT_BU_list$t0$totax)
+# sum(CIT_BU_list$t0$calc_cit)
+# sum(CIT_BU_list$t0$totax)
  
 
 
@@ -451,52 +441,63 @@ sum(CIT_BU_list$t0$totax)
           
           
           
-          # 1.2 Small corporations  ----------------------------------------------------
+
+    # 1.2 Small corporations  ----------------------------------------------------
           'ova ne e napraveno !!!'
           # # 1.2.1 Business as usual----------------------------------------------------
           #           
           #           # Preparation of subsets fo estimation of decile and percentiles
-          #           small_corporations_CIT_BU_list <- lapply(CIT_BU_list, function(table) {
-          #             table %>%
-          #               filter(TypeOfTax == 1) %>%
-          #               select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax, calc_turnover_small)
-          #           })
+                    small_corporations_CIT_BU_list <- lapply(CIT_BU_list, function(table) {
+                      table %>%
+                        filter(TypeOfTax == 1) %>%
+                        select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax,calc_turnover_small,weight)
+                    })
           #           
           #           # Estimation of decile and percentiles
           #           # Test with g_inc_spcel
           # 
           #           # Da se testira dali treba da se vkluci i g_inc_q
-          # 
-          #           
-          #           
-          #           for (name in names(small_corporations_CIT_BU_list)) {
-          #             df <- small_corporations_CIT_BU_list[[name]]
-          #             df$decile_group <- cal_weighted_deciles_fun(df$g_inc_q, df$weight)
-          #             df$centile_group <- cal_weighted_centiles_fun(df$g_inc_q, df$weight)
-          #             small_corporations_CIT_BU_list[[name]] <- df
-          #           }
-          #           
+        
+                    for (name in names(small_corporations_CIT_BU_list)) {
+                      df <- small_corporations_CIT_BU_list[[name]]
+                      df$decile_group <- cal_weighted_deciles_fun(df$calc_turnover_small, df$weight)
+                      df$centile_group <- cal_weighted_centiles_fun(df$calc_turnover_small, df$weight)
+                      small_corporations_CIT_BU_list[[name]] <- df
+                    }
+                    
                      # 1.1.2 Simulation ------------------------------------------------------
-          #           
-          #           # Preparation of subsets fo estimation of decile and percentiles
-          #           small_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
-          #             table %>%
-          #               filter(TypeOfTax == 0) %>%
-          #               select(-calc_tqi_3pct, -calc_tqi_9pct, -calc_tot_amount_3pct_9pct, -calc_rent_tax, -totax, -calc_turnover_small)
-          #           })
-          #           
-          #           # Estimation of decile and percentiles
-          #           for (name in names(small_corporations_CIT_SIM_list)) {
-          #             df <- small_corporations_CIT_SIM_list[[name]]
-          #             df$decile_group <- cal_weighted_deciles_fun(df$calc_grossinc, df$weight)
-          #             df$centile_group <- cal_weighted_centiles_fun(df$calc_grossinc, df$weight)
-          #             small_corporations_CIT_SIM_list[[name]] <- df
-          #           }
-          #           
-          #           
+
+                    # # Preparation of subsets fo estimation of decile and percentiles
+                    # small_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
+                    #   table %>%
+                    #     filter(TypeOfTax == 0) %>%
+                    #     select(-calc_tqi_3pct, -calc_tqi_9pct, -calc_tot_amount_3pct_9pct, -calc_rent_tax, -totax, -calc_turnover_small)
+                    # })
+                    # 
+                    # # Estimation of decile and percentiles
+                    # for (name in names(small_corporations_CIT_SIM_list)) {
+                    #   df <- small_corporations_CIT_SIM_list[[name]]
+                    #   df$decile_group <- cal_weighted_deciles_fun(df$calc_grossinc, df$weight)
+                    #   df$centile_group <- cal_weighted_centiles_fun(df$calc_grossinc, df$weight)
+                    #   small_corporations_CIT_SIM_list[[name]] <- df
+                    # }
+                   
+
+                      #           # Preparation of subsets fo estimation of decile and percentiles
+                      small_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
+                        table %>%
+                          filter(TypeOfTax == 1) %>%
+                          select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax,calc_turnover_small,weight)
+                      })
           
-          
-          
+
+                        for (name in names(small_corporations_CIT_SIM_list)) {
+                          df <- small_corporations_CIT_SIM_list[[name]]
+                          df$decile_group <- cal_weighted_deciles_fun(df$calc_turnover_small, df$weight)
+                          df$centile_group <- cal_weighted_centiles_fun(df$calc_turnover_small, df$weight)
+                          small_corporations_CIT_SIM_list[[name]] <- df
+                        }
+
 
 
 # 7. Revenues by NACE sections (Big corporations) -----------------------------------------------------------------------

@@ -1,22 +1,19 @@
 " Distribution Dashboard "
 # I.Function for Dashboard ------------------------------------------------------------------
-Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
-                                    cit_decile_distribution_bu_sim,
-                                    cit_result_bins_bu_sub,
-                                    cit_result_bins_sim_sub,
-                                    SimulationYear,
-                                    forecast_horizon) {
+Distribution_ChartsSmall_fun <- function(cit_centile_distribution_bu_sim_small,
+                                         cit_result_bins_bu_small,
+                                         cit_result_bins_sim_small,
+                                         SimulationYear,
+                                         forecast_horizon) {
 
   # Chart 1. Centile Groups -----------------------------------------------------------------
        
-  # ovde ima GRESKA
-  
-  dist_centile_groups_plt <- plot_ly(cit_centile_distribution_bu_sim, x = ~centile_group, y = ~etr_bu, name = "Baseline", type = 'scatter', mode = 'lines',
+  dist_centile_groups_plt_small <- plot_ly(cit_centile_distribution_bu_sim_small, x = ~centile_group, y = ~etr_bu, name = "Baseline", type = 'scatter', mode = 'lines',
                  line = list(width = 4,dash = "solid"))
   
     
   
-     dist_centile_groups_plt <- dist_centile_groups_plt %>% add_trace(y = ~etr_sim, name = "Simulation", line = list(width = 4,dash = "dash"))%>%
+  dist_centile_groups_plt_small <- dist_centile_groups_plt_small %>% add_trace(y = ~etr_sim, name = "Simulation", line = list(width = 4,dash = "dash"))%>%
                                     layout(
                                       title = paste("Effective Tax Rate by Percentile Groups,", SimulationYear),
                                       xaxis = list(title = 'Percentile'),
@@ -44,18 +41,20 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
             custom_colors <- c('#1f77b4', '#ff7f0e')
             
             # Adapt the Plotly chart
-            dist_decile_groups_plt <- plot_ly(
+            dist_decile_groups_plt_small <- plot_ly(
                                               #pit_decile_distribution_bu_sub, 
-                                              cit_decile_distribution_bu_sim,
+                                              cit_decile_distribution_bu_sim_small,
                                               #x = ~decile_group,
                                               x = ~as.numeric(`Decile groups`), 
-                                              y = ~ `Total CIT liability (business as usual) in MIL`, 
+                                              #y = ~ `Total CIT liability (business as usual) in MIL`,
+                                              y = ~ `Average CIT liability (business as usual) in THOUSAND`, 
                                               name = 'Baseline',
                                               marker = list(color = custom_colors[1]),
                                               hoverinfo = 'text+y', 
                                               type = 'bar', 
                                               barmode = 'group') %>%
-                                      add_trace(y = ~`Total CIT liability (business as usual) in MIL`, 
+                                      add_trace(#y = ~`Total CIT liability (business as usual) in MIL`,
+                                                y = ~`Average CIT liability (simulation) in THOUSAND`, 
                                                 name = 'Simulation', 
                                                 marker = list(color = custom_colors[2]),
                                                 hoverinfo = 'text+y') %>%
@@ -78,8 +77,8 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
 
   # Chart 3. Tax Revenue by Bin Groups-BU -------------------------------------------------------------------------
 
-            cit_bins_bu_sub_plt <- plot_ly(
-                                          cit_result_bins_bu_sub,
+            cit_bins_bu_sub_plt_small <- plot_ly(
+                                          cit_result_bins_bu_small,
                                           labels = ~bin_group,
                                           values = ~sum_calc_citax  ,
                                           type = 'pie',
@@ -110,9 +109,9 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
   
   # Chart 4. Tax Revenue by Bin Groups-SIM ---------------------------------------------------------------
 
-            cit_bins_sim_sub_plt <- plot_ly(
+            cit_bins_sim_sub_plt_small <- plot_ly(
                                             #pit_result_bins_sim_sub_plt, 
-                                            cit_result_bins_sim_sub,
+                                          cit_result_bins_sim_small,
                                             labels = ~bin_group,
                                             values = ~sum_calc_citax,
                                             # labels = ~`gross income`, 
@@ -142,10 +141,10 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
   # Export Charts -----------------------------------------------------------
   list(
     # Charts
-    dist_centile_groups_plt=dist_centile_groups_plt,
-    dist_decile_groups_plt=dist_decile_groups_plt,
-    cit_bins_bu_sub_plt=cit_bins_bu_sub_plt,
-    cit_bins_sim_sub_plt=cit_bins_sim_sub_plt
+    dist_centile_groups_plt_small=dist_centile_groups_plt_small,
+    dist_decile_groups_plt_small=dist_decile_groups_plt_small,
+    cit_bins_bu_sub_plt_small=cit_bins_bu_sub_plt_small,
+    cit_bins_sim_sub_plt_small=cit_bins_sim_sub_plt_small
     
     
   )

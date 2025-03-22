@@ -11,7 +11,7 @@ Revenue_Charts_fun <- function(merged_CIT_BU_SIM,
   CIT_big_corporations_rev_plt <- plot_ly(
                                     merged_CIT_BU_SIM,
                                     x = ~year,
-                                    y = ~calc_cit_bu,
+                                    y = ~calc_cit_bu*1e3,
                                     name = "Baseline",
                                     type = 'scatter',
                                     mode = 'lines',
@@ -19,7 +19,7 @@ Revenue_Charts_fun <- function(merged_CIT_BU_SIM,
                                     ) %>%
                                         add_trace(
                                           x = ~year,
-                                          y = ~calc_cit_sim,
+                                          y = ~calc_cit_sim*1e3,
                                           name = 'Simulation',
                                           line = list(width = 4, dash = "dot")
                                       ) %>%
@@ -41,10 +41,12 @@ Revenue_Charts_fun <- function(merged_CIT_BU_SIM,
  
   # Chart 2. Comparison of CIT Revenues (Small corporations)  ------------------------- 
   
+  # OVA DA SE PROMENI NAMESTO 25 DA SE STAVI 21 TREBA
+  
   CIT_small_corporations_rev_plt <- plot_ly(
                                             merged_CIT_BU_SIM,
                                             x = ~year,
-                                            y = ~totax_bu,
+                                            y = ~totax_bu*1e3,
                                             name = "Baseline",
                                             type = 'scatter',
                                             mode = 'lines',
@@ -52,7 +54,7 @@ Revenue_Charts_fun <- function(merged_CIT_BU_SIM,
                                           ) %>%
                                             add_trace(
                                               x = ~year,
-                                              y = ~totax_sim,
+                                              y = ~totax_sim*1e3,
                                               name = 'Simulation',
                                               line = list(width = 4, dash = "dot")
                                             ) %>%
