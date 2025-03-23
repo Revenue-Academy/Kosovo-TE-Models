@@ -32,8 +32,6 @@ Distribution_ChartsSmall_fun <- function(cit_centile_distribution_bu_sim_small,
                                       )
                                     )
 
-
-  
   # Chart 2. Decile Groups-----------------------------------------------------------------
   
 
