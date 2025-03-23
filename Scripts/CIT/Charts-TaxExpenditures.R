@@ -17,7 +17,7 @@ Tax_Expenditures_Charts_fun <- function(
           te_agg_plt <- plot_ly(
                                te_summary_df,
                                 x = ~year,
-                                y = ~`tax expenditure`*1e03,
+                                y = ~`tax expenditure`*1e06,
                                 name = "Baseline",
                                 type = 'scatter',
                                mode = 'lines+markers',
@@ -27,7 +27,7 @@ Tax_Expenditures_Charts_fun <- function(
                                 hoverinfo = 'text+y',
                                 line = list(width = 4, dash = "solid"))%>%
                                 layout(
-                                        title = paste("Total Tax Expenditures,", min(forecast_horizon), "-", max(forecast_horizon)),
+                                        title = paste("Total Tax Expenditures (in LCU),", min(forecast_horizon), "-", max(forecast_horizon)),
                                         xaxis = list(title = '', tickformat = 'd'),
                                         yaxis = list(title = ' ', rangemode = 'tozero'),
                                         annotations = list(
@@ -59,7 +59,7 @@ Tax_Expenditures_Charts_fun <- function(
           te_type_companies_plt <- te_type_companies_plt %>%
             layout(
               #title = paste("Tax expenditures by MTN Categories,", SimulationYear),
-              title = paste("Distribution of Tax Expenditures by type of companies,", SimulationYear),
+              title = paste("Distribution of Tax Expenditures by type of companies (in LCU),", SimulationYear),
               font = list(size = 11),
               yaxis = list(
                 title = '', 
@@ -73,7 +73,8 @@ Tax_Expenditures_Charts_fun <- function(
               bargap = 0.7,  # Adjust this value to make bars thinner
               annotations = list(
                 #x = -0.02,
-                x = -0.6,
+                #x = -0.6,
+                x = -0.4,
                 y = -0.1,
                 text = "Source: WB staff estimation",
                 showarrow = FALSE,
@@ -102,7 +103,7 @@ Tax_Expenditures_Charts_fun <- function(
                                             layout(
                                               title = list(
                                                 #text = "Structure of Gross income by NACE sections",
-                                                text = paste("Structure of Gross income by NACE sections,", SimulationYear),
+                                                text = paste("Structure of Gross income by NACE sections (in LCU),", SimulationYear),
                                                 font = list(size = 14)  # Set the font size here
                                               ),
                                               annotations = list(
@@ -120,71 +121,6 @@ Tax_Expenditures_Charts_fun <- function(
             
   
   # Chart 4. Tax Expenditures by Decile Groups---------------------------------------------------------------
-
-          
-          # # Create a grouped bar chart with Plotly and custom colors
-          # te_decile_groups_plt <- plot_ly(nace_cit_summary_te_deciles, 
-          #                                 x = ~decile_group, 
-          #                                 y = ~tax_expenditures, 
-          #                                # color = ~as.factor(year), 
-          #                                # colors = custom_colors,
-          #                                 hoverinfo = 'text+y', # Specify hover info to include text and y value
-          #                                 type = 'bar', 
-          #                                 barmode = 'group') %>%
-          #                           layout(#title = "Tax Expenditures by Decile Groups",
-          #                                  #title = paste("Tax Expenditures by Decile Groups,", min(forecast_horizon), "-", max(forecast_horizon)),
-          #                             title = paste("Tax Expenditures by Decile Groups,", SimulationYear),
-          #                                  xaxis = list(title = "Decile", tickmode = 'linear'), # Show all values on the x-axis
-          #                                  yaxis = list(title = " "),
-          #                                  annotations = list(
-          #                                    list(
-          #                                      x = -0.02,
-          #                                      y = -0.1,
-          #                                      text = "Source: WB staff estimation",
-          #                                      showarrow = FALSE,
-          #                                      xref = 'paper',
-          #                                      yref = 'paper',
-          #                                      align = 'left'
-          #                                    )
-          #                                  ))
-          # 
-        
-  
-          # Create a grouped bar chart with Plotly and custom colors
-          # te_type_plt <- plot_ly(te_summary_df_type, 
-          #                        x = ~year, 
-          #                        y = ~`tax expenditure`*1e03, 
-          #                        type = 'bar', 
-          #                        color = ~type, 
-          #                        colors = c('Special allowance for new assets' = '#ff7f0e', 
-          #                                   'Charitable contribution' = '#1f77b4',
-          #                                   'Discounts for sponsorship in the field of sports' = '#1f77b4',
-          #                                   'Discounts for sponsorship in the field of culture and youth' = '#1f77b4'
-          #                                   
-          #                                   
-          #                        ), 
-          #                        barmode = 'group') %>%
-          #   layout(
-          #     #title = "Distribution of Tax Expenditures by Type,",
-          #     title = paste("Distribution of Tax Expenditures by Type (in LCU),", min(forecast_horizon), "-", max(forecast_horizon)),
-          #     
-          #     xaxis = list(title = " ", tickmode = 'linear'), # Show all values on the x-axis
-          #     yaxis = list(title = " "),
-          #     bargap = 0.7, # Adjust this value to make bars thinner
-          #     annotations = list(
-          #       list(
-          #         x = -0.02,
-          #         y = -0.1,
-          #         text = "Source: WB staff estimation",
-          #         showarrow = FALSE,
-          #         xref = 'paper',
-          #         yref = 'paper',
-          #         align = 'left'
-          #       )
-          #     )
-          #   )
-          
-          
           te_type_plt <- plot_ly(te_summary_df_type, 
                                  x = ~year, 
                                  y = ~`tax expenditure`*1e03, 

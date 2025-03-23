@@ -27,10 +27,9 @@ library(openxlsx)
 library(sfo)
 library(sf)
 
-
 # Define custom colors
 gc(TRUE)
-options(future.globals.maxSize = 10 * 1024^3)
+#options(future.globals.maxSize = 10 * 1024^3)
 options(scipen = 999)
 
 # I. UI --------------------------------------------------------------------
@@ -52,7 +51,9 @@ ui <- dashboardPage(
       menuItem("Results", icon = icon("magnifying-glass-chart"),
                menuSubItem("Main Results", tabName = "MainResultsSimulation", icon = icon("gauge")),
                menuSubItem("Distribution Effects", tabName = "MainDistributionTables", icon = icon("chart-column")),
+               menuSubItem("Distribution Effects Small", tabName = "MainDistributionTables_small", icon = icon("chart-column")),
                menuSubItem("Tax Contribution", tabName = "MainResultBins", icon = icon("chart-pie")),
+               menuSubItem("Tax Contribution Small", tabName = "MainResultBins_small", icon = icon("chart-pie")),
                menuSubItem("Tax Expenditures", tabName = "MainResultsTE", icon = icon("wallet"))
       ),
       menuItem("Visualizations", tabName = "CustomsDuties-charts", icon = icon("chart-simple"),
@@ -84,7 +85,7 @@ ui <- dashboardPage(
               fluidRow(
                 column(3,
                        sliderInput("SimulationYear", "Setting Simulation Year",
-                                   min = 2023, max = 2025, step = 1, value = 2023, width = "100%", round = 0, sep = ""),
+                                   min = 2023, max = 2027, step = 1, value = 2023, width = "100%", round = 0, sep = ""),
                        uiOutput("PolicyParameter"),
                        uiOutput("Descriptions_Select"),
                        uiOutput("LongNameSelect"),
@@ -103,7 +104,7 @@ ui <- dashboardPage(
                 )
               ),
               #h4("Selected simulations parameters"),
-             div(h4("Selected simulations parameters"), style = "text-align: center;"),
+             div(h4("Selected Simulations Parameters"), style = "text-align: center;"),
               fluidRow(
                 column(12,
                        DTOutput("cit_simulation_parameters_updated"),
@@ -146,10 +147,26 @@ ui <- dashboardPage(
         )
       ),
       tabItem(
+        tabName = "MainDistributionTables_small",
+        fluidRow(
+          column(12,
+                 DTOutput("DIST_TABLES_small")
+          )
+        )
+      ),
+      tabItem(
         tabName = "MainResultBins",
         fluidRow(
           column(12,
                  DTOutput("BIN_TABLES")
+          )
+        )
+      ),
+      tabItem(
+        tabName = "MainResultBins_small",
+        fluidRow(
+          column(12,
+                 DTOutput("BIN_TABLES_small")
           )
         )
       ),
@@ -159,9 +176,9 @@ ui <- dashboardPage(
           column(6,
                  selectInput("chartSelectPIT_Revenues", "Select Chart",
                              choices = c(
-                               #"Structure_Charts",
                                "Revenue_Charts",
                                "Distribution_Charts",
+                               "Distribution_Charts_Small",
                                "Tax_Expenditures_Charts"
                              ),
                              selected = "Revenue_Charts")
@@ -180,7 +197,6 @@ ui <- dashboardPage(
     )
   )
 )
-
 # II. Server ---------------------------------------------------------------------
 server <- function(input, output, session) {
 
@@ -196,25 +212,7 @@ server <- function(input, output, session) {
     cat("Simulation year updated:", input$SimulationYear, "\n")
   })
   
-  observeEvent(input$PersonalAllowance, {
-    assign("PersonalAllowance", input$PersonalAllowance, envir = .GlobalEnv)
-    cat("Personal Allowance updated:", input$PersonalAllowance, "\n")
-  })
-  
-  observeEvent(input$HighestBaseSSC_Employment, {
-    assign("HighestBaseSSC_Employment", input$HighestBaseSSC_Employment, envir = .GlobalEnv)
-    cat("Highest Base SSC Employment updated:", input$HighestBaseSSC_Employment, "\n")
-  })
-  
-  observeEvent(input$SSC_rate, {
-    assign("SSC_rate", input$SSC_rate, envir = .GlobalEnv)
-    cat("SSC_rate updated:", input$SSC_rate, "\n")
-  })
-  
-  observeEvent(input$tax_regime, {
-    assign("tax_regime", input$tax_regime, envir = .GlobalEnv)
-    cat("tax_regime updated:", input$tax_regime, "\n")
-  })
+  shinyjs::disable("default_Year")
   
   # Reactive data frame to store Excel data
   excelData <- reactiveVal(NULL)
@@ -331,7 +329,7 @@ server <- function(input, output, session) {
     if (input$toggleSimulationRates) {
       pit_simulation_parameters_updated_copy$Value[pit_simulation_parameters_updated_copy$PolicyParameter == "Deductions"] <- input$sim_PIT_Rates
       pit_simulation_parameters_updated_copy$Year[pit_simulation_parameters_updated_copy$PolicyParameter == "Deductions"] <- input$SimulationYear
-      cat("Simulation rates updated in pit_simulation_parameters_updated_copy\n")
+      cat("Simulation rates updated in cit_simulation_parameters_updated_copy\n")
     }
     
     pitRateData <- get("ValueTableUpdate", envir = .GlobalEnv)
@@ -393,35 +391,24 @@ server <- function(input, output, session) {
     ))
     
     future({
-      # TESTING NEW ARHITECTURE
-      # source("Scripts/CIT/Functions.R")
-      # source("Scripts/CIT/TaxCalculator.R")
-      # # source("Scripts/CIT/Calc-Structure.R")
-      #  source("Scripts/CIT/Calc-TaxExpenditures.R")
-      #  source("Scripts/CIT/Calc-Distribution-Effects.R")
-      #  # source("Scripts/CIT/Calc-Redistribution-Effects.R")
-      
-      
       source(paste0(path1, "/Scripts/CIT/Functions.R"))
       source(paste0(path1, "/Scripts/CIT/TaxCalculator.R"))
-      source(paste0(path1, "/Scripts/CIT/Calc-TaxExpenditures.R"))
       source(paste0(path1, "/Scripts/CIT/Calc-Distribution-Effects.R"))
       
+      # Conditionally source TE code only if toggle is ON
+      if (input$toggleSimulationRates) {
+        source(paste0(path1, "/Scripts/CIT/Calc-TaxExpenditures.R"))
+      }
       
-      # source("Scripts/CIT/Functions.R")
-      # source("Scripts/CIT/TaxCalculator.R")
-      # source("Scripts/CIT/Calc-TaxExpenditures.R")
-      # source("Scripts/CIT/Calc-Distribution-Effects.R")
-      
-      
-      
-      
+      # Return results
       list(
         cit_summary_df = get("cit_summary_df", envir = .GlobalEnv),
-        te_summary_df = get("te_summary_df", envir = .GlobalEnv),
-        #re_effects_final = get("re_effects_final", envir = .GlobalEnv),
+        te_summary_df  = if (input$toggleSimulationRates) get("te_summary_df", envir = .GlobalEnv) else NULL,
         cit_decile_distribution_bu_sim = get("cit_decile_distribution_bu_sim", envir = .GlobalEnv),
-        cit_result_bins_sim_sub = get("cit_result_bins_sim_sub", envir = .GlobalEnv)
+        cit_result_bins_sim_sub = get("cit_result_bins_sim_sub", envir = .GlobalEnv),
+        cit_decile_distribution_bu_sim_small = get("cit_decile_distribution_bu_sim_small", envir = .GlobalEnv),
+        cit_result_bins_sim_small = get("cit_result_bins_sim_small", envir = .GlobalEnv)
+      
       )
     }) %...>% (function(results) {
       removeModal()
@@ -431,9 +418,8 @@ server <- function(input, output, session) {
         easyClose = TRUE,
         footer = NULL
       ))
-      
       reactive_simulation_results(results)
-      updateCharts()
+      updateCharts()  # re-draw charts
     }) %...!% (function(e) {
       removeModal()
       showModal(modalDialog(
@@ -444,8 +430,7 @@ server <- function(input, output, session) {
       ))
     })
   })
-  
-  output$CIT_SUMMARY_TABLES <- renderDT({
+   output$CIT_SUMMARY_TABLES <- renderDT({
     req(reactive_simulation_results())
     datatable(
       reactive_simulation_results()$cit_summary_df,
@@ -453,38 +438,108 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'Customs_Projections',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'CIT_Projections',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
-    )
-  })
-  
-  output$TE_TABLES <- renderDT({
-   # req(input$toggleSimulationRates)  # Ensure the table is only rendered when toggleSimulationRates is TRUE
-    req(reactive_simulation_results())  # Ensure simulation results exist
-    
-    te_summary_selected <- reactive_simulation_results()$te_summary_df %>%
-      #select(year, `legal reference`, `current law`, benchmark, `tax expenditure`) %>%
-      select(year, `current law`, benchmark, `tax expenditure`) #%>%
-      #filter(`legal reference` != "" & !is.na(`legal reference`))
-    
-    datatable(
-      te_summary_selected,
-      caption = tags$caption(
-        paste("Tax Expenditures in LCU MIL,", min(forecast_horizon), "-", max(forecast_horizon)),
-        class = "table-caption-bold"
       ),
-      extensions = 'Buttons',
-      options = list(
-        pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
-        lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      rownames = FALSE
     )
   })
-  
+   output$TE_TABLES <- renderDT({
+    req(reactive_simulation_results())
+    datatable(
+      reactive_simulation_results()$te_summary_df,
+          caption = tags$caption(
+            paste("Tax Expenditures in LCU MIL,", min(forecast_horizon), "-", max(forecast_horizon)),
+            class = "table-caption-bold"
+          ),
+            extensions = 'Buttons',
+            options = list(
+              pageLength = 15,
+              dom = 'Blfrtip',
+              buttons = list(
+                list(
+                  extend = 'copyHtml5',
+                  text = 'Copy',
+                  filename = 'TE_Projections',
+                  exportOptions = list(
+                    format = list(
+                      body = JS("function(data, row, column, node) {
+                                 return $('<div>').html(data).text();  // Strip HTML tags
+                               }")
+                    )
+                  )
+                ),
+                list(
+                  extend = 'csvHtml5',
+                  text = 'CSV',
+                  filename = 'TE_Projections',
+                  exportOptions = list(
+                    format = list(
+                      body = JS("function(data, row, column, node) {
+                                 return $('<div>').html(data).text();  // Strip HTML tags
+                               }")
+                    )
+                  )
+                ),
+                list(
+                  extend = 'print',
+                  text = 'Print',
+                  exportOptions = list(
+                    format = list(
+                      body = JS("function(data, row, column, node) {
+                                 return $('<div>').html(data).text();  // Strip HTML tags
+                               }")
+                    )
+                  )
+                )
+              ),
+              autoWidth = TRUE,
+              escape = FALSE,
+              lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
+            ),
+            rownames = FALSE
+          )
+        })
+   
   output$RE_TABLES <- renderDT({
     req(reactive_simulation_results())
     datatable(
@@ -499,23 +554,114 @@ server <- function(input, output, session) {
       )
     )
   })
+            output$DIST_TABLES <- renderDT({
+              req(reactive_simulation_results())
+              datatable(
+                reactive_simulation_results()$cit_decile_distribution_bu_sim,
+                caption = tags$caption(paste("Distribution Tables (in LCU),", SimulationYear), class = "table-caption-bold"),
+                extensions = 'Buttons',
+                options = list(
+                  pageLength = 15,
+                  dom = 'Blfrtip',  
+                  buttons = list(
+                    list(
+                      extend = 'copyHtml5',
+                      text = 'Copy',
+                      filename = 'Distribution_Table',
+                      exportOptions = list(
+                        format = list(
+                          body = JS("function(data, row, column, node) {
+                                     return $('<div>').html(data).text();  // Strip HTML tags
+                                   }")
+                        )
+                      )
+                    ),
+                    list(
+                      extend = 'csvHtml5',
+                      text = 'CSV',
+                      filename = 'Distribution_Table',
+                      exportOptions = list(
+                        format = list(
+                          body = JS("function(data, row, column, node) {
+                                     return $('<div>').html(data).text();  // Strip HTML tags
+                                   }")
+                        )
+                      )
+                    ),
+                    list(
+                      extend = 'print',
+                      text = 'Print',
+                      exportOptions = list(
+                        format = list(
+                          body = JS("function(data, row, column, node) {
+                                     return $('<div>').html(data).text();  // Strip HTML tags
+                                   }")
+                        )
+                      )
+                    )
+                  ),
+                  autoWidth = TRUE,
+                  escape = FALSE,
+                  lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
+                ),
+                rownames = FALSE
+              )
+            })
+          output$DIST_TABLES_small <- renderDT({
+            req(reactive_simulation_results())
+            datatable(
+              reactive_simulation_results()$cit_decile_distribution_bu_sim_small,
+              caption = tags$caption(paste("Distribution Tables (in LCU),", SimulationYear), class = "table-caption-bold"),
+              extensions = 'Buttons',
+              options = list(
+                pageLength = 15,
+                dom = 'Blfrtip',  
+                buttons = list(
+                  list(
+                    extend = 'copyHtml5',
+                    text = 'Copy',
+                    filename = 'Distribution_Table_small',
+                    exportOptions = list(
+                      format = list(
+                        body = JS("function(data, row, column, node) {
+                                   return $('<div>').html(data).text();  // Strip HTML tags
+                                 }")
+                      )
+                    )
+                  ),
+                  list(
+                    extend = 'csvHtml5',
+                    text = 'CSV',
+                    filename = 'Distribution_Table_small',
+                    exportOptions = list(
+                      format = list(
+                        body = JS("function(data, row, column, node) {
+                                   return $('<div>').html(data).text();  // Strip HTML tags
+                                 }")
+                      )
+                    )
+                  ),
+                  list(
+                    extend = 'print',
+                    text = 'Print',
+                    exportOptions = list(
+                      format = list(
+                        body = JS("function(data, row, column, node) {
+                                   return $('<div>').html(data).text();  // Strip HTML tags
+                                 }")
+                      )
+                    )
+                  )
+                ),
+                autoWidth = TRUE,
+                escape = FALSE,
+                lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
+              ),
+              rownames = FALSE
+            )
+          })
   
-  output$DIST_TABLES <- renderDT({
-    req(reactive_simulation_results())
-    datatable(
-      reactive_simulation_results()$cit_decile_distribution_bu_sim,
-      caption = tags$caption(paste("Distribution Tables (in LCU),", SimulationYear), class = "table-caption-bold"),
-      extensions = 'Buttons',
-      options = list(
-        pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
-        lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
-    )
-  })
-  # 
-  output$BIN_TABLES <- renderDT({
+   output$BIN_TABLES <- renderDT({
     req(reactive_simulation_results())
     datatable(
       reactive_simulation_results()$cit_result_bins_sim_sub,
@@ -523,29 +669,108 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'Bin_Table',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'Bin_Table',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      ),
+      rownames = FALSE
     )
   })
-  # output$BIN_TABLES <- renderDT({
-  #   req(reactive_simulation_results())
-  #   datatable(
-  #     reactive_simulation_results()$pit_result_bins_sim_sub %>%
-  #       setnames(c("bin_group", "sum_calc_pitax", "percentage_structure"),
-  #                c("gross income", "tax liability", "percentage structure")),
-  #     caption = tags$caption(paste("Structure of CIT liability by income groups, ", SimulationYear), class = "table-caption-bold"),
-  #     extensions = 'Buttons',
-  #     options = list(
-  #       pageLength = 15,
-  #       dom = 'Blfrtip',
-  #       buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
-  #       lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-  #     )
-  #   )
-  # })
-  
+
+   output$BIN_TABLES_small <- renderDT({
+     req(reactive_simulation_results())
+     datatable(
+       reactive_simulation_results()$cit_result_bins_sim_small,
+       caption = tags$caption(paste("Structure of CIT liability by income groups in THOUSAND LCU, ", SimulationYear), class = "table-caption-bold"),
+       extensions = 'Buttons',
+       options = list(
+         pageLength = 15,
+         dom = 'Blfrtip',  
+         buttons = list(
+           list(
+             extend = 'copyHtml5',
+             text = 'Copy',
+             filename = 'Bin_Table',
+             exportOptions = list(
+               format = list(
+                 body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+               )
+             )
+           ),
+           list(
+             extend = 'csvHtml5',
+             text = 'CSV',
+             filename = 'Bin_Table',
+             exportOptions = list(
+               format = list(
+                 body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+               )
+             )
+           ),
+           list(
+             extend = 'print',
+             text = 'Print',
+             exportOptions = list(
+               format = list(
+                 body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+               )
+             )
+           )
+         ),
+         autoWidth = TRUE,
+         escape = FALSE,
+         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
+       ),
+       rownames = FALSE
+     )
+   })
+   
+   
+   
   updateCharts <- function() {
     cat("Updating charts after simulation\n")
     chart_type <- isolate(input$chartSelectPIT_Revenues)
@@ -557,7 +782,6 @@ server <- function(input, output, session) {
       
       if (chart_type == "Revenue_Charts") {
         cat("Preparing Revenue_Charts charts\n")
-        #source("Scripts/CIT/Charts-CIT_Revenues.R")
         source(paste0(path1, "/Scripts/CIT/Charts-CIT_Revenues.R"))
         
         charts <- Revenue_Charts_fun(merged_CIT_BU_SIM,
@@ -577,7 +801,6 @@ server <- function(input, output, session) {
             color = "orange"
           )
         })
-        
         
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
@@ -609,67 +832,59 @@ server <- function(input, output, session) {
         output$CIT_nace_big_corporations_plt <- renderPlotly({ charts$CIT_nace_big_corporations_plt })
         output$CIT_nace_small_corporations_plt <- renderPlotly({ charts$CIT_nace_small_corporations_plt })
         
-      # } else if (chart_type == "Structure_Charts") {
-      #   cat("Preparing Structure_Charts charts\n")
-      #   source("Scripts/CIT/Charts-StructureGrossIncome.R")
-      #   Charts_structure <- Structure_GrossIncome_Charts_fun(gross_income_BU_SIM,
-      #                                                        labor_capital_type,
-      #                                                        gross_nace_tbl, forecast_horizon)
-      # 
-      #   
-      #   
-      #   #  Charts_structure <- Structure_GrossIncome_Charts(labor_capital_type, gross_nace_tbl)
-      # 
-      #   output$infoBox1 <- renderInfoBox({
-      #     cat("Rendering infoBox1\n")
-      #     infoBox(
-      #       # title_text,
-      #      # paste0(round(gross_income_infobox,0), " (in LCU)"),
-      #       title = " ",   # Remove title
-      #       #value = paste0(round(gross_income_infobox,0), " (in LCU)"),
-      #       icon = icon("chart-area"),
-      #       color = "orange"
-      #     )
-      #   })
-      # 
-      #   
-      #   output$infoBox2 <- renderInfoBox({
-      #     cat("Rendering infoBox1\n")
-      #           infoBox(
-      #       #title_text,
-      #       #paste0(selected_value, " (in BIL LCU)"),
-      #       title = " ",   # Remove title
-      #       value = NULL,   # Remove value text
-      #       icon = icon("industry"),
-      #       color = "light-blue"
-      #     )
-      #   })
-      #   
-      #   
-      #   output$chartOutputCIT <- renderPlotly({ Charts_structure$labor_capital_plt })
-      #   
-      #   output$additionalCharts <- renderUI({
-      #     tagList(
-      #       fluidRow(
-      #         column(6, plotlyOutput("gross_inc_plt", height = "400px")),
-      #         column(6, plotlyOutput("labor_capital_type_plt", height = "400px"))
-      #       ),
-      #       fluidRow(
-      #         column(6, plotlyOutput("pit_bins_bu_sub_plt", height = "400px")),
-      #         column(6, plotlyOutput("treemap_nace_type_plt", height = "400px"))
-      #       )
-      #     )
-      #   })
-      #   
-      #   output$gross_inc_plt <- renderPlotly({ Charts_structure$gross_inc_plt })
-      #   output$labor_capital_type_plt <- renderPlotly({ Charts_structure$labor_capital_type_plt })
-      #   output$pit_bins_bu_sub_plt <- renderPlotly({ Charts_structure$treemap_labor_capital_type_plt })
-      #   output$treemap_nace_type_plt <- renderPlotly({ Charts_structure$treemap_nace_type_plt })
-      #   
-      # } 
+      } else if (chart_type == "Distribution_Charts_Small") {
+        cat("Preparing Distribution_Charts charts\n")
+        source(paste0(path1, "/Scripts/CIT/Charts-Distribution_Small.R"))
+        
+        Distribution_Charts <- Distribution_ChartsSmall_fun(
+                                                            cit_centile_distribution_bu_sim_small,
+                                                            cit_result_bins_bu_small,
+                                                            cit_result_bins_sim_small,
+                                                            SimulationYear,
+                                                            forecast_horizon
+                                                          )
+        #  Distribution_Charts <- Structure_GrossIncome_Charts(labor_capital_type, gross_nace_tbl)
+        output$infoBox1 <- renderInfoBox({
+          cat("Rendering infoBox1\n")
+          infoBox(
+            title = " ",   # Remove title
+            icon = icon("chart-area"),
+            color = "orange"
+          )
+        })
+        output$infoBox2 <- renderInfoBox({
+          cat("Rendering infoBox1\n")
+          infoBox(
+            title = " ",   # Remove title
+            value = NULL,   # Remove value text
+            icon = icon("industry"),
+            color = "light-blue"
+          )
+        })
+        
+        output$chartOutputCIT <- renderPlotly({ Distribution_Charts$labor_capital_plt })
+        
+        
+        output$additionalCharts <- renderUI({
+          tagList(
+            fluidRow(
+              column(6, plotlyOutput("dist_centile_groups_plt_small", height = "400px")),
+              column(6, plotlyOutput("dist_decile_groups_plt_small", height = "400px"))
+            ),
+            fluidRow(
+              column(6, plotlyOutput("cit_bins_bu_sub_plt_small", height = "400px")),
+              column(6, plotlyOutput("cit_bins_sim_sub_plt_small", height = "400px"))
+            )
+          )
+        })
+        
+        output$dist_centile_groups_plt_small <- renderPlotly({ Distribution_Charts$dist_centile_groups_plt_small })
+        output$dist_decile_groups_plt_small <- renderPlotly({ Distribution_Charts$dist_decile_groups_plt_small })
+        output$cit_bins_bu_sub_plt_small <- renderPlotly({ Distribution_Charts$cit_bins_bu_sub_plt_small })
+        output$cit_bins_sim_sub_plt_small <- renderPlotly({ Distribution_Charts$cit_bins_sim_sub_plt_small })
+        
         } else if (chart_type == "Distribution_Charts") {
         cat("Preparing Distribution_Charts charts\n")
-        #source("Scripts/CIT/Charts-Distribution.R")
           source(paste0(path1, "/Scripts/CIT/Charts-Distribution.R"))
         
         Distribution_Charts <- Distribution_Charts_fun(
@@ -680,9 +895,6 @@ server <- function(input, output, session) {
                                                       SimulationYear,
                                                       forecast_horizon
                                                       )
-        
-        
-        
         #  Distribution_Charts <- Structure_GrossIncome_Charts(labor_capital_type, gross_nace_tbl)
         
         output$infoBox1 <- renderInfoBox({
@@ -709,20 +921,7 @@ server <- function(input, output, session) {
             color = "light-blue"
           )
         })
-        
-        
-        # OVDE DA SE PROVERI POVTORNO
-        
         output$chartOutputCIT <- renderPlotly({ Distribution_Charts$labor_capital_plt })
-        
-        # # Conditionally render the charts
-        # output$chartOutputCIT <- renderPlotly({
-        #   # req(input$toggleSimulationRates)  # Ensure the chart is only rendered when toggleSimulationRates is TRUE
-        #   Distribution_Charts$dist_centile_groups_plt
-        # })
-        # 
-        # 
-        
         output$additionalCharts <- renderUI({
           tagList(
             fluidRow(
@@ -741,79 +940,79 @@ server <- function(input, output, session) {
         output$cit_bins_bu_sub_plt <- renderPlotly({ Distribution_Charts$cit_bins_bu_sub_plt })
         output$cit_bins_sim_sub_plt <- renderPlotly({ Distribution_Charts$cit_bins_sim_sub_plt })
         
-      } else if (chart_type == "Tax_Expenditures_Charts") {
-        cat("Preparing Tax_Expenditures_Charts charts\n")
-        #source("Scripts/CIT/Charts-TaxExpenditures.R")
-        source(paste0(path1, "/Scripts/CIT/Charts-TaxExpenditures.R"))
+       } 
+          else if (chart_type == "Tax_Expenditures_Charts") {
+          
+          if (!input$toggleSimulationRates) {
+            cat("Tax expenditures are disabled (toggle OFF). No charts to display.\n")
+            # Optionally show an empty UI or a "please turn on toggle" message
+            output$additionalCharts <- renderUI({
+              h4("Tax Expenditures are disabled. Turn on the toggle to see charts.")
+            })
+            
+          } else {
+            cat("Preparing Tax_Expenditures_Charts charts\n")
+            source(paste0(path1, "/Scripts/CIT/Charts-TaxExpenditures.R"))
+            charts_te <- Tax_Expenditures_Charts_fun(
+                                                      te_summary_df,
+                                                      company_type_cit_summary_te,
+                                                      nace_cit_summary_tbl,
+                                                      te_summary_df_type,
+                                                      forecast_horizon,
+                                                      SimulationYear
+                                                    )
+            
+            output$infoBox1 <- renderInfoBox({
+              infoBox(
+                title = " ",  
+                icon  = icon("chart-area"),
+                color = "orange"
+              )
+            })
+            
+            output$infoBox2 <- renderInfoBox({
+              infoBox(
+                title = " ",  
+                icon  = icon("industry"),
+                color = "light-blue"
+              )
+            })
+            
+            # Conditionally render the charts
+            output$chartOutputCIT <- renderPlotly({
+              # req(input$toggleSimulationRates)  # Ensure the chart is only rendered when toggleSimulationRates is TRUE
+              charts_te$te_agg_plt
+            })
+            
+            output$additionalCharts <- renderUI({
+              #req(input$toggleSimulationRates)  # Ensure the additional charts are only rendered when toggleSimulationRates is TRUE
+              tagList(
+                fluidRow(
+                  column(6, plotlyOutput("te_agg_plt", height = "400px")),
+                  column(6, plotlyOutput("te_type_companies_plt", height = "400px"))
+                ),
+                fluidRow(
+                  column(6, plotlyOutput("treemap_nace_type_plt", height = "400px")),
+                  column(6, plotlyOutput("te_type_plt", height = "400px"))
+                )
+              )
+            })
+            
+            output$te_agg_plt <- renderPlotly({ charts_te$te_agg_plt })
+            output$te_type_companies_plt <- renderPlotly({ charts_te$te_type_companies_plt })
+            output$treemap_nace_type_plt <- renderPlotly({ charts_te$treemap_nace_type_plt })
+            output$te_type_plt <- renderPlotly({ charts_te$te_type_plt })
+          }
+        }
         
-        
-        charts_te <- Tax_Expenditures_Charts_fun(
-                                             te_summary_df,
-                                             company_type_cit_summary_te,
-                                             nace_cit_summary_tbl,
-                                             nace_cit_summary_te_deciles,
-                                             forecast_horizon,
-                                             SimulationYear)
-      
-        output$infoBox1 <- renderInfoBox({
-          cat("Rendering infoBox1\n")
-          infoBox(
-            # title_text,
-            # paste0(round(gross_income_infobox,0), " (in LCU)"),
-            title = " ",   # Remove title
-            #value = paste0(round(gross_income_infobox,0), " (in LCU)"),
-            icon = icon("chart-area"),
-            color = "orange"
-          )
-        })
-        
-        
-        output$infoBox2 <- renderInfoBox({
-          cat("Rendering infoBox1\n")
-          infoBox(
-            #title_text,
-            #paste0(selected_value, " (in BIL LCU)"),
-            title = " ",   # Remove title
-            value = NULL,   # Remove value text
-            icon = icon("industry"),
-            color = "light-blue"
-          )
-        })
-        
-        # Conditionally render the charts
-        output$chartOutputCIT <- renderPlotly({
-         # req(input$toggleSimulationRates)  # Ensure the chart is only rendered when toggleSimulationRates is TRUE
-          charts_te$te_agg_plt
-        })
-        
-        output$additionalCharts <- renderUI({
-          #req(input$toggleSimulationRates)  # Ensure the additional charts are only rendered when toggleSimulationRates is TRUE
-          tagList(
-            fluidRow(
-              column(6, plotlyOutput("te_agg_plt", height = "400px")),
-              column(6, plotlyOutput("te_type_companies_plt", height = "400px"))
-            ),
-            fluidRow(
-              column(6, plotlyOutput("treemap_nace_type_plt", height = "400px")),
-              column(6, plotlyOutput("te_decile_groups_plt", height = "400px"))
-            )
-          )
-        })
-        
-        output$te_agg_plt <- renderPlotly({ charts_te$te_agg_plt })
-        output$te_type_companies_plt <- renderPlotly({ charts_te$te_type_companies_plt })
-        output$treemap_nace_type_plt <- renderPlotly({ charts_te$treemap_nace_type_plt })
-        output$te_decile_groups_plt <- renderPlotly({ charts_te$te_decile_groups_plt })
-      }
-      
-    } else {
-      cat("Error: merged_CIT_BU_SIM or forecast_horizon not found in the global environment\n")
+        } else {
+          cat("Error: merged_PIT_BU_SIM or forecast_horizon not found in the global environment\n")
+        }
     }
+    
+    observeEvent(input$chartSelectPIT_Revenues, {
+      updateCharts()
+    })
   }
   
-  observeEvent(input$chartSelectPIT_Revenues, {
-    updateCharts()
-  })
-}
-
 shinyApp(ui = ui, server = server)

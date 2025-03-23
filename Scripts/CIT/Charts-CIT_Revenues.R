@@ -128,7 +128,7 @@ Revenue_Charts_fun <- function(merged_CIT_BU_SIM,
                                            barmode = 'group') %>%    
                                       layout(
                                         #title = paste("Profit Tax by NACE Section (in AMD bn),", min(legal_type_cit_summary$year), "-", max(legal_type_cit_summary$year)),
-                                        title = paste("ToT Revenues by NACE Sectors (in EUR),",SimulationYear ),
+                                        title = paste("ToT Revenues by NACE Sectors (in LCU),",SimulationYear ),
                                         xaxis = list(title = " ", tickmode = 'linear'),  
                                         yaxis = list(title = " "),
                                         annotations = list(
