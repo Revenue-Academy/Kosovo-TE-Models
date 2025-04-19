@@ -98,7 +98,7 @@
           
               dt_scn[, calc_totalspodisc_max30pct_box42 := calc_sportspodisc_max30pct_box42 + calc_culyouthspodisc_max20pct_box42]
               
-            # 12.Tax for payment with this form ([36]-[39]-[41]-[45]) ----------------
+            # 12. D46 Tax for payment with this form ([36]-[39]-[41]-[45]) ----------------
           
               dt_scn[, calc_cit := pmax((calc_cit_large - calc_totalspodisc_max30pct_box42), 0)  ]
               
@@ -113,7 +113,20 @@
             dt_scn[, calc_tqi_9pct := g_inc_q*rate_small_service_prof ]
             
             # 3.[12] Amount for payment in this statement [10]+[11] , but not less than 37.50 euro ---------------------------------------------------
-            dt_scn[, calc_tot_amount_3pct_9pct := pmax(min_payment_small, pmax((calc_tqi_3pct + calc_tqi_9pct), 0)) ]
+            #dt_scn[, calc_tot_amount_3pct_9pct := pmax(min_payment_small, pmax((calc_tqi_3pct + calc_tqi_9pct), 0)) ]
+             # dt_scn[, calc_tot_amount_3pct_9pct := pmax(min_payment_small, calc_tqi_3pct + calc_tqi_9pct, 0) ]
+              
+              dt_scn[, calc_tot_amount_3pct_9pct :=
+                       fifelse( (calc_tqi_3pct + calc_tqi_9pct) > 0,
+                                pmax(min_payment_small, calc_tqi_3pct + calc_tqi_9pct),
+                                0 )]
+              
+              
+              
+              
+              
+              
+              #dt_scn[, calc_tot_amount_3pct_9pct := calc_tqi_3pct+calc_tqi_9pct ]
             
             # 4.[16] Amount for payment in this statement [14] - [15]----------------------------
               # da se najde od kade e ova rent_tax_held_oth ?????
@@ -126,12 +139,19 @@
         
             # 5.[17] Total tax Small Corporate ----------------------------
         
-            dt_scn[, totax := (calc_tot_amount_3pct_9pct + calc_rent_tax)*4 ]
-            
-        
-            dt_scn[, calc_turnover_small := (g_inc_q + g_inc_spcel)*4 ]
+            # dt_scn[, totax := (calc_tot_amount_3pct_9pct + calc_rent_tax)*4 ]
+            # 
+            # 
+            # dt_scn[, calc_turnover_small := (g_inc_q + g_inc_spcel)*4 ]
             
            
+            dt_scn[, totax := (calc_tot_amount_3pct_9pct) ]
+            
+         # dt_scn[, calc_turnover_small := totax]
+            
+            dt_scn[, calc_turnover_small := (g_inc_q + g_inc_spcel)]
+            
+            
             
         }
         
@@ -350,13 +370,18 @@
         cit_summary_df <- cit_summary_df %>%
           mutate(difference = sim - bu)
         
+
+# Big corporation ---------------------------------------------------------
+
         
-        cit_summary_df <- cit_summary_df %>%
+        cit_summary_df_big <- cit_summary_df %>%
           mutate(across(c(bu, sim, difference), ~ round(., 1)))%>%
-          filter(variable=='calc_cit')
+          filter(variable=='calc_cit')# OLD
+         # filter(variable %in% c("calc_cit","totax"))
+        
         
         # Arrange the columns
-        cit_summary_df <- cit_summary_df %>%
+        cit_summary_df_big <- cit_summary_df_big %>%
                     select(year, bu, sim, difference)%>%
                     dplyr::rename(
                       "Current law (LCU Mil)"="bu",
@@ -367,11 +392,11 @@
         
         MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
         
-        cit_summary_df$`Current law (LCU Mil)`<-round(cit_summary_df$`Current law (LCU Mil)`/1e03,1)
-        cit_summary_df$`Simulation (LCU Mil)`<-round(cit_summary_df$`Simulation (LCU Mil)`/1e03,1)
-        cit_summary_df$`Fiscal impact (LCU Mil)`<-round(cit_summary_df$`Fiscal impact (LCU Mil)`/1e03,1)
+        cit_summary_df_big$`Current law (LCU Mil)`<-round(cit_summary_df_big$`Current law (LCU Mil)`/1e03,1)
+        cit_summary_df_big$`Simulation (LCU Mil)`<-round(cit_summary_df_big$`Simulation (LCU Mil)`/1e03,1)
+        cit_summary_df_big$`Fiscal impact (LCU Mil)`<-round(cit_summary_df_big$`Fiscal impact (LCU Mil)`/1e03,1)
         
-        cit_summary_df<-left_join(cit_summary_df,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
+        cit_summary_df_big<-left_join(cit_summary_df_big,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
           select(year,"Current law (LCU Mil)","Simulation (LCU Mil)","Fiscal impact (LCU Mil)",Nominal_GDP)%>%
           dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU Mil)`/Nominal_GDP*100,2),
                          `Simulation (Pct of GDP)`=round(`Simulation (LCU Mil)`/ Nominal_GDP*100,2),
@@ -381,6 +406,46 @@
         
         
         #cit_summary_df <- as.data.table(cit_summary_df)
+
+# Small corporation -------------------------------------------------------
+
+        cit_summary_df_small <- cit_summary_df %>%
+          mutate(across(c(bu, sim, difference), ~ round(., 1)))%>%
+          filter(variable=='totax')# OLD
+        # filter(variable %in% c("calc_cit","totax"))
+        
+        
+        # Arrange the columns
+        cit_summary_df_small <- cit_summary_df_small %>%
+          select(year, bu, sim, difference)%>%
+          dplyr::rename(
+            "Current law (LCU Mil)"="bu",
+            "Simulation (LCU Mil)"="sim",
+            "Fiscal impact (LCU Mil)"="difference",
+          )
+        
+        
+        MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
+        
+        cit_summary_df_small$`Current law (LCU Mil)`<-round(cit_summary_df_small$`Current law (LCU Mil)`/1e03,1)
+        cit_summary_df_small$`Simulation (LCU Mil)`<-round(cit_summary_df_small$`Simulation (LCU Mil)`/1e03,1)
+        cit_summary_df_small$`Fiscal impact (LCU Mil)`<-round(cit_summary_df_small$`Fiscal impact (LCU Mil)`/1e03,4)
+        
+        cit_summary_df_small<-left_join(cit_summary_df_small,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
+          select(year,"Current law (LCU Mil)","Simulation (LCU Mil)","Fiscal impact (LCU Mil)",Nominal_GDP)%>%
+          dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU Mil)`/Nominal_GDP*100,2),
+                         `Simulation (Pct of GDP)`=round(`Simulation (LCU Mil)`/ Nominal_GDP*100,2),
+                         `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU Mil)`/ Nominal_GDP*100,4))%>%
+          dplyr::select(-c(Nominal_GDP))%>%
+          as.data.table()
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
@@ -405,7 +470,7 @@
           # Preparation of subsets fo estimation of decile and percentiles
           big_corporations_CIT_BU_list <- lapply(CIT_BU_list, function(table) {
             table %>%
-              #filter(TypeOfTax == 0) %>%
+              filter(TypeOfTax == 0) %>% # ovde
               select(-calc_tqi_3pct, -calc_tqi_9pct, -calc_tot_amount_3pct_9pct, -calc_rent_tax, -totax, -calc_turnover_small)
           })
           
@@ -423,7 +488,7 @@
           # Preparation of subsets fo estimation of decile and percentiles
           big_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
             table %>%
-              #filter(TypeOfTax == 0) %>%
+              filter(TypeOfTax == 0) %>%
               select(-calc_tqi_3pct, -calc_tqi_9pct, -calc_tot_amount_3pct_9pct, -calc_rent_tax, -totax, -calc_turnover_small)
           })
           
@@ -443,7 +508,7 @@
           #           # Preparation of subsets fo estimation of decile and percentiles
                     small_corporations_CIT_BU_list <- lapply(CIT_BU_list, function(table) {
                       table %>%
-                       # filter(TypeOfTax == 1) %>%  <-- ovde
+                        filter(TypeOfTax == 1) %>%  #<-- ovde
                         select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax,calc_turnover_small,weight)
                     })
           #           
@@ -480,7 +545,7 @@
                       #           # Preparation of subsets fo estimation of decile and percentiles
                       small_corporations_CIT_SIM_list <- lapply(CIT_SIM_list, function(table) {
                         table %>%
-                          #filter(TypeOfTax == 1) %>% <--OVDE
+                          filter(TypeOfTax == 1) %>% #<--OVDE
                           select(id_n,description,section,calc_tqi_3pct, calc_tqi_9pct, calc_tot_amount_3pct_9pct, calc_rent_tax, totax,calc_turnover_small,weight)
                       })
           

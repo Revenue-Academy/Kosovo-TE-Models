@@ -34,6 +34,7 @@ ui <- dashboardPage(
                 style = "flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 18px;") 
     )
   ),
+  title = "VAT Module",
   dashboardSidebar(
     sidebarMenu(
       menuItem("Input", tabName = "input", icon = icon("file-excel")),

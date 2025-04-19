@@ -11,7 +11,7 @@ library(fontawesome)
 library(flexdashboard)
 library(tidyverse)
 library(plyr)
-library(shinycssloaders) 
+library(shinycssloaders)
 library(future)
 library(promises)
 library(plotly)
@@ -21,7 +21,7 @@ library(base64enc)
 library(parallel)
 library(purrr)
 library(tidyr)
-library(RColorBrewer) 
+library(RColorBrewer)
 library(Hmisc)
 library(openxlsx)
 
@@ -39,7 +39,7 @@ ui <- dashboardPage(
       tags$span("PIT Module", style = "flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;")
     )
   ),
-  
+  title = "PIT Module",
   dashboardSidebar(
     sidebarMenu(
       menuItem("Input", tabName = "input", icon = icon("file-excel")),
@@ -90,14 +90,12 @@ ui <- dashboardPage(
                 column(3,
                        numericInput("default_Year", "Initial year ", value = 0, min = 0, step = 0.01),
                        numericInput("default_Value", "Value", value = 0, min = 0, step = 0.01)
-                       
                 ),
                 column(3,
-                       switchInput("toggleSimulationRates", "Toggle Tax Expenditures", value = FALSE, onLabel = "On", offLabel = "Off"),
-                       numericInput("sim_PIT_Rates", "Tax Benchmark", value = 0, min = 0, step = 1)
+                       # We keep the switchInput to toggle TE, but remove the numericInput for sim_PIT_Rates
+                       switchInput("toggleSimulationRates", "Toggle Tax Expenditures", value = FALSE, onLabel = "On", offLabel = "Off")
                 )
               ),
-              #h4("Selected simulations parameters"),
               div(h4("Selected simulations parameters"), style = "text-align: center;"),
               fluidRow(
                 column(12,
@@ -106,7 +104,6 @@ ui <- dashboardPage(
                        actionButton("savepit_simulation_parameters_updated", "Save Data", style = "float: right;")
                 )
               )
-              
       ),
       tabItem(
         tabName = "MainResultsSimulation",
@@ -175,20 +172,24 @@ ui <- dashboardPage(
     )
   )
 )
+
 # II. Server ---------------------------------------------------------------------
 server <- function(input, output, session) {
-    # Render the image dynamically using Base64 encoding
+  # Render the image dynamically using Base64 encoding
   output$headerImage <- renderUI({
     img_data <- base64enc::dataURI(file = "img/WB_pic.png", mime = "image/png")
     tags$img(src = img_data, height = "40px", style = "float:left; margin-right:20px;")
   })
+  
   # Input from slider -------------------------------------------------------
   observeEvent(input$SimulationYear, {
     assign("SimulationYear", input$SimulationYear, envir = .GlobalEnv)
     cat("Simulation year updated:", input$SimulationYear, "\n")
   })
-    # Reactive data frame to store Excel data
+  
+  # Reactive data frame to store Excel data
   excelData <- reactiveVal(NULL)
+  
   observeEvent(input$importExcel, {
     req(input$fileInput)
     inFile <- input$fileInput
@@ -234,7 +235,8 @@ server <- function(input, output, session) {
     req(input$PolicyParameter)
     PolicyParameter <- input$PolicyParameter
     if (!is.null(PolicyParameter) && !is.null(excelData())) {
-      selectInput("Descriptions_Select", "Description of parameter", choices = unique(excelData()[excelData()$PolicyParameter == PolicyParameter,]$Descriptions))
+      selectInput("Descriptions_Select", "Description of parameter", 
+                  choices = unique(excelData()[excelData()$PolicyParameter == PolicyParameter, ]$Descriptions))
     } else {
       selectInput("Descriptions_Select", "Description of parameter", choices = NULL)
     }
@@ -244,7 +246,8 @@ server <- function(input, output, session) {
     req(input$Descriptions_Select)
     Descriptions <- input$Descriptions_Select
     if (!is.null(Descriptions) && !is.null(excelData())) {
-      selectInput("LongNameSelect", "Selected variable", choices = unique(excelData()[excelData()$Descriptions == Descriptions,]$LongName))
+      selectInput("LongNameSelect", "Selected variable", 
+                  choices = unique(excelData()[excelData()$Descriptions == Descriptions, ]$LongName))
     } else {
       selectInput("LongNameSelect", "Selected variable", choices = NULL)
     }
@@ -267,14 +270,15 @@ server <- function(input, output, session) {
     }
   })
   
+  # -- Removed references to sim_PIT_Rates here --
   observeEvent(input$addValuesValue, {
     req(input$LongNameSelect)
     newEntry <- data.table(
       PolicyParameter = input$PolicyParameter,
-      Descriptions = input$Descriptions_Select,
-      LongName = input$LongNameSelect,
-      Value = if (input$toggleSimulationRates) input$sim_PIT_Rates else input$default_Value,
-      Year = if (input$toggleSimulationRates) input$SimulationYear else input$default_Year
+      Descriptions    = input$Descriptions_Select,
+      LongName        = input$LongNameSelect,
+      Value           = input$default_Value,
+      Year            = input$default_Year
     )
     pit_simulation_parameters_updated(rbind(pit_simulation_parameters_updated(), newEntry))
     cat("New entry added to pit_simulation_parameters_updated:\n")
@@ -298,18 +302,18 @@ server <- function(input, output, session) {
     
     pit_simulation_parameters_updated_copy <- get("pit_simulation_parameters_raw", envir = .GlobalEnv)
     
-    if (input$toggleSimulationRates) {
-      pit_simulation_parameters_updated_copy$Value[pit_simulation_parameters_updated_copy$PolicyParameter == "Deductions"] <- input$sim_PIT_Rates
-      pit_simulation_parameters_updated_copy$Year[pit_simulation_parameters_updated_copy$PolicyParameter == "Deductions"] <- input$SimulationYear
-      cat("Simulation rates updated in pit_simulation_parameters_updated_copy\n")
-    }
+    # -- Removed block that assigned pit_simulation_parameters_updated_copy$Value = input$sim_PIT_Rates if toggle is ON --
     
     pitRateData <- get("ValueTableUpdate", envir = .GlobalEnv)
     if (nrow(pitRateData) > 0) {
       for (i in 1:nrow(pitRateData)) {
         row <- pitRateData[i, ]
-        pit_simulation_parameters_updated_copy[pit_simulation_parameters_updated_copy$PolicyParameter == row$PolicyParameter & pit_simulation_parameters_updated_copy$Descriptions == row$Descriptions & pit_simulation_parameters_updated_copy$LongName == row$LongName, 
-                                               c("Value", "Year")] <- list(row$Value, row$Year)
+        pit_simulation_parameters_updated_copy[
+          pit_simulation_parameters_updated_copy$PolicyParameter == row$PolicyParameter & 
+            pit_simulation_parameters_updated_copy$Descriptions     == row$Descriptions &
+            pit_simulation_parameters_updated_copy$LongName         == row$LongName, 
+          c("Value", "Year")
+        ] <- list(row$Value, row$Year)
       }
     }
     
@@ -317,26 +321,7 @@ server <- function(input, output, session) {
     cat("pit_simulation_parameters_updated assigned to GlobalEnv\n")
   })
   
-  observe({
-    toggleState("sim_PIT_Rates", input$toggleSimulationRates)
-    
-    if (!is.null(input$toggleSimulationRates) && length(input$toggleSimulationRates) > 0 && input$toggleSimulationRates) {
-      assign("Value", input$sim_PIT_Rates, envir = .GlobalEnv)
-      assign("Year", input$SimulationYear, envir = .GlobalEnv)
-      cat("Simulation rates assigned to GlobalEnv\n")
-    } else {
-      if (exists("Value", envir = .GlobalEnv)) {
-        rm("Value", envir = .GlobalEnv)
-      }
-      if (exists("Year", envir = .GlobalEnv)) {
-        rm("Year", envir = .GlobalEnv)
-      }
-      if (exists("Regime", envir = .GlobalEnv)) {
-        rm("Regime", envir = .GlobalEnv)
-      }
-      cat("Simulation rates removed from GlobalEnv\n")
-    }
-  })
+  # -- Removed block that used toggleState("sim_PIT_Rates", ...) and assigned sim_PIT_Rates to .GlobalEnv --
   
   output$pit_simulation_parameters_updated <- renderDT({
     datatable(pit_simulation_parameters_updated(), options = list(dom = 't', paging = FALSE), editable = TRUE)
@@ -421,7 +406,7 @@ server <- function(input, output, session) {
     req(reactive_simulation_results())  # Ensure simulation results exist
     
     te_summary_selected <- reactive_simulation_results()$te_summary_df %>%
-      select(year, `current law`, benchmark, `tax expenditure`) #%>%
+      select(year, `current law`, benchmark, `tax expenditure`)
     datatable(
       te_summary_selected,
       caption = tags$caption(
@@ -467,7 +452,7 @@ server <- function(input, output, session) {
       )
     )
   })
-  # 
+  
   output$BIN_TABLES <- renderDT({
     req(reactive_simulation_results())
     datatable(
@@ -490,13 +475,17 @@ server <- function(input, output, session) {
     
     if (exists("merged_PIT_BU_SIM", envir = .GlobalEnv) && exists("forecast_horizon", envir = .GlobalEnv)) {
       merged_PIT_BU_SIM <- get("merged_PIT_BU_SIM", envir = .GlobalEnv)
-      forecast_horizon <- get("forecast_horizon", envir = .GlobalEnv)
+      forecast_horizon  <- get("forecast_horizon", envir = .GlobalEnv)
       
       if (chart_type == "Revenue_Charts") {
         cat("Preparing Revenue_Charts charts\n")
         source(paste0(path1, "/Scripts/PIT/Charts-PIT_Revenues.R"))
         
-        charts <- Revenue_Charts(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary,SimulationYear, range(forecast_horizon))
+        charts <- Revenue_Charts(merged_PIT_BU_SIM,
+                                 pit_gender_summary,
+                                 pit_nace_summary,
+                                 SimulationYear,
+                                 range(forecast_horizon))
         
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
@@ -511,7 +500,7 @@ server <- function(input, output, session) {
           cat("Rendering infoBox1\n")
           infoBox(
             title = " ",   # Remove title
-            value = NULL,   # Remove value text
+            value = NULL,  # Remove value text
             icon = icon("industry"),
             color = "light-blue"
           )
@@ -530,17 +519,20 @@ server <- function(input, output, session) {
           )
         })
         
-        output$PIT_RevenuesTotal_plt <- renderPlotly({ charts$PIT_RevenuesTotal_plt })
-        output$pit_gender_summary_plt <- renderPlotly({ charts$pit_gender_summary_plt })
+        output$PIT_RevenuesTotal_plt     <- renderPlotly({ charts$PIT_RevenuesTotal_plt })
+        output$pit_gender_summary_plt    <- renderPlotly({ charts$pit_gender_summary_plt })
         output$treemap_nace_pit_bu_type_plt <- renderPlotly({ charts$treemap_nace_pit_bu_type_plt })
         output$treemap_nace_pit_sim_type_plt <- renderPlotly({ charts$treemap_nace_pit_sim_type_plt })
         
       } else if (chart_type == "Structure_Charts") {
         cat("Preparing Structure_Charts charts\n")
         source(paste0(path1, "/Scripts/PIT/Charts-StructureGrossIncome.R"))
-        Charts_structure <- Structure_GrossIncome_Charts_fun(gross_income_BU_SIM,
-                                                             labor_capital_type,
-                                                             gross_nace_tbl, forecast_horizon)
+        Charts_structure <- Structure_GrossIncome_Charts_fun(
+          gross_income_BU_SIM,
+          labor_capital_type,
+          gross_nace_tbl,
+          forecast_horizon
+        )
         
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
@@ -555,7 +547,7 @@ server <- function(input, output, session) {
           cat("Rendering infoBox1\n")
           infoBox(
             title = " ",   # Remove title
-            value = NULL,   # Remove value text
+            value = NULL,  # Remove value text
             icon = icon("industry"),
             color = "light-blue"
           )
@@ -576,34 +568,38 @@ server <- function(input, output, session) {
           )
         })
         
-        output$gross_inc_plt <- renderPlotly({ Charts_structure$gross_inc_plt })
-        output$labor_capital_type_plt <- renderPlotly({ Charts_structure$labor_capital_type_plt })
-        output$pit_bins_bu_sub_plt <- renderPlotly({ Charts_structure$treemap_labor_capital_type_plt })
-        output$treemap_nace_type_plt <- renderPlotly({ Charts_structure$treemap_nace_type_plt })
+        output$gross_inc_plt           <- renderPlotly({ Charts_structure$gross_inc_plt })
+        output$labor_capital_type_plt  <- renderPlotly({ Charts_structure$labor_capital_type_plt })
+        output$pit_bins_bu_sub_plt     <- renderPlotly({ Charts_structure$treemap_labor_capital_type_plt })
+        output$treemap_nace_type_plt   <- renderPlotly({ Charts_structure$treemap_nace_type_plt })
         
       } else if (chart_type == "Distribution_Charts") {
         cat("Preparing Distribution_Charts charts\n")
         source(paste0(path1, "/Scripts/PIT/Charts-Distribution.R"))
         
-        Distribution_Charts <- Distribution_Charts_fun(pit_centile_distribution_bu_sim,pit_decile_distribution_bu_sim_raw,
-                                                       pit_result_bins_bu_sub,pit_result_bins_sim_sub,SimulationYear)
+        Distribution_Charts <- Distribution_Charts_fun(
+          pit_centile_distribution_bu_sim,
+          pit_decile_distribution_bu_sim_raw,
+          pit_result_bins_bu_sub,
+          pit_result_bins_sim_sub,
+          SimulationYear
+        )
         
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",   # Remove title
-            icon = icon("chart-area"),
+            title = " ",
+            icon  = icon("chart-area"),
             color = "orange"
           )
         })
         
-        
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",   # Remove title
-            value = NULL,   # Remove value text
-            icon = icon("industry"),
+            title = " ",
+            value = NULL,
+            icon  = icon("industry"),
             color = "light-blue"
           )
         })
@@ -624,15 +620,14 @@ server <- function(input, output, session) {
         })
         
         output$dist_centile_groups_plt <- renderPlotly({ Distribution_Charts$dist_centile_groups_plt })
-        output$dist_decile_groups_plt <- renderPlotly({ Distribution_Charts$dist_decile_groups_plt })
-        output$pit_bins_bu_sub_plt <- renderPlotly({ Distribution_Charts$pit_bins_bu_sub_plt })
-        output$pit_bins_sim_sub_plt <- renderPlotly({ Distribution_Charts$pit_bins_sim_sub_plt })
+        output$dist_decile_groups_plt  <- renderPlotly({ Distribution_Charts$dist_decile_groups_plt })
+        output$pit_bins_bu_sub_plt     <- renderPlotly({ Distribution_Charts$pit_bins_bu_sub_plt })
+        output$pit_bins_sim_sub_plt    <- renderPlotly({ Distribution_Charts$pit_bins_sim_sub_plt })
         
       } else if (chart_type == "Tax_Expenditures_Charts") {
         
         if (!input$toggleSimulationRates) {
           cat("Tax expenditures are disabled (toggle OFF). No charts to display.\n")
-          # Optionally show an empty UI or a "please turn on toggle" message
           output$additionalCharts <- renderUI({
             h4("Tax Expenditures are disabled. Turn on the toggle to see charts.")
           })
@@ -643,8 +638,6 @@ server <- function(input, output, session) {
           source(paste0(path1, "/Scripts/PIT/Charts-TaxExpenditures.R"))
           charts_te <- Tax_Expenditures_Charts(
             te_agg,
-            #choropleth_data,
-            #gender_pit_summary_te,
             te_agg_type,
             nace_pit_summary_tbl,
             decile_pit_summary_tbl,
@@ -654,7 +647,7 @@ server <- function(input, output, session) {
           
           output$infoBox1 <- renderInfoBox({
             infoBox(
-              title = " ",  
+              title = " ",
               icon  = icon("chart-area"),
               color = "orange"
             )
@@ -662,13 +655,12 @@ server <- function(input, output, session) {
           
           output$infoBox2 <- renderInfoBox({
             infoBox(
-              title = " ",  
+              title = " ",
               icon  = icon("industry"),
               color = "light-blue"
             )
           })
           
-          # Render charts:
           output$chartOutputPIT <- renderPlotly({
             charts_te$te_agg_plt
           })
@@ -686,13 +678,12 @@ server <- function(input, output, session) {
             )
           })
           
-          output$te_agg_plt           <- renderPlotly({ charts_te$te_agg_plt })
+          output$te_agg_plt            <- renderPlotly({ charts_te$te_agg_plt })
           output$treemap_nace_type_plt <- renderPlotly({ charts_te$treemap_nace_type_plt })
           output$te_gender_groups_plt  <- renderPlotly({ charts_te$te_gender_groups_plt })
           output$te_decile_groups_plt  <- renderPlotly({ charts_te$te_decile_groups_plt })
         }
       }
-      
     } else {
       cat("Error: merged_PIT_BU_SIM or forecast_horizon not found in the global environment\n")
     }

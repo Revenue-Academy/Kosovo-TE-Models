@@ -9,7 +9,6 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
 
   # Chart 1. Centile Groups -----------------------------------------------------------------
        
-  # ovde ima GRESKA
   
   dist_centile_groups_plt <- plot_ly(cit_centile_distribution_bu_sim, x = ~centile_group, y = ~etr_bu, name = "Baseline", type = 'scatter', mode = 'lines',
                  line = list(width = 4,dash = "solid"))
