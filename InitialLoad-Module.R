@@ -1124,7 +1124,12 @@ growth_factors_pit <- data.table(
   ded_exp_int_prop= c(1, 1.089, 1.076, 1.074, 1.07),
   other_allowed_ded=c(1, 1.089, 1.076, 1.074, 1.07),
   dis_charity_contribution=c(1, 1.089, 1.076, 1.074, 1.07),
-  loss_carried_for=c(1, 1.089, 1.076, 1.074, 1.07)
+  loss_carried_for=c(1, 1.089, 1.076, 1.074, 1.07),
+  gross_wage_w=c(1, 1.089, 1.076, 1.074, 1.07),
+  tax_witheld=c(1, 1.089, 1.076, 1.074, 1.07),
+  employee_cont=c(1, 1.089, 1.076, 1.074, 1.07),
+  employer_cont=c(1, 1.089, 1.076, 1.074, 1.07)
+
   
 )
 
@@ -1141,28 +1146,51 @@ scenarios_5 <- c("t0","t1","t2","t3","t4")
 scenario_years <- c(2023, 2024, 2025, 2026, 2027)
 
 
+
+# Import witheld data
+
+
+clean_witheld_df <- read_csv("~/Models/Kosovo-TE-Models/Data/PIT/clean_witheld_df.csv")%>%
+  data.table()
+
+clean_witheld_df$id_n<-as.character(clean_witheld_df$id_n)
+
+combined_dt <- rbindlist(list(dt, clean_witheld_df), fill = TRUE)
+#combined_dt <- rbind(dt, clean_witheld_df)
+# View(combined_dt)
+
+
+dt<-combined_dt
+rm(combined_dt)
+
+
+
+
 ###############################################################################
 # 3) Weights
 ###############################################################################
 
-n= NROW(dt)
+# n= NROW(dt)
+# 
+# weights_pit <- data.table(
+#   t0 = runif(n, 0, 2),
+#   t1 = runif(n, 0, 2),
+#   t2 = runif(n, 0, 2),
+#   t3 = runif(n, 0, 2),
+#   t4 = runif(n, 0, 2)
+# )
+# # For demonstration, set all weights to 1
+# weights_pit[, (names(weights_pit)) := lapply(.SD, function(x) 1)]
+
+n <- NROW(dt)
 
 weights_pit <- data.table(
-  t0 = runif(n, 0, 2),
-  t1 = runif(n, 0, 2),
-  t2 = runif(n, 0, 2),
-  t3 = runif(n, 0, 2),
-  t4 = runif(n, 0, 2)
+  t0 = rep(1, n),
+  t1 = rep(1, n),
+  t2 = rep(1, n),
+  t3 = rep(1, n),
+  t4 = rep(1, n)
 )
-# For demonstration, set all weights to 1
-weights_pit[, (names(weights_pit)) := lapply(.SD, function(x) 1)]
-
-
-
-
-
-
-
 
 
 

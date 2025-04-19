@@ -11,6 +11,10 @@ scenarios <- c("t0", "t1", "t2", "t3", "t4")
 pit_simulation_parameters_raw <- pit_simulation_parameters_raw %>% data.table()
 pit_simulation_parameters_updated <- pit_simulation_parameters_updated %>% data.table()
 
+
+# pit_simulation_parameters_raw <-read_excel("PIT_Parameters.xlsx")
+# pit_simulation_parameters_updated<-pit_simulation_parameters_raw
+
 # 1. Tax Calculation Function -------------------------------------------------------
 
 start.time <- proc.time()
@@ -65,6 +69,31 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                        rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_taxable_inc_before_tax - tbrk1)) +
                        rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_taxable_inc_before_tax - tbrk2)) +
                        rate4 * pmax(0, calc_taxable_inc_before_tax - tbrk3))]
+  
+  # 8. Wages-Tax Withheld
+  dt_scn[, calc_inc_bef_tax_withheld := gross_wage_w - employee_cont]
+  
+  # 9. Taxes PIT
+  # dt_scn[, pitax_w = fifelse(
+  #                     tax_witheld > 0,
+  #                     rate1 * pmin(calc_taxable_inc_before_tax, tbrk1) +
+  #                       rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_taxable_inc_before_tax - tbrk1)) +
+  #                       rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_taxable_inc_before_tax - tbrk2)) +
+  #                       rate4 * pmax(0, calc_taxable_inc_before_tax - tbrk3),
+  #                     0
+  #                   )]
+  
+  
+  dt_scn[, pitax_w := fifelse(
+                            tax_witheld > 0,
+                            rate1 * pmin(calc_inc_bef_tax_withheld, tbrk1/12) +
+                              rate2 * pmin(tbrk2/12 - tbrk1/12, pmax(0, calc_inc_bef_tax_withheld - tbrk1/12)) +
+                              rate3 * pmin(tbrk3/12 - tbrk2/12, pmax(0, calc_inc_bef_tax_withheld - tbrk2/12)) +
+                              rate4 * pmax(0, calc_inc_bef_tax_withheld - tbrk3/12),
+                            0)]
+  
+  
+  
 }
 
 # 2. Helper to Retrieve Growth Factors for Each Variable-------------------------------
@@ -85,7 +114,13 @@ vars_to_grow <- c(
               "ded_exp_int_prop",
               "other_allowed_ded",
               "dis_charity_contribution",
-              "loss_carried_for"
+              "loss_carried_for",
+              # new
+              "gross_wage_w",
+              "tax_witheld",
+              "employee_cont",
+              "employer_cont" 
+              
             )
 
 get_growth_factor_row <- function(scenario) {
@@ -194,6 +229,7 @@ numeric_columns <- sapply(merged_PIT_BU_SIM, is.numeric)
 merged_PIT_BU_SIM[, numeric_columns] <- merged_PIT_BU_SIM[, numeric_columns] / 1e06
 
 
+#View(merged_PIT_BU_SIM)
 
 # 6. Decile ------------------------------------------------------------------
             # # Define the function for weighted deciles

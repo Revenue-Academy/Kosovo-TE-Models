@@ -17,7 +17,7 @@ ui <- dashboardPage(
       
       # Right side: your text
       tags$span(
-        "Tax-Modeling-Toolkit",
+        "Tax-Policy-Simulator",
         style = "white-space: nowrap; font-size: 18px; margin-right: 20px;"
       )
     )
@@ -55,14 +55,14 @@ ui <- dashboardPage(
       tabItem(
         tabName = "pitModule",
         h3("PIT Module"),
-        p("The PIT Module provides simulations and analysis for personal income tax policies. The gold standard for estimating the fiscal impact of new and existing tax policy measures is to leverage microsimulation models, which offer powerful insights into the fiscal and distributional impacts of tax policies and their interactions with other government programs. Unlike standard economics models that typically use a 'representative agent' framework, microsimulation models fully account for individual-level heterogeneity as observed in micro data sets. This detailed analysis at the individual level is crucial for understanding specific behaviors that may be important for the policy under consideration. Additionally, microsimulation models enable the estimation of the cost/benefit of a reform down to the individual level, which standard economics models cannot usually achieve. Policymakers can calculate the cost/benefit and identify winners/losers of a reform at any level of aggregation, providing a rich perspective and informed decision-making."),
+        p("The PIT Module enables the simulation and analysis of personal income tax policies."),
         br(),
         actionButton("activatePIT", "Activate PIT Module", icon = icon("play"), class = "btn-primary", style = "float: right;")
       ),
       tabItem(
         tabName = "citModule",
         h3("CIT Module"),
-        p("The CIT Module provides simulations and analysis for corporate income tax policies."),
+        p("The CIT Module enables the simulation and analysis of corporate income tax policies."),
         br(),
         actionButton("activateCIT", "Activate CIT Module", icon = icon("play"), class = "btn-primary", style = "float: right;")
       ),

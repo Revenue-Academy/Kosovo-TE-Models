@@ -38,6 +38,7 @@ ui <- dashboardPage(
                 style = "flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;") 
     )
   ),
+  title = "Import Taxes Module",
   dashboardSidebar(
     sidebarMenu(
       menuItem("Input", tabName = "input", icon = icon("file-excel")),
