@@ -15,24 +15,29 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
   
     
   
-     dist_centile_groups_plt <- dist_centile_groups_plt %>% add_trace(y = ~etr_sim, name = "Simulation", line = list(width = 4,dash = "dash"))%>%
-                                    layout(
-                                      title = paste("Effective Tax Rate by Percentile Groups,", SimulationYear),
-                                      xaxis = list(title = 'Percentile'),
-                                      yaxis = list(title = ' '),
-                                      #legend = list(x = 0.01, y = 0.99),
-                                      annotations = list(
-                                        list(
-                                          x = -0.02,
-                                          y = -0.13,
-                                          text = "Source: WB staff estimation",
-                                          showarrow = FALSE,
-                                          xref = 'paper',
-                                          yref = 'paper',
-                                          align = 'left'
-                                        )
-                                      )
-                                    )
+  dist_centile_groups_plt <- dist_centile_groups_plt %>%
+    add_trace(y = ~etr_sim, name = "Simulation", line = list(width = 4, dash = "dash")) %>%
+    layout(
+      title = paste("Effective Tax Rate by Percentile Groups,", SimulationYear),
+      xaxis = list(
+        title = 'Percentile',
+        tickvals = seq(10, 100, by = 10),
+        ticktext = seq(10, 100, by = 10)
+      ),
+      yaxis = list(title = ' '),
+      annotations = list(
+        list(
+          x = -0.02,
+          y = -0.13,
+          text = "Source: WB staff estimation",
+          showarrow = FALSE,
+          xref = 'paper',
+          yref = 'paper',
+          align = 'left'
+        )
+      )
+    )
+  
 
 
   
@@ -54,7 +59,7 @@ Distribution_Charts_fun <- function(cit_centile_distribution_bu_sim,
                                               hoverinfo = 'text+y', 
                                               type = 'bar', 
                                               barmode = 'group') %>%
-                                      add_trace(y = ~`Total CIT liability (business as usual) in MIL`, 
+                                      add_trace(y = ~`Total CIT liability (simulation) in MIL`, 
                                                 name = 'Simulation', 
                                                 marker = list(color = custom_colors[2]),
                                                 hoverinfo = 'text+y') %>%

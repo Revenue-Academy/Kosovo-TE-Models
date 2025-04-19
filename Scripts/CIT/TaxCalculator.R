@@ -145,11 +145,11 @@
             # dt_scn[, calc_turnover_small := (g_inc_q + g_inc_spcel)*4 ]
             
            
-            dt_scn[, totax := (calc_tot_amount_3pct_9pct) ]
+            dt_scn[, totax := calc_tot_amount_3pct_9pct+calc_rent_tax ]
             
          # dt_scn[, calc_turnover_small := totax]
             
-            dt_scn[, calc_turnover_small := (g_inc_q + g_inc_spcel)]
+            dt_scn[, calc_turnover_small := (g_inc_q + g_inc_spcel+gross_inc_rent)]
             
             
             
@@ -275,21 +275,8 @@
         }
         
         # 4. Simulation --------------------------------------------------------------
-        # (Starting from SimulationYear)
-        # Let's define SimulationYear. Suppose it's 2024 (but we can pick any 2021..2025).
-        
-        # SimulationYear <- 2024
-        
-        # We'll figure out which scenario index that corresponds to.
-        # scenario_years = c(2021, 2022, 2023, 2024, 2025)
-        # scenarios_5    = c("t0", "t1", "t2", "t3", "t4")
-        #
-        # If SimulationYear=2021 => start_index=1 => t0
-        # If SimulationYear=2022 => start_index=2 => t1
-        # If SimulationYear=2023 => start_index=3 => t2
-        # If SimulationYear=2024 => start_index=4 => t3
-        # If SimulationYear=2025 => start_index=5 => t4
-        start_index <- match(SimulationYear, scenario_years) # 1..5
+
+        start_index <- match(SimulationYear, scenario_years) 
         
         CIT_SIM_list <- list()
         
@@ -339,9 +326,9 @@
         rm(dt_cit_BU, dt_cit_SIM)
         
         
-        
-        sum(CIT_BU_list$t0$calc_cit)
-        sum(CIT_BU_list$t0$totax)
+        # 
+        # sum(CIT_BU_list$t0$calc_cit)
+        # sum(CIT_BU_list$t0$totax)
         
         
         
@@ -438,23 +425,8 @@
                          `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU Mil)`/ Nominal_GDP*100,4))%>%
           dplyr::select(-c(Nominal_GDP))%>%
           as.data.table()
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        print(merged_CIT_BU_SIM)
-        
-        end.time <- proc.time()
-        save.time <- end.time - start.time
-        cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
-        
+      
+  
         # sum(CIT_BU_list$t0$calc_cit)
         # sum(CIT_BU_list$t0$totax)
          
@@ -501,8 +473,205 @@
           }
 
 
+          # 1.1.3 Kakwani & ETR -----------------------------------------------------
+                  #  Functions for calculation -----------------------------------------------
+                  extract_filtered_re_df_fun <- function(big_corporations_CIT_BU_list, forecast_horizon, SimulationYear,
+                                                         filter_positive = FALSE) {
+                    # Validate SimulationYear: check if it is in the forecast horizon vector.
+                    if (!SimulationYear %in% forecast_horizon) {
+                      stop("The specified simulation year is not in the forecast horizons.")
+                    }
+                    
+                    # Find the index of the dataset that corresponds to SimulationYear.
+                    index <- which(forecast_horizon == SimulationYear)
+                    
+                    # Extract the specific data.table for the simulation year.
+                    CIT_BU_simulation_year_df <- big_corporations_CIT_BU_list[[index]]
+                    
+                    # Define the columns to keep.
+                    columns_to_keep <- c("id_n",
+                                         "calc_grossinc",
+                                         #"total_taxbase",
+                                         #"total_net",
+                                         "calc_cit")
+                    
+                    # Check for missing columns and issue a warning if any are not found.
+                    missing_columns <- setdiff(columns_to_keep, colnames(CIT_BU_simulation_year_df))
+                    if (length(missing_columns) > 0) {
+                      warning("The following columns are missing in the data frame: ",
+                              paste(missing_columns, collapse = ", "))
+                    }
+                    
+                    # Filter the data.table to keep only the specified columns.
+                    CIT_BU_simulation_year_df <- CIT_BU_simulation_year_df[, ..columns_to_keep, with = FALSE]
+                    
+                    # Optionally, filter rows where all numeric columns are greater than 0.
+                    if (filter_positive) {
+                      # Build a logical condition: for each column that is numeric, check that it is > 0.
+                      condition <- Reduce("&", lapply(columns_to_keep, function(col) {
+                        # If the column is numeric, return the boolean vector for > 0,
+                        # otherwise, return TRUE for all rows.
+                        if (is.numeric(CIT_BU_simulation_year_df[[col]])) {
+                          CIT_BU_simulation_year_df[[col]] > 0
+                        } else {
+                          rep(TRUE, nrow(CIT_BU_simulation_year_df))
+                        }
+                      }))
+                      CIT_BU_simulation_year_df <- CIT_BU_simulation_year_df[condition]
+                    }
+                    
+                    return(CIT_BU_simulation_year_df)
+                  }
+                  
+                  
+                  
+                  # 1.BU ----------------------------------------------------------------------
+                  
+                  CIT_BU_simulation_year_df <- extract_filtered_re_df_fun(big_corporations_CIT_BU_list, forecast_horizon, SimulationYear)
+                  
+                  CIT_BU_simulation_year_df<-CIT_BU_simulation_year_df%>%
+                    filter(calc_cit>0)
+                  
+                  # Top 1
+                  
+                  result <- CIT_BU_simulation_year_df %>%
+                    # Create 100 percentile groups based on calc_grossinc
+                    mutate(percentile = ntile(calc_grossinc, 100)) %>%
+                    # Keep only the group with the highest calc_grossinc
+                    filter(percentile == 100) %>%
+                    # Sum the PIT for observations in this percentile group
+                    summarise(total_citax = sum(calc_cit, na.rm = TRUE))
+                  
+                  
+                  share_top1_bu<-result$total_citax/sum(CIT_BU_simulation_year_df$calc_cit)
+                  
+                  
+                  # Gini gross income
+                  gini_income_gross_bu <- round(ineq(CIT_BU_simulation_year_df$calc_grossinc, type = "Gini", na.rm = TRUE), 4)
+                  
+                  # Calculate the Kakwani index
+                  ineq<-calcSConc(CIT_BU_simulation_year_df$calc_cit, CIT_BU_simulation_year_df$calc_grossinc)
+                  kakwani_index_BU <- round(ineq$ineq$index - gini_income_gross_bu, 4)
+                  kakwani_index_BU <- unname(kakwani_index_BU)
+                  
+                  
+                  
+                  etr_bu <- sum(CIT_BU_simulation_year_df$calc_cit) / sum(CIT_BU_simulation_year_df$calc_grossinc)
+                  
+                  # calcAtkinson(CIT_BU_simulation_year_df$calc_grossinc, epsilon = 1)
+                  
+                  
+                  
+                  # Calculate all indicators and store in a table
+                  indicator_table_bu <- data.frame(
+                    Indicator = c(
+                      "Gini coefficient for pre-tax income",
+                      "Effective tax rate",
+                      "Kakwani Index"
+                    ),
+                    Name = c(
+                      "gini_income_gross_bu",
+                      "etr_bu",
+                      "kakwani_index_BU"
+                      
+                    ),
+                    Simulation = c(
+                      round(gini_income_gross_bu,4),
+                      round(etr_bu,4),
+                      round(kakwani_index_BU,4)
+                    )
+                  )%>%data.table()
+                  
+                  
+                  
+                  # 2.SIM -------------------------------------------------------------------
+                  
+                  
+                  PIT_SIM_simulation_year_df <- extract_filtered_re_df_fun(big_corporations_CIT_SIM_list, forecast_horizon, SimulationYear)
+                  
+                  
+                  PIT_SIM_simulation_year_df<-PIT_SIM_simulation_year_df%>%
+                    filter(calc_cit>0)
+                  
+                  
+                  # TOP 1
+                  
+                  result <- PIT_SIM_simulation_year_df %>%
+                    # Create 100 percentile groups based on calc_grossinc
+                    mutate(percentile = ntile(calc_grossinc, 100)) %>%
+                    # Keep only the group with the highest calc_grossinc
+                    filter(percentile == 100) %>%
+                    # Sum the PIT for observations in this percentile group
+                    summarise(total_citax = sum(calc_cit, na.rm = TRUE))
+                  
+                  
+                  share_top1_sim<-result$total_citax/sum(PIT_SIM_simulation_year_df$calc_cit)
+                  
+                  
+                  
+                  
+                  # Gini gross income
+                  gini_income_gross_sim <- round(ineq(PIT_SIM_simulation_year_df$calc_grossinc, type = "Gini", na.rm = TRUE), 4)
+                  
+                  # Calculate the Kakwani index
+                  ineq<-calcSConc(PIT_SIM_simulation_year_df$calc_cit, PIT_SIM_simulation_year_df$calc_grossinc)
+                  kakwani_index_SIM <- round(ineq$ineq$index - gini_income_gross_sim, 4)
+                  kakwani_index_SIM <- unname(kakwani_index_SIM)
+                  
+                  
+                  
+                  etr_SIM <- sum(PIT_SIM_simulation_year_df$calc_cit) / sum(PIT_SIM_simulation_year_df$calc_grossinc)
+                  
+                  # calcAtkinson(PIT_SIM_simulation_year_df$calc_grossinc, epsilon = 1)
+                  
+                  
+                  
+                  # Calculate all indicators and store in a table
+                  indicator_table_SIM <- data.frame(
+                    Indicator = c(
+                      "Gini coefficient for pre-tax income",
+                      "Effective tax rate",
+                      "Kakwani Index"
+                    ),
+                    Name = c(
+                      "gini_income_gross_sim",
+                      "etr_SIM",
+                      "kakwani_index_SIM"
+                      
+                    ),
+                    Simulation = c(
+                      round(gini_income_gross_sim,4),
+                      round(etr_SIM,4),
+                      round(kakwani_index_SIM,4)
+                    )
+                  )%>%data.table()
+                  
+                  
+                  
+                  # 3.Merging table ---------------------------------------------------------
+                  re_effects_final_big <- merge(indicator_table_bu, indicator_table_SIM[, c("Indicator",  "Simulation")], 
+                                                by = c("Indicator"), 
+                                                suffixes = c("_bu", "_sim"))%>%
+                    select(-c("Name"))%>%
+                    rename("Business as usual"="Simulation_bu",
+                           "Simulation"="Simulation_sim",
+                    )
+                  
+                  
+                  #re_effects_final_big$`Business as usual`<-round(re_effects_final_big$`Business as usual`,4)
+                  re_effects_final_big$Simulation<-round(re_effects_final_big$Simulation,4)
+                  # 
+                  # re_effects_final_big$Name<-NULL
+                  
+                  
+                  re_effects_final_big <- re_effects_final_big %>%
+                    dplyr::mutate(`Percentage Difference (%)` = round((`Simulation` - `Business as usual`) / `Business as usual` * 100, 1))
+                  
+                  
+                    
+                  
     # 1.2 Small corporations  ----------------------------------------------------
-          'ova ne e napraveno !!!'
+
             # 1.2.1 Business as usual----------------------------------------------------
           #           
           #           # Preparation of subsets fo estimation of decile and percentiles
@@ -559,6 +728,203 @@
 
 
 
+    # 1.2.3 Kakwani & ETR  ----------------------------------------------------------
+                  'Re-Distribution tables'
+                  # Functions for calculation -----------------------------------------------
+                  extract_filtered_re_df_fun <- function(small_corporations_CIT_BU_list, forecast_horizon, SimulationYear,
+                                                         filter_positive = FALSE) {
+                    # Validate SimulationYear: check if it is in the forecast horizon vector.
+                    if (!SimulationYear %in% forecast_horizon) {
+                      stop("The specified simulation year is not in the forecast horizons.")
+                    }
+                    
+                    # Find the index of the dataset that corresponds to SimulationYear.
+                    index <- which(forecast_horizon == SimulationYear)
+                    
+                    # Extract the specific data.table for the simulation year.
+                    CIT_BU_simulation_year_df <- small_corporations_CIT_BU_list[[index]]
+                    
+                    # Define the columns to keep.
+                    columns_to_keep <- c("id_n",
+                                         "calc_turnover_small",
+                                         #"total_taxbase",
+                                         #"total_net",
+                                         "totax")
+                    
+                    # Check for missing columns and issue a warning if any are not found.
+                    missing_columns <- setdiff(columns_to_keep, colnames(CIT_BU_simulation_year_df))
+                    if (length(missing_columns) > 0) {
+                      warning("The following columns are missing in the data frame: ",
+                              paste(missing_columns, collapse = ", "))
+                    }
+                    
+                    # Filter the data.table to keep only the specified columns.
+                    CIT_BU_simulation_year_df <- CIT_BU_simulation_year_df[, ..columns_to_keep, with = FALSE]
+                    
+                    # Optionally, filter rows where all numeric columns are greater than 0.
+                    if (filter_positive) {
+                      # Build a logical condition: for each column that is numeric, check that it is > 0.
+                      condition <- Reduce("&", lapply(columns_to_keep, function(col) {
+                        # If the column is numeric, return the boolean vector for > 0,
+                        # otherwise, return TRUE for all rows.
+                        if (is.numeric(CIT_BU_simulation_year_df[[col]])) {
+                          CIT_BU_simulation_year_df[[col]] > 0
+                        } else {
+                          rep(TRUE, nrow(CIT_BU_simulation_year_df))
+                        }
+                      }))
+                      CIT_BU_simulation_year_df <- CIT_BU_simulation_year_df[condition]
+                    }
+                    
+                    return(CIT_BU_simulation_year_df)
+                  }
+                  
+                  
+                  
+                  # 1.BU ----------------------------------------------------------------------
+                  
+                  CIT_BU_simulation_year_df <- extract_filtered_re_df_fun(small_corporations_CIT_BU_list, forecast_horizon, SimulationYear)
+                  
+                  CIT_BU_simulation_year_df<-CIT_BU_simulation_year_df%>%
+                    filter(totax>0)
+                  
+                  # Top 1
+                  
+                  result <- CIT_BU_simulation_year_df %>%
+                    # Create 100 percentile groups based on calc_turnover_small
+                    mutate(percentile = ntile(calc_turnover_small, 100)) %>%
+                    # Keep only the group with the highest calc_turnover_small
+                    filter(percentile == 100) %>%
+                    # Sum the PIT for observations in this percentile group
+                    summarise(total_citax = sum(totax, na.rm = TRUE))
+                  
+                  
+                  share_top1_bu<-result$total_citax/sum(CIT_BU_simulation_year_df$totax)
+                  
+                  
+                  # Gini gross income
+                  gini_income_gross_bu <- round(ineq(CIT_BU_simulation_year_df$calc_turnover_small, type = "Gini", na.rm = TRUE), 4)
+                  
+                  # Calculate the Kakwani index
+                  ineq<-calcSConc(CIT_BU_simulation_year_df$totax, CIT_BU_simulation_year_df$calc_turnover_small)
+                  kakwani_index_BU <- round(ineq$ineq$index - gini_income_gross_bu, 4)
+                  kakwani_index_BU <- unname(kakwani_index_BU)
+                  
+                  
+                  
+                  etr_bu <- sum(CIT_BU_simulation_year_df$totax) / sum(CIT_BU_simulation_year_df$calc_turnover_small)
+                  
+                  # calcAtkinson(CIT_BU_simulation_year_df$calc_turnover_small, epsilon = 1)
+                  
+                  
+                  
+                  # Calculate all indicators and store in a table
+                  indicator_table_bu <- data.frame(
+                    Indicator = c(
+                      "Gini coefficient for pre-tax income",
+                      "Effective tax rate",
+                      "Kakwani Index"
+                    ),
+                    Name = c(
+                      "gini_income_gross_bu",
+                      "etr_bu",
+                      "kakwani_index_BU"
+                      
+                    ),
+                    Simulation = c(
+                      round(gini_income_gross_bu,4),
+                      round(etr_bu,4),
+                      round(kakwani_index_BU,4)
+                    )
+                  )%>%data.table()
+                  
+                  
+                  
+                  # 2.SIM -------------------------------------------------------------------
+                  
+                  
+                  PIT_SIM_simulation_year_df <- extract_filtered_re_df_fun(small_corporations_CIT_SIM_list, forecast_horizon, SimulationYear)
+                  
+                  
+                  PIT_SIM_simulation_year_df<-PIT_SIM_simulation_year_df%>%
+                    filter(totax>0)
+                  
+                  
+                  # TOP 1
+                  
+                  result <- PIT_SIM_simulation_year_df %>%
+                    # Create 100 percentile groups based on calc_turnover_small
+                    mutate(percentile = ntile(calc_turnover_small, 100)) %>%
+                    # Keep only the group with the highest calc_turnover_small
+                    filter(percentile == 100) %>%
+                    # Sum the PIT for observations in this percentile group
+                    summarise(total_citax = sum(totax, na.rm = TRUE))
+                  
+                  
+                  share_top1_sim<-result$total_citax/sum(PIT_SIM_simulation_year_df$totax)
+                  
+                  
+                  
+                  
+                  # Gini gross income
+                  gini_income_gross_sim <- round(ineq(PIT_SIM_simulation_year_df$calc_turnover_small, type = "Gini", na.rm = TRUE), 4)
+                  
+                  # Calculate the Kakwani index
+                  ineq<-calcSConc(PIT_SIM_simulation_year_df$totax, PIT_SIM_simulation_year_df$calc_turnover_small)
+                  kakwani_index_SIM <- round(ineq$ineq$index - gini_income_gross_sim, 4)
+                  kakwani_index_SIM <- unname(kakwani_index_SIM)
+                  
+                  
+                  
+                  etr_SIM <- sum(PIT_SIM_simulation_year_df$totax) / sum(PIT_SIM_simulation_year_df$calc_turnover_small)
+                  
+                  # calcAtkinson(PIT_SIM_simulation_year_df$calc_turnover_small, epsilon = 1)
+                  
+                  
+                  
+                  # Calculate all indicators and store in a table
+                  indicator_table_SIM <- data.frame(
+                    Indicator = c(
+                      "Gini coefficient for pre-tax income",
+                      "Effective tax rate",
+                      "Kakwani Index"
+                    ),
+                    Name = c(
+                      "gini_income_gross_sim",
+                      "etr_SIM",
+                      "kakwani_index_SIM"
+                      
+                    ),
+                    Simulation = c(
+                      round(gini_income_gross_sim,4),
+                      round(etr_SIM,4),
+                      round(kakwani_index_SIM,4)
+                    )
+                  )%>%data.table()
+                  
+                  
+                  
+                  # 3.Merging table ---------------------------------------------------------
+                  re_effects_final_small <- merge(indicator_table_bu, indicator_table_SIM[, c("Indicator",  "Simulation")], 
+                                                  by = c("Indicator"), 
+                                                  suffixes = c("_bu", "_sim"))%>%
+                    select(-c("Name"))%>%
+                    rename("Business as usual"="Simulation_bu",
+                           "Simulation"="Simulation_sim",
+                    )
+                  
+                  
+                  #re_effects_final_small$`Business as usual`<-round(re_effects_final_small$`Business as usual`,4)
+                  re_effects_final_small$Simulation<-round(re_effects_final_small$Simulation,4)
+                  # 
+                  # re_effects_final_small$Name<-NULL
+                  
+                  
+                  re_effects_final_small <- re_effects_final_small %>%
+                    dplyr::mutate(`Percentage Difference (%)` = round((`Simulation` - `Business as usual`) / `Business as usual` * 100, 1))
+                  
+                  
+                  
 # 7. Revenues by NACE sections (Big corporations) -----------------------------------------------------------------------
                         # Function to extract columns and add scenario identifier
             extract_nace_rev_big_coporations_fun <- function(cit_data, scenario) {
@@ -644,7 +1010,14 @@
 
 
 
-
+##
+            
+            print(merged_CIT_BU_SIM)
+            
+            end.time <- proc.time()
+            save.time <- end.time - start.time
+            cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
+            
             
             
             

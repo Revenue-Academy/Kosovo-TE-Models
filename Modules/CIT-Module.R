@@ -852,7 +852,8 @@ server <- function(input, output, session) {
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
+            title = paste("Effective Tax Rate-Big Corporation (Simulation)", SimulationYear),
+            value=round(re_effects_final_big$Simulation[1],2),
             icon = icon("chart-area"),
             color = "orange"
           )
@@ -861,8 +862,8 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
-            value = NULL,
+            title = paste("Effective Tax Rate-Small Corporation (Simulation)", SimulationYear),
+            value =round(re_effects_final_small$Simulation[1],2),
             icon = icon("industry"),
             color = "light-blue"
           )
@@ -901,7 +902,8 @@ server <- function(input, output, session) {
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
+            title = paste("KAKWANI INDEX-BIG CORPORATION (Business as usual)", SimulationYear),
+            value=round(re_effects_final_small$`Business as usual`[3],3),
             icon = icon("chart-area"),
             color = "orange"
           )
@@ -909,8 +911,8 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
-            value = NULL,
+            title = paste("KAKWANI INDEX-BIG CORPORATION(Simulation)", SimulationYear),
+            value =round(re_effects_final_small$Simulation[3],3),
             icon = icon("industry"),
             color = "light-blue"
           )
@@ -952,7 +954,8 @@ server <- function(input, output, session) {
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
+            title = paste("KAKWANI INDEX (Business as usual)", SimulationYear),
+            value=round(re_effects_final_big$`Business as usual`[3],3),
             icon = icon("chart-area"),
             color = "orange"
           )
@@ -961,8 +964,8 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
-            value = NULL,
+            title = paste("KAKWANI INDEX(Simulation)", SimulationYear),
+            value =round(re_effects_final_big$Simulation[3],3),
             icon = icon("industry"),
             color = "light-blue"
           )
