@@ -11,27 +11,31 @@ Distribution_ChartsSmall_fun <- function(cit_centile_distribution_bu_sim_small,
   dist_centile_groups_plt_small <- plot_ly(cit_centile_distribution_bu_sim_small, x = ~centile_group, y = ~etr_bu, name = "Baseline", type = 'scatter', mode = 'lines',
                  line = list(width = 4,dash = "solid"))
   
-    
+  dist_centile_groups_plt_small <- dist_centile_groups_plt_small %>%
+    add_trace(y = ~etr_sim, name = "Simulation", line = list(width = 4, dash = "dash")) %>%
+    layout(
+      title = paste("Effective Tax Rate by Percentile Groups,", SimulationYear),
+      xaxis = list(
+        title = 'Percentile',
+        tickvals = seq(10, 100, by = 10),
+        ticktext = seq(10, 100, by = 10)
+      ),
+      yaxis = list(title = ' '),
+      annotations = list(
+        list(
+          x = -0.02,
+          y = -0.13,
+          text = "Source: WB staff estimation",
+          showarrow = FALSE,
+          xref = 'paper',
+          yref = 'paper',
+          align = 'left'
+        )
+      )
+    )
   
-  dist_centile_groups_plt_small <- dist_centile_groups_plt_small %>% add_trace(y = ~etr_sim, name = "Simulation", line = list(width = 4,dash = "dash"))%>%
-                                    layout(
-                                      title = paste("Effective Tax Rate by Percentile Groups,", SimulationYear),
-                                      xaxis = list(title = 'Percentile'),
-                                      yaxis = list(title = ' '),
-                                      #legend = list(x = 0.01, y = 0.99),
-                                      annotations = list(
-                                        list(
-                                          x = -0.02,
-                                          y = -0.13,
-                                          text = "Source: WB staff estimation",
-                                          showarrow = FALSE,
-                                          xref = 'paper',
-                                          yref = 'paper',
-                                          align = 'left'
-                                        )
-                                      )
-                                    )
-
+  
+  
   # Chart 2. Decile Groups-----------------------------------------------------------------
   
 
