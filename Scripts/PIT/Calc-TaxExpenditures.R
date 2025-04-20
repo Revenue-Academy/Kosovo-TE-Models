@@ -119,6 +119,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
       # Start from baseline
       dt_scn_BU <- copy(dt)
+      #dt_scn_BU <- copy(dt)[tax_payer_group == "0"]
       
       for (s in scenarios) {
         
@@ -127,14 +128,18 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         
         # 2) Multiply each variable by gf_values[v] * weights_pit[[s]]
         for (v in vars_to_grow) {
-          dt_scn_BU[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
+          dt_scn_BU[, (v) := get(v) * gf_values[v] * 1]
         }
+        
+        # NEW
+        dt_scn_BU <- copy(dt_scn_BU)[tax_payer_group == "0"]
         
         # 3) Row-wise tax logic
         tax_calc_fun(dt_scn_BU, pit_simulation_parameters_raw)
         
         # 4) ADD a 'weight' column that references weights_pit[[s]]
-        dt_scn_BU[, weight := weights_pit[[s]]]
+        #dt_scn_BU[, weight := weights_pit[[s]]]
+        dt_scn_BU[, weight := 1]
         
         # 5) Store in PIT_BU_list_TE
         PIT_BU_list_TE[[s]] <- copy(dt_scn_BU)
@@ -173,14 +178,14 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         
         # Multiply each variable by growth factor * row-weight for scenario s
         for (v in vars_to_grow) {
-          dt_scn_SIM[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
+          dt_scn_SIM[, (v) := get(v) * gf_values[v] * 1]
         }
         
         # Run row-wise calculations with updated parameters
         tax_calc_fun(dt_scn_SIM, pit_simulation_parameters_updated_te)
         
         # **Add a 'weight' column** with the row-specific weights_pit for scenario s
-        dt_scn_SIM[, weight := weights_pit[[s]]]
+        dt_scn_SIM[, weight := 1]
         
         # Store final data in PIT_SIM_list_TE
         PIT_SIM_list_TE[[s]] <- copy(dt_scn_SIM)
@@ -432,6 +437,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
       # Start from baseline
       dt_scn_BU <- copy(dt)
+      #dt_scn_BU <- copy(dt)[tax_payer_group == "0"]
       
       for (s in scenarios) {
         
@@ -440,14 +446,17 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         
         # 2) Multiply each variable by gf_values[v] * weights_pit[[s]]
         for (v in vars_to_grow) {
-          dt_scn_BU[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
+          dt_scn_BU[, (v) := get(v) * gf_values[v] * 1]
         }
+        
+        #new
+         dt_scn_BU <- copy(dt_scn_BU)[tax_payer_group == "0"]
         
         # 3) Row-wise tax logic
         tax_calc_fun(dt_scn_BU, pit_simulation_parameters_raw)
         
         # 4) ADD a 'weight' column that references weights_pit[[s]]
-        dt_scn_BU[, weight := weights_pit[[s]]]
+        dt_scn_BU[, weight := 1]
         
         # 5) Store in PIT_BU_list_TE
         PIT_BU_list_TE[[s]] <- copy(dt_scn_BU)
@@ -486,14 +495,14 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         
         # Multiply each variable by growth factor * row-weight for scenario s
         for (v in vars_to_grow) {
-          dt_scn_SIM[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
+          dt_scn_SIM[, (v) := get(v) * gf_values[v] * 1]
         }
         
         # Run row-wise calculations with updated parameters
         tax_calc_fun(dt_scn_SIM, pit_simulation_parameters_updated_te)
         
         # **Add a 'weight' column** with the row-specific weights_pit for scenario s
-        dt_scn_SIM[, weight := weights_pit[[s]]]
+        dt_scn_SIM[, weight := 1]
         
         # Store final data in PIT_SIM_list_TE
         PIT_SIM_list_TE[[s]] <- copy(dt_scn_SIM)
@@ -765,14 +774,14 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         
         # 2) Multiply each variable by gf_values[v] * weights_pit[[s]]
         for (v in vars_to_grow) {
-          dt_scn_BU[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
+          dt_scn_BU[, (v) := get(v) * gf_values[v] *1]
         }
         
         # 3) Row-wise tax logic
         tax_calc_fun(dt_scn_BU, pit_simulation_parameters_raw)
         
         # 4) ADD a 'weight' column that references weights_pit[[s]]
-        dt_scn_BU[, weight := weights_pit[[s]]]
+        dt_scn_BU[, weight := 1]
         
         # 5) Store in PIT_BU_list_TE
         PIT_BU_list_TE[[s]] <- copy(dt_scn_BU)
@@ -811,14 +820,14 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         
         # Multiply each variable by growth factor * row-weight for scenario s
         for (v in vars_to_grow) {
-          dt_scn_SIM[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
+          dt_scn_SIM[, (v) := get(v) * gf_values[v] * 1]
         }
         
         # Run row-wise calculations with updated parameters
         tax_calc_fun(dt_scn_SIM, pit_simulation_parameters_updated_te)
         
         # **Add a 'weight' column** with the row-specific weights_pit for scenario s
-        dt_scn_SIM[, weight := weights_pit[[s]]]
+        dt_scn_SIM[, weight := 1]
         
         # Store final data in PIT_SIM_list_TE
         PIT_SIM_list_TE[[s]] <- copy(dt_scn_SIM)
@@ -849,23 +858,79 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       # # Define the function for weighted deciles
       
       
-      #Apply the functions to each data frame in the PIT_BU_list_TE
-      for (name in names(PIT_BU_list_TE)) {
-        df <- PIT_BU_list_TE[[name]]
-        df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-        df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-        PIT_BU_list_TE[[name]] <- df
+      # #Apply the functions to each data frame in the PIT_BU_list_TE
+      # for (name in names(PIT_BU_list_TE)) {
+      #   df <- PIT_BU_list_TE[[name]]
+      #   df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
+      #   df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
+      #   PIT_BU_list_TE[[name]] <- df
+      # }
+      # 
+      # # Apply the functions to each data frame in the PIT_SIM_list_TE
+      # for (name in names(PIT_SIM_list_TE)) {
+      #   df <- PIT_SIM_list_TE[[name]]
+      #   df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
+      #   df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
+      #   PIT_SIM_list_TE[[name]] <- df
+      # }
+      # 
+      
+      #Apply the functions to each data frame in the PIT_BU_list
+      calc_weighted_groups_in_one_pass <- function(DT, inc_col = "calc_total_inc", w_col = "weight") {
+        # 1. Keep track of original row order so we can restore it after sorting
+        DT[, row_id__tmp := .I]
+        
+        # 2. Sort by income (use setorderv for a character column name)
+        setorderv(DT, inc_col)
+        
+        # 3. Compute the cumulative sum of weight
+        #    (handle NA weights as 0, adjust if you prefer a different approach)
+        DT[, w_cumsum__tmp := cumsum(fifelse(is.na(get(w_col)), 0, get(w_col)))]
+        
+        # 4. Get the total weight
+        total_w <- DT[.N, w_cumsum__tmp]
+        
+        # 5. Define breakpoints for deciles (10 groups) and centiles (100 groups)
+        decile_breaks  <- seq(0, total_w, length.out = 11)   # 11 points => 10 intervals
+        centile_breaks <- seq(0, total_w, length.out = 101)  # 101 points => 100 intervals
+        
+        # 6. Assign decile_group and centile_group
+        DT[, decile_group  := findInterval(w_cumsum__tmp, decile_breaks,  rightmost.closed = TRUE)]
+        DT[, centile_group := findInterval(w_cumsum__tmp, centile_breaks, rightmost.closed = TRUE)]
+        
+        # 7. Ensure the top boundary doesn't exceed the number of groups
+        DT[, decile_group  := pmin(decile_group,  10)]
+        DT[, centile_group := pmin(centile_group, 100)]
+        
+        # 8. Restore original row order
+        setorder(DT, row_id__tmp)
+        
+        # 9. Clean up temporary columns
+        DT[, c("row_id__tmp", "w_cumsum__tmp") := NULL]
+        
+        # Modifies DT in place, so no return() needed
+        invisible(DT)
       }
       
-      # Apply the functions to each data frame in the PIT_SIM_list_TE
-      for (name in names(PIT_SIM_list_TE)) {
-        df <- PIT_SIM_list_TE[[name]]
-        df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-        df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-        PIT_SIM_list_TE[[name]] <- df
+      # -------------------------------------------------------------------
+      # Loop over lists in data.tables
+      # -------------------------------------------------------------------
+      for (i in seq_along(PIT_BU_list_TE)) {
+        calc_weighted_groups_in_one_pass(
+          DT      = PIT_BU_list_TE[[i]],
+          inc_col = "calc_total_inc",
+          w_col   = "weight"
+        )
       }
       
       
+      for (i in seq_along(PIT_SIM_list_TE)) {
+        calc_weighted_groups_in_one_pass(
+          DT      = PIT_SIM_list_TE[[i]],
+          inc_col = "calc_total_inc",
+          w_col   = "weight"
+        )
+      }
       
       # Convert data for presentation in GUI
       pit_summary_df_TE <- merged_PIT_BU_SIM_TE %>%

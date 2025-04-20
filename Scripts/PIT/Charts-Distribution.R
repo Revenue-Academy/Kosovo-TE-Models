@@ -111,32 +111,60 @@ Distribution_Charts_fun <- function(pit_centile_distribution_bu_sim,pit_decile_d
           
 
   # Chart 3. Tax Revenue by Bin Groups-BU -------------------------------------------------------------------------
-
+# 
+#             pit_bins_bu_sub_plt <- plot_ly(
+#                                           pit_result_bins_bu_sub,
+#                                           labels = ~bin_group,
+#                                           values = ~sum_calc_pitax,
+#                                           type = 'pie',
+#                                           hole = 0.6,
+#                                           textinfo = 'label+percent',
+#                                           insidetextorientation = 'radial'
+#                                         ) %>%
+#                                           layout(
+#                                             title = paste("Contribution to Tax Revenues by Income Groups (Baseline),", SimulationYear),
+#                                             showlegend = FALSE,  # Turn off the legend
+#                                             margin = list(l = 20, r = 20, t = 50, b = 20),
+#                                             annotations = list(
+#                                               x = 0.13,
+#                                               y = 0.0,
+#                                               text = "Source: WB staff estimation",
+#                                               showarrow = FALSE,
+#                                               xref = 'paper',
+#                                               yref = 'paper',
+#                                               xanchor = 'center',
+#                                               yanchor = 'top',
+#                                               font = list(size = 12)
+#                                             )
+#                                           )
+            
             pit_bins_bu_sub_plt <- plot_ly(
-                                          pit_result_bins_bu_sub,
-                                          labels = ~bin_group,
-                                          values = ~sum_calc_pitax,
-                                          type = 'pie',
-                                          hole = 0.6,
-                                          textinfo = 'label+percent',
-                                          insidetextorientation = 'radial'
-                                        ) %>%
-                                          layout(
-                                            title = paste("Contribution to Tax Revenues by Income Groups (Baseline),", SimulationYear),
-                                            showlegend = FALSE,  # Turn off the legend
-                                            margin = list(l = 20, r = 20, t = 50, b = 20),
-                                            annotations = list(
-                                              x = 0.13,
-                                              y = 0.0,
-                                              text = "Source: WB staff estimation",
-                                              showarrow = FALSE,
-                                              xref = 'paper',
-                                              yref = 'paper',
-                                              xanchor = 'center',
-                                              yanchor = 'top',
-                                              font = list(size = 12)
-                                            )
-                                          )
+              pit_result_bins_bu_sub,
+              labels = ~bin_group,
+              values = ~sum_calc_pitax,
+              type = 'pie',
+              hole = 0.6,
+              textinfo = 'label+percent',
+              insidetextorientation = 'radial',
+              rotation = 210  # <-- rotate the pie chart here!
+            ) %>%
+              layout(
+                title = paste("Contribution to Tax Revenues by Income Groups (Baseline),", SimulationYear),
+                showlegend = FALSE,
+                margin = list(l = 20, r = 20, t = 50, b = 20),
+                annotations = list(
+                  x = 0.13,
+                  y = 0.0,
+                  text = "Source: WB staff estimation",
+                  showarrow = FALSE,
+                  xref = 'paper',
+                  yref = 'paper',
+                  xanchor = 'center',
+                  yanchor = 'top',
+                  font = list(size = 12)
+                )
+              )
+            
             
             
             
@@ -154,7 +182,8 @@ Distribution_Charts_fun <- function(pit_centile_distribution_bu_sim,pit_decile_d
                                             type = 'pie', 
                                             hole = 0.6,  
                                             textinfo = 'label+percent',
-                                            insidetextorientation = 'radial'
+                                            insidetextorientation = 'radial',
+                                            rotation = 210  # <-- rotate the pie chart here!
                                           ) %>%
                                             layout(
                                               title = paste("Contribution to Tax Revenues by Income Groups (Simulation),", SimulationYear),

@@ -363,6 +363,8 @@ server <- function(input, output, session) {
         pit_summary_df = get("pit_summary_df", envir = .GlobalEnv),
         te_summary_df  = if (input$toggleSimulationRates) get("te_summary_df", envir = .GlobalEnv) else NULL,
         pit_decile_distribution_bu_sim = get("pit_decile_distribution_bu_sim", envir = .GlobalEnv),
+        indicator_table_bu = get("indicator_table_bu", envir = .GlobalEnv),
+        indicator_table_SIM = get("indicator_table_SIM", envir = .GlobalEnv),
         pit_result_bins_sim_sub        = get("pit_result_bins_sim_sub", envir = .GlobalEnv)
       )
     }) %...>% (function(results) {
@@ -487,10 +489,30 @@ server <- function(input, output, session) {
                                  SimulationYear,
                                  range(forecast_horizon))
         
+        # output$infoBox1 <- renderInfoBox({
+        #   cat("Rendering infoBox1\n")
+        #   infoBox(
+        #     title = " ",   # Remove title
+        #     icon = icon("chart-area"),
+        #     color = "orange"
+        #   )
+        # })
+        # 
+        # output$infoBox2 <- renderInfoBox({
+        #   cat("Rendering infoBox1\n")
+        #   infoBox(
+        #     title = " ",   # Remove title
+        #     value = NULL,  # Remove value text
+        #     icon = icon("industry"),
+        #     color = "light-blue"
+        #   )
+        # })
+        
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",   # Remove title
+            title = paste("Effective Tax Rate (Business as usual)", SimulationYear),
+            value=round(indicator_table_bu$`Business as usual`[2],2),
             icon = icon("chart-area"),
             color = "orange"
           )
@@ -499,12 +521,13 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",   # Remove title
-            value = NULL,  # Remove value text
+            title = paste("Effective Tax Rate (Simulation)", SimulationYear),
+            value =round(indicator_table_SIM$Simulation[2],2),
             icon = icon("industry"),
             color = "light-blue"
           )
         })
+        
         
         output$additionalCharts <- renderUI({
           tagList(
@@ -588,8 +611,9 @@ server <- function(input, output, session) {
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
-            icon  = icon("chart-area"),
+            title = paste("KAKWANI INDEX (Business as usual)", SimulationYear),
+            value=round(indicator_table_bu$`Business as usual`[3],3),
+            icon = icon("chart-area"),
             color = "orange"
           )
         })
@@ -597,9 +621,9 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(
-            title = " ",
-            value = NULL,
-            icon  = icon("industry"),
+            title = paste("KAKWANI INDEX(Simulation)", SimulationYear),
+            value =round(indicator_table_SIM$Simulation[3],3),
+            icon = icon("industry"),
             color = "light-blue"
           )
         })

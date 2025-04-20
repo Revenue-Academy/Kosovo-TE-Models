@@ -30,6 +30,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
   tbrk4 <- get_param_fun(params_dt, "tbrk4")
   rate_ded_rent <- get_param_fun(params_dt, "rate_ded_rent")
   rate_ded_charitable <- get_param_fun(params_dt, "rate_ded_charitable")
+  toggle_exp_wages<- get_param_fun(params_dt, "toggle_exp_wages")
   
   'Income'
   
@@ -37,10 +38,10 @@ tax_calc_fun <- function(dt_scn, params_dt) {
   
   # Replace net_income_business with net_income_business_adjusted with 
   
-  dt_scn[, calc_total_inc := gross_wage + net_income_business + net_income_partnership +
-                             gross_rents + gross_i_interest_pen_pay + gross_i_interest +
-                             gross_i_inta_prop + capital_gain + foreign_s_inc +
-                             other_inc_gifts]
+  dt_scn[, calc_total_inc_non_witheld := gross_wage + net_income_business + net_income_partnership +
+                                       gross_rents + gross_i_interest_pen_pay + gross_i_interest +
+                                       gross_i_inta_prop + capital_gain + foreign_s_inc +
+                                       other_inc_gifts]
   
   # 2. D24 Total deductions (add 20 to 23) ------------------------------------------------------------------------
   
@@ -49,7 +50,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
   
   # 3. D25 Taxable amount (19-24) ------------------------------------------
   
-  dt_scn[, calc_gti := calc_total_inc - calc_total_ded]
+  dt_scn[, calc_gti := calc_total_inc_non_witheld - calc_total_ded]
   
   # 4. D27 Deduction for Charitable Contributions (max 5% of taxable amount) not claimed on FS -------------------------------------
   
@@ -65,63 +66,100 @@ tax_calc_fun <- function(dt_scn, params_dt) {
   
   # 7. D30 Tax on Taxable Income as per tax brackets -------------------------------
   
-  dt_scn[, pitax := (rate1 * pmin(calc_taxable_inc_before_tax, tbrk1) +
+  dt_scn[, pitax_n_w := (rate1 * pmin(calc_taxable_inc_before_tax, tbrk1) +
                        rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_taxable_inc_before_tax - tbrk1)) +
                        rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_taxable_inc_before_tax - tbrk2)) +
                        rate4 * pmax(0, calc_taxable_inc_before_tax - tbrk3))]
   
   # 8. Wages-Tax Withheld
-  dt_scn[, calc_inc_bef_tax_withheld := gross_wage_w - employee_cont]
   
-  # 9. Taxes PIT
-  # dt_scn[, pitax_w = fifelse(
-  #                     tax_witheld > 0,
-  #                     rate1 * pmin(calc_taxable_inc_before_tax, tbrk1) +
-  #                       rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_taxable_inc_before_tax - tbrk1)) +
-  #                       rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_taxable_inc_before_tax - tbrk2)) +
-  #                       rate4 * pmax(0, calc_taxable_inc_before_tax - tbrk3),
-  #                     0
-  #                   )]
+  dt_scn[, calc_inc_bef_tax_withheld := gross_wage_w - employee_cont]
   
   
   dt_scn[, pitax_w := fifelse(
-                            tax_witheld > 0,
-                            rate1 * pmin(calc_inc_bef_tax_withheld, tbrk1/12) +
-                              rate2 * pmin(tbrk2/12 - tbrk1/12, pmax(0, calc_inc_bef_tax_withheld - tbrk1/12)) +
-                              rate3 * pmin(tbrk3/12 - tbrk2/12, pmax(0, calc_inc_bef_tax_withheld - tbrk2/12)) +
-                              rate4 * pmax(0, calc_inc_bef_tax_withheld - tbrk3/12),
-                            0)]
+    toggle_exp_wages == 0 | tax_witheld > 0,          
+    rate1 * pmin(calc_inc_bef_tax_withheld, tbrk1) +
+      rate2 * pmin(tbrk2 - tbrk1,
+                   pmax(0, calc_inc_bef_tax_withheld - tbrk1)) +
+      rate3 * pmin(tbrk3 - tbrk2,
+                   pmax(0, calc_inc_bef_tax_withheld - tbrk2)) +
+      rate4 * pmax(0, calc_inc_bef_tax_withheld - tbrk3),
+    0
+  )]
+  
+  # dt_scn[, pitax_w := fifelse(
+  #   toggle_exp_wages == 1 & tax_witheld > 0,         # <-- extra switch here
+  #   rate1 * pmin(calc_inc_bef_tax_withheld, tbrk1) +
+  #     rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_inc_bef_tax_withheld - tbrk1)) +
+  #     rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_inc_bef_tax_withheld - tbrk2)) +
+  #     rate4 * pmax(0, calc_inc_bef_tax_withheld - tbrk3),
+  #   0
+  # )]
+  
+
+  
+  # dt_scn[, pitax_w := fifelse(
+  #   tax_witheld > 0,
+  #   rate1 * pmin(calc_inc_bef_tax_withheld, tbrk1) +
+  #     rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_inc_bef_tax_withheld - tbrk1)) +
+  #     rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_inc_bef_tax_withheld - tbrk2)) +
+  #     rate4 * pmax(0, calc_inc_bef_tax_withheld - tbrk3),
+  #   0)]
+
+  
+  # dt_scn[, pitax_w := (
+  #   rate1 * pmin(calc_inc_bef_tax_withheld, tbrk1) +
+  #     rate2 * pmin(tbrk2 - tbrk1, pmax(0, calc_inc_bef_tax_withheld - tbrk1)) +
+  #     rate3 * pmin(tbrk3 - tbrk2, pmax(0, calc_inc_bef_tax_withheld - tbrk2)) +
+  #     rate4 * pmax(0, calc_inc_bef_tax_withheld - tbrk3))]
   
   
+  
+  
+  #dt_scn[, pitax := pmax(0, pitax_w + pitax_n_w),]
+  dt_scn[, pitax :=  pitax_w + pitax_n_w]
+
+  dt_scn[, calc_total_inc := gross_wage_w+calc_total_inc_non_witheld]
+  
+  
+  # dt_scn[, `:=`(
+  #   pitax          = pmax(0, pitax_w + pitax_n_w),
+  #   calc_total_inc = pmax(0, gross_wage_w + calc_total_inc_non_witheld)
+  # )]
+  # 
+  
+  
+  
+  #calc_total_inc=gross_wage_w+calc_total_inc_non_witheld
   
 }
 
 # 2. Helper to Retrieve Growth Factors for Each Variable-------------------------------
 
 vars_to_grow <- c(
-              "gross_wage",
-              "net_income_business",
-              "net_income_partnership",
-              "gross_rents",
-              "gross_i_interest_pen_pay",
-              "gross_i_interest",
-              "gross_i_inta_prop",
-              "capital_gain",
-              "foreign_s_inc",
-              "other_inc_gifts",
-              "ded_rents_expen_rents10pct",
-              "ded_pen_cont",
-              "ded_exp_int_prop",
-              "other_allowed_ded",
-              "dis_charity_contribution",
-              "loss_carried_for",
-              # new
-              "gross_wage_w",
-              "tax_witheld",
-              "employee_cont",
-              "employer_cont" 
-              
-            )
+  "gross_wage",
+  "net_income_business",
+  "net_income_partnership",
+  "gross_rents",
+  "gross_i_interest_pen_pay",
+  "gross_i_interest",
+  "gross_i_inta_prop",
+  "capital_gain",
+  "foreign_s_inc",
+  "other_inc_gifts",
+  "ded_rents_expen_rents10pct",
+  "ded_pen_cont",
+  "ded_exp_int_prop",
+  "other_allowed_ded",
+  "dis_charity_contribution",
+  "loss_carried_for",
+  # new
+  "gross_wage_w",
+  "tax_witheld",
+  "employee_cont",
+  "employer_cont" 
+  
+)
 
 get_growth_factor_row <- function(scenario) {
   gf_row <- growth_factors_pit[scenarios == scenario]
@@ -231,132 +269,394 @@ merged_PIT_BU_SIM[, numeric_columns] <- merged_PIT_BU_SIM[, numeric_columns] / 1
 
 #View(merged_PIT_BU_SIM)
 
-# 6. Decile ------------------------------------------------------------------
-            # # Define the function for weighted deciles
 
-                #Apply the functions to each data frame in the PIT_BU_list
-                for (name in names(PIT_BU_list)) {
-                  df <- PIT_BU_list[[name]]
-                  df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-                  df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-                  PIT_BU_list[[name]] <- df
-                }
-                
-                # Apply the functions to each data frame in the PIT_SIM_list
-                for (name in names(PIT_SIM_list)) {
-                  df <- PIT_SIM_list[[name]]
-                  df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-                  df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-                  PIT_SIM_list[[name]] <- df
-                }
-                
-                
-                # Convert data for presentation in GUI
-                pit_summary_df <- merged_PIT_BU_SIM %>%
-                  pivot_longer(cols = -year, 
-                               names_to = c("variable", ".value"), 
-                               names_pattern = "(.*)_(bu|sim)")
-                
-                # Calculate the difference between _sim and _bu columns
-                pit_summary_df <- pit_summary_df %>%
-                  mutate(difference = sim - bu)
-                
-                
-                pit_summary_df <- pit_summary_df %>%
-                  mutate(across(c(bu, sim, difference), ~ round(., 1)))%>%
-                  filter(variable=='pitax')
-                
-                # Arrange the columns
-                pit_summary_df <- pit_summary_df %>%
-                            select(year, bu, sim, difference)%>%
-                            dplyr::rename(
-                              "Current law (LCU MIL)"="bu",
-                              "Simulation (LCU MIL)"="sim",
-                              "Fiscal impact (LCU MIL)"="difference",
-                            )
-                
-                
-                MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
-                
-                pit_summary_df<-left_join(pit_summary_df,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
-                  select(year,"Current law (LCU MIL)","Simulation (LCU MIL)","Fiscal impact (LCU MIL)",Nominal_GDP)%>%
-                  dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU MIL)`/Nominal_GDP*100,2),
-                                 `Simulation (Pct of GDP)`=round(`Simulation (LCU MIL)`/ Nominal_GDP*100,2),
-                                 `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU MIL)`/ Nominal_GDP*100,2))%>%
-                  dplyr::select(-c(Nominal_GDP))
-                
-                
-                pit_summary_df <- as.data.table(pit_summary_df)
-                
-                
-                
-                print(merged_PIT_BU_SIM)
-                
-                end.time <- proc.time()
-                save.time <- end.time - start.time
-                cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
 
-                
-              
+# Decile & Centile --------------------------------------------------------
+
+
+# keep_nonnegative <- function(lst, col = "net_income_business") {
+#   lapply(lst, function(DT) {
+#     setDT(DT)                
+#     DT[get(col) >= 0]         
+#   })
+# }
+# 
+# 
+# PIT_BU_list  <- keep_nonnegative(PIT_BU_list)
+# PIT_SIM_list <- keep_nonnegative(PIT_SIM_list)
+
+# keep_nonnegative <- function(lst, col = "net_income_business") {
+#   lapply(lst, function(DT) {
+#     setDT(DT)  # ensure it's a data.table
+#     
+#     # keep only rows where value > 0 and tax_payer_group == 0
+#     #DT[get(col) >= 0 & tax_payer_group == "0"]
+#     DT[get(col) >=0]
+#   })
+# }
+
+# summary(PIT_BU_list$t0)
+# 
+# keep_nonnegative <- function(lst, col = "calc_total_inc") {
+#   lapply(lst, function(DT) {
+#     setDT(DT)  # ensure it's a data.table
+#     
+#     # keep only rows where value > 0 and tax_payer_group == 0
+#     #DT[get(col) >0 & tax_payer_group == "0"]
+#     DT[get(col) >0]
+#   })
+# }
+# 
+# # Apply the filtering
+# PIT_BU_list  <- keep_nonnegative(PIT_BU_list)
+# PIT_SIM_list <- keep_nonnegative(PIT_SIM_list)
+
+
+
+#Apply the functions to each data frame in the PIT_BU_list
+calc_weighted_groups_in_one_pass <- function(DT, inc_col = "calc_total_inc", w_col = "weight") {
+  # 1. Keep track of original row order so we can restore it after sorting
+  DT[, row_id__tmp := .I]
+  
+  # 2. Sort by income (use setorderv for a character column name)
+  setorderv(DT, inc_col)
+  
+  # 3. Compute the cumulative sum of weight
+  #    (handle NA weights as 0, adjust if you prefer a different approach)
+  DT[, w_cumsum__tmp := cumsum(fifelse(is.na(get(w_col)), 0, get(w_col)))]
+  
+  # 4. Get the total weight
+  total_w <- DT[.N, w_cumsum__tmp]
+  
+  # 5. Define breakpoints for deciles (10 groups) and centiles (100 groups)
+  decile_breaks  <- seq(0, total_w, length.out = 11)   # 11 points => 10 intervals
+  centile_breaks <- seq(0, total_w, length.out = 101)  # 101 points => 100 intervals
+  
+  # 6. Assign decile_group and centile_group
+  DT[, decile_group  := findInterval(w_cumsum__tmp, decile_breaks,  rightmost.closed = TRUE)]
+  DT[, centile_group := findInterval(w_cumsum__tmp, centile_breaks, rightmost.closed = TRUE)]
+  
+  # 7. Ensure the top boundary doesn't exceed the number of groups
+  DT[, decile_group  := pmin(decile_group,  10)]
+  DT[, centile_group := pmin(centile_group, 100)]
+  
+  # 8. Restore original row order
+  setorder(DT, row_id__tmp)
+  
+  # 9. Clean up temporary columns
+  DT[, c("row_id__tmp", "w_cumsum__tmp") := NULL]
+  
+  # Modifies DT in place, so no return() needed
+  invisible(DT)
+}
+
+# -------------------------------------------------------------------
+# Loop over lists in data.tables
+# -------------------------------------------------------------------
+for (i in seq_along(PIT_BU_list)) {
+  calc_weighted_groups_in_one_pass(
+    DT      = PIT_BU_list[[i]],
+    inc_col = "calc_total_inc",
+    w_col   = "weight"
+  )
+}
+
+
+for (i in seq_along(PIT_BU_list)) {
+  calc_weighted_groups_in_one_pass(
+    DT      = PIT_SIM_list[[i]],
+    inc_col = "calc_total_inc",
+    w_col   = "weight"
+  )
+}
+
+
+
+
+# Convert data for presentation in GUI
+pit_summary_df <- merged_PIT_BU_SIM %>%
+  pivot_longer(cols = -year, 
+               names_to = c("variable", ".value"), 
+               names_pattern = "(.*)_(bu|sim)")
+
+# Calculate the difference between _sim and _bu columns
+pit_summary_df <- pit_summary_df %>%
+  mutate(difference = sim - bu)
+
+
+pit_summary_df <- pit_summary_df %>%
+  mutate(across(c(bu, sim, difference), ~ round(., 1)))%>%
+  filter(variable=='pitax')
+
+# Arrange the columns
+pit_summary_df <- pit_summary_df %>%
+  select(year, bu, sim, difference)%>%
+  dplyr::rename(
+    "Current law (LCU MIL)"="bu",
+    "Simulation (LCU MIL)"="sim",
+    "Fiscal impact (LCU MIL)"="difference",
+  )
+
+
+MACRO_FISCAL_INDICATORS$Year<-as.character(MACRO_FISCAL_INDICATORS$Year)
+
+pit_summary_df<-left_join(pit_summary_df,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))%>%
+  select(year,"Current law (LCU MIL)","Simulation (LCU MIL)","Fiscal impact (LCU MIL)",Nominal_GDP)%>%
+  dplyr::mutate( `Current law (Pct of GDP)`= round(`Current law (LCU MIL)`/Nominal_GDP*100,2),
+                 `Simulation (Pct of GDP)`=round(`Simulation (LCU MIL)`/ Nominal_GDP*100,2),
+                 `Fiscal impact (Pct of GDP)`=round(`Fiscal impact (LCU MIL)`/ Nominal_GDP*100,2))%>%
+  dplyr::select(-c(Nominal_GDP))
+
+
+pit_summary_df <- as.data.table(pit_summary_df)
+
+
+# Kakwani ETR -------------------------------------------------------------
+
+
+'Re-Distribution tables'
+# Functions for calculation -----------------------------------------------
+extract_filtered_re_df_fun <- function(PIT_BU_list, forecast_horizon, SimulationYear,
+                                       filter_positive = FALSE) {
+  # Validate SimulationYear: check if it is in the forecast horizon vector.
+  if (!SimulationYear %in% forecast_horizon) {
+    stop("The specified simulation year is not in the forecast horizons.")
+  }
+  
+  # Find the index of the dataset that corresponds to SimulationYear.
+  index <- which(forecast_horizon == SimulationYear)
+  
+  # Extract the specific data.table for the simulation year.
+  PIT_BU_simulation_year_df <- PIT_BU_list[[index]]
+  
+  # Define the columns to keep.
+  columns_to_keep <- c("id_n",
+                       "calc_total_inc",
+                       #"total_taxbase",
+                       #"total_net",
+                       "pitax")
+  
+  # Check for missing columns and issue a warning if any are not found.
+  missing_columns <- setdiff(columns_to_keep, colnames(PIT_BU_simulation_year_df))
+  if (length(missing_columns) > 0) {
+    warning("The following columns are missing in the data frame: ",
+            paste(missing_columns, collapse = ", "))
+  }
+  
+  # Filter the data.table to keep only the specified columns.
+  PIT_BU_simulation_year_df <- PIT_BU_simulation_year_df[, ..columns_to_keep, with = FALSE]
+  
+  # Optionally, filter rows where all numeric columns are greater than 0.
+  if (filter_positive) {
+    # Build a logical condition: for each column that is numeric, check that it is > 0.
+    condition <- Reduce("&", lapply(columns_to_keep, function(col) {
+      # If the column is numeric, return the boolean vector for > 0,
+      # otherwise, return TRUE for all rows.
+      if (is.numeric(PIT_BU_simulation_year_df[[col]])) {
+        PIT_BU_simulation_year_df[[col]] > 0
+      } else {
+        rep(TRUE, nrow(PIT_BU_simulation_year_df))
+      }
+    }))
+    PIT_BU_simulation_year_df <- PIT_BU_simulation_year_df[condition]
+  }
+  
+  return(PIT_BU_simulation_year_df)
+}
+
+
+
+# 1.BU ----------------------------------------------------------------------
+
+PIT_BU_simulation_year_df <- extract_filtered_re_df_fun(PIT_BU_list, forecast_horizon, SimulationYear)
+
+PIT_BU_simulation_year_df<-PIT_BU_simulation_year_df%>%
+  filter(pitax>0)
+
+# Top 1
+
+result <- PIT_BU_simulation_year_df %>%
+  # Create 100 percentile groups based on calc_total_inc
+  mutate(percentile = ntile(calc_total_inc, 100)) %>%
+  # Keep only the group with the highest calc_total_inc
+  filter(percentile == 100) %>%
+  # Sum the PIT for observations in this percentile group
+  summarise(total_citax = sum(pitax, na.rm = TRUE))
+
+
+share_top1_bu<-result$total_citax/sum(PIT_BU_simulation_year_df$pitax)
+
+
+# Gini gross income
+gini_income_gross_bu <- round(ineq(PIT_BU_simulation_year_df$calc_total_inc, type = "Gini", na.rm = TRUE), 4)
+
+# Calculate the Kakwani index
+ineq<-calcSConc(PIT_BU_simulation_year_df$pitax, PIT_BU_simulation_year_df$calc_total_inc)
+kakwani_index_BU <- round(ineq$ineq$index - gini_income_gross_bu, 4)
+kakwani_index_BU <- unname(kakwani_index_BU)
+
+
+
+etr_bu <- sum(PIT_BU_simulation_year_df$pitax) / sum(PIT_BU_simulation_year_df$calc_total_inc)
+
+# calcAtkinson(PIT_BU_simulation_year_df$calc_total_inc, epsilon = 1)
+
+
+
+# Calculate all indicators and store in a table
+indicator_table_bu <- data.frame(
+  Indicator = c(
+    "Gini coefficient for pre-tax income",
+    "Effective tax rate",
+    "Kakwani Index"
+  ),
+  Name = c(
+    "gini_income_gross_bu",
+    "etr_bu",
+    "kakwani_index_BU"
+    
+  ),
+  Simulation = c(
+    round(gini_income_gross_bu,4),
+    round(etr_bu,4),
+    round(kakwani_index_BU,4)
+  )
+)%>%data.table()%>%
+dplyr::rename(`Business as usual`= "Simulation")
+
+
+
+# 2.SIM -------------------------------------------------------------------
+
+
+PIT_SIM_simulation_year_df <- extract_filtered_re_df_fun(PIT_SIM_list, forecast_horizon, SimulationYear)
+
+
+PIT_SIM_simulation_year_df<-PIT_SIM_simulation_year_df%>%
+  filter(pitax>0)
+
+
+# TOP 1
+
+result <- PIT_SIM_simulation_year_df %>%
+  # Create 100 percentile groups based on calc_total_inc
+  mutate(percentile = ntile(calc_total_inc, 100)) %>%
+  # Keep only the group with the highest calc_total_inc
+  filter(percentile == 100) %>%
+  # Sum the PIT for observations in this percentile group
+  summarise(total_citax = sum(pitax, na.rm = TRUE))
+
+
+share_top1_sim<-result$total_citax/sum(PIT_SIM_simulation_year_df$pitax)
+
+
+
+
+# Gini gross income
+gini_income_gross_sim <- round(ineq(PIT_SIM_simulation_year_df$calc_total_inc, type = "Gini", na.rm = TRUE), 4)
+
+# Calculate the Kakwani index
+ineq<-calcSConc(PIT_SIM_simulation_year_df$pitax, PIT_SIM_simulation_year_df$calc_total_inc)
+kakwani_index_SIM <- round(ineq$ineq$index - gini_income_gross_sim, 4)
+kakwani_index_SIM <- unname(kakwani_index_SIM)
+
+
+
+etr_SIM <- sum(PIT_SIM_simulation_year_df$pitax) / sum(PIT_SIM_simulation_year_df$calc_total_inc)
+
+# calcAtkinson(PIT_SIM_simulation_year_df$calc_total_inc, epsilon = 1)
+
+
+
+# Calculate all indicators and store in a table
+indicator_table_SIM <- data.frame(
+  Indicator = c(
+    "Gini coefficient for pre-tax income",
+    "Effective tax rate",
+    "Kakwani Index"
+  ),
+  Name = c(
+    "gini_income_gross_sim",
+    "etr_SIM",
+    "kakwani_index_SIM"
+    
+  ),
+  Simulation = c(
+    round(gini_income_gross_sim,4),
+    round(etr_SIM,4),
+    round(kakwani_index_SIM,4)
+  )
+)%>%data.table()
+
+
+
+print(merged_PIT_BU_SIM)
+
+end.time <- proc.time()
+save.time <- end.time - start.time
+cat("\n Number of minutes running:", save.time[3] / 60, "\n \n")
+
+
+
 
 
 # 7. Revenues by NACE sections----------------------------------------------------------------------
-            
-            # Function to extract columns and add scenario identifier
-            extract_nace_rev_fun <- function(dt, scenario) {
-              dt[, .(pitax, section,description, scenario = scenario)]
-            }
-            
-            # Extract and process PIT_BU_list_TE
-            extracted_tables_bu <- mapply(extract_nace_rev_fun, PIT_BU_list, scenarios, SIMPLIFY = FALSE)
-            combined_data_bu <- rbindlist(extracted_tables_bu)
-            result_bu <- combined_data_bu[, .(total_calc_pitax_bu = sum(pitax)), by = .(scenario,description, section)]
-            
-            # Extract and process PIT_SIM_list_TE
-            
-            extracted_tables_sim <- mapply(extract_nace_rev_fun, PIT_SIM_list, scenarios, SIMPLIFY = FALSE)
-            combined_data_sim <- rbindlist(extracted_tables_sim)
-            result_sim <- combined_data_sim[, .(total_calc_pitax_sim = sum(pitax)), by = .(scenario,section)]
-            
-            # Add year column to both results
-            result_bu[, year := forecast_horizon[match(scenario, scenarios)]]
-            result_sim[, year := forecast_horizon[match(scenario, scenarios)]]
-            
-            # Combine both results into one data frame
-            pit_nace_summary <- merge(result_bu, result_sim, by = c("scenario", "year","section"), all = TRUE)
+
+# Function to extract columns and add scenario identifier
+extract_nace_rev_fun <- function(dt, scenario) {
+  dt[, .(pitax, section,description, scenario = scenario)]
+}
+
+# Extract and process PIT_BU_list_TE
+extracted_tables_bu <- mapply(extract_nace_rev_fun, PIT_BU_list, scenarios, SIMPLIFY = FALSE)
+combined_data_bu <- rbindlist(extracted_tables_bu)
+result_bu <- combined_data_bu[, .(total_calc_pitax_bu = sum(pitax)), by = .(scenario,description, section)]
+
+# Extract and process PIT_SIM_list_TE
+
+extracted_tables_sim <- mapply(extract_nace_rev_fun, PIT_SIM_list, scenarios, SIMPLIFY = FALSE)
+combined_data_sim <- rbindlist(extracted_tables_sim)
+result_sim <- combined_data_sim[, .(total_calc_pitax_sim = sum(pitax)), by = .(scenario,section)]
+
+# Add year column to both results
+result_bu[, year := forecast_horizon[match(scenario, scenarios)]]
+result_sim[, year := forecast_horizon[match(scenario, scenarios)]]
+
+# Combine both results into one data frame
+pit_nace_summary <- merge(result_bu, result_sim, by = c("scenario", "year","section"), all = TRUE)
 
 
-            pit_nace_summary<-pit_nace_summary%>%
-              dplyr::filter(year==SimulationYear)
+pit_nace_summary<-pit_nace_summary%>%
+  dplyr::filter(year==SimulationYear)
 
-            #pit_nace_summary$value<-"Value"
-            pit_nace_summary$value<-"In LCU"
-            
-            
+#pit_nace_summary$value<-"Value"
+pit_nace_summary$value<-"In MIL LCU"
+
+
 # 8. Revenues by Gender------------------------------------------------------
-      # Function to extract columns and add scenario identifier
-      extract_gender_rev_fun <- function(dt, scenario) {
-        dt[, .(pitax, Gender,scenario = scenario)]
-      }
-      
-      # Extract and process PIT_BU_list_TE
-      extracted_tables_bu <- mapply(extract_gender_rev_fun, PIT_BU_list, scenarios, SIMPLIFY = FALSE)
-      combined_data_bu <- rbindlist(extracted_tables_bu)
-      result_bu <- combined_data_bu[, .(total_calc_pitax_bu = sum(pitax)), by = .(scenario,Gender)]
-      
-      # Extract and process PIT_SIM_list_TE
-      
-      extracted_tables_sim <- mapply(extract_gender_rev_fun, PIT_SIM_list, scenarios, SIMPLIFY = FALSE)
-      combined_data_sim <- rbindlist(extracted_tables_sim)
-      result_sim <- combined_data_sim[, .(total_calc_pitax_sim = sum(pitax)), by = .(scenario,Gender)]
-      
-      # Add year column to both results
-      result_bu[, year := forecast_horizon[match(scenario, scenarios)]]
-      result_sim[, year := forecast_horizon[match(scenario, scenarios)]]
-      
-      # Combine both results into one data frame
-      pit_gender_summary <- merge(result_bu, result_sim, by = c("scenario", "year","Gender"), all = TRUE)
-      
-      
-      pit_gender_summary<-pit_gender_summary%>%
-        dplyr::filter(year==SimulationYear)
+# Function to extract columns and add scenario identifier
+extract_gender_rev_fun <- function(dt, scenario) {
+  dt[, .(pitax, Gender,scenario = scenario)]
+}
+
+# Extract and process PIT_BU_list_TE
+extracted_tables_bu <- mapply(extract_gender_rev_fun, PIT_BU_list, scenarios, SIMPLIFY = FALSE)
+combined_data_bu <- rbindlist(extracted_tables_bu)
+result_bu <- combined_data_bu[, .(total_calc_pitax_bu = sum(pitax)), by = .(scenario,Gender)]
+
+# Extract and process PIT_SIM_list_TE
+
+extracted_tables_sim <- mapply(extract_gender_rev_fun, PIT_SIM_list, scenarios, SIMPLIFY = FALSE)
+combined_data_sim <- rbindlist(extracted_tables_sim)
+result_sim <- combined_data_sim[, .(total_calc_pitax_sim = sum(pitax)), by = .(scenario,Gender)]
+
+# Add year column to both results
+result_bu[, year := forecast_horizon[match(scenario, scenarios)]]
+result_sim[, year := forecast_horizon[match(scenario, scenarios)]]
+
+# Combine both results into one data frame
+pit_gender_summary <- merge(result_bu, result_sim, by = c("scenario", "year","Gender"), all = TRUE)
+
+
+pit_gender_summary<-pit_gender_summary%>%
+  dplyr::filter(year==SimulationYear)
