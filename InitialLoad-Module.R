@@ -1036,63 +1036,12 @@ forecast_combined_agg_tbl_wide <- data.table(
 LCU_unit<-1e03
 
 
-
 library(data.table)
-# options(scipen = 999)
-# set.seed(123)
-# n <- 300000  # Example size
-# 
-# 
-# 
-# 
-# categories <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U")
-# 
-# # Assign specific probabilities and evenly distribute the rest
-# probabilities <- ifelse(categories %in% c("C", "G", "O", "Q", "J"), 
-#                         c(0.18, 0.19, 0.09, 0.08, 0.06)[match(categories, c("C", "G", "O", "Q", "J"))], 
-#                         (1 - sum(c(0.18, 0.19, 0.09, 0.08, 0.06))) / (length(categories) - 5))
-# 
-# 
-# 
-# # Baseline dt with your columns
-# dt <- data.table(
-#   id_n = as.character(seq(1, n)),
-#   year_birth = as.character(as.integer(runif(n, 1957, 2003))),
-#   gender = sample(x=c("M","F"), prob = c(.6, .4), size=n, replace=TRUE),
-#   nace_section=sample(categories, size = n, replace = TRUE, prob = probabilities),
-#   total_ssc = sample(c(0, 1), size = n, replace = TRUE),
-#   g_Wages_l = runif(n, 0, 200000),
-#   g_total_personal_allowance_l = runif(n, 0, 30000),
-#   g_d_total_tax_reduction_l = sample(c(0, 1), size = n, replace = TRUE),
-#   g_AgriculturalProductsOwn_l = runif(n, 0, 50000),
-#   g_TemporaryContracts_l = runif(n, 0, 10000),
-#   g_IndustrialPropertyRights_c = runif(n, 0, 30000),
-#   g_Lease_c = runif(n, 0, 20000),
-#   g_SolidWaste_c = runif(n, 0, 15000),
-#   g_CapitalGainsSaleShareCapital_c = runif(n, 0, 40000),
-#   g_IndustrialPropertyRightsSuccessor_c = runif(n, 0, 20000),
-#   g_OtherIncome_c = runif(n, 0, 20000)
-# )
-# 
-# # Just an example additional column
-# dt[, Year := 2021L]
-# 
-# 
-# dt[,g_total_gross:=g_Wages_l+g_AgriculturalProductsOwn_l+g_TemporaryContracts_l+g_IndustrialPropertyRights_c+g_Lease_c+g_SolidWaste_c+g_CapitalGainsSaleShareCapital_c+
-#      g_IndustrialPropertyRightsSuccessor_c+g_OtherIncome_c
-# ]
-# 
-# dt[,total_gross_l:=g_Wages_l+g_AgriculturalProductsOwn_l+g_TemporaryContracts_l
-# ]
-# 
-# 
-# dt[,total_gross_c:=g_IndustrialPropertyRights_c+g_Lease_c+g_SolidWaste_c+g_CapitalGainsSaleShareCapital_c+
-#      g_IndustrialPropertyRightsSuccessor_c+g_OtherIncome_c
-# ]
-
-
 
 dt<- read_csv("~/Models/Kosovo_Models/Data/PIT/dataset_pit_xk_2023.csv")%>%data.table()
+
+
+dt$tax_payer_group<-"0"
 
 
 dt<-dt%>%
@@ -1135,33 +1084,44 @@ growth_factors_pit <- data.table(
 
 # The 5 scenario labels
 scenarios_5 <- c("t0","t1","t2","t3","t4")
-
-# We'll define a convenient vector so we can map scenario -> its numeric index
-#  t0-> index 1 => year=2021
-#  t1-> index 2 => year=2022
-#  t2-> index 3 => year=2023
-#  t3-> index 4 => year=2024
-#  t4-> index 5 => year=2025
-#scenario_years <- c(2022, 2023, 2024, 2025, 2026)
 scenario_years <- c(2023, 2024, 2025, 2026, 2027)
 
 
 
-# Import witheld data
-
-
-clean_witheld_df <- read_csv("~/Models/Kosovo-TE-Models/Data/PIT/clean_witheld_df.csv")%>%
-  data.table()
-
-clean_witheld_df$id_n<-as.character(clean_witheld_df$id_n)
-
-combined_dt <- rbindlist(list(dt, clean_witheld_df), fill = TRUE)
-#combined_dt <- rbind(dt, clean_witheld_df)
-# View(combined_dt)
-
-
-dt<-combined_dt
-rm(combined_dt)
+# # Import witheld data
+# 
+# 
+# clean_witheld_df <- read_csv("~/Models/Kosovo-TE-Models/Data/PIT/clean_witheld_df.csv")%>%
+#   data.table()
+# 
+# clean_witheld_df$id_n<-as.character(clean_witheld_df$id_n)
+# 
+# clean_witheld_df$tax_payer_group<-"1"
+# 
+# 
+# 
+# 
+# # Ensure both are data.tables
+# dt <- as.data.table(dt)
+# clean_witheld_df <- as.data.table(clean_witheld_df)
+# 
+# # Get the union of all column names
+# all_cols <- union(names(dt), names(clean_witheld_df))
+# 
+# # Add missing columns in each table with NA
+# for (col in setdiff(all_cols, names(dt))) dt[[col]] <- NA
+# for (col in setdiff(all_cols, names(clean_witheld_df))) clean_witheld_df[[col]] <- NA
+# 
+# # Set the same column order
+# setcolorder(dt, all_cols)
+# setcolorder(clean_witheld_df, all_cols)
+# 
+# # Now stack (merge) the datasets row-wise
+# combined_dt <- rbindlist(list(dt, clean_witheld_df), use.names = TRUE, fill = TRUE)
+# 
+# 
+# dt<-combined_dt
+# rm(combined_dt)
 
 
 
@@ -1182,15 +1142,15 @@ rm(combined_dt)
 # # For demonstration, set all weights to 1
 # weights_pit[, (names(weights_pit)) := lapply(.SD, function(x) 1)]
 
-n <- NROW(dt)
-
-weights_pit <- data.table(
-  t0 = rep(1, n),
-  t1 = rep(1, n),
-  t2 = rep(1, n),
-  t3 = rep(1, n),
-  t4 = rep(1, n)
-)
+# n <- NROW(dt)
+# 
+# weights_pit <- data.table(
+#   t0 = rep(1, n),
+#   t1 = rep(1, n),
+#   t2 = rep(1, n),
+#   t3 = rep(1, n),
+#   t4 = rep(1, n)
+# )
 
 
 
@@ -1236,6 +1196,11 @@ NACE_SUT_table <- read_excel("NACE_SUT_table.xlsx")%>%
 NACE_SUT_table$nace_num<-as.double(NACE_SUT_table$nace_num)
 
 
+# NROW(NACE_SUT_table) # 90
+# length(unique(NACE_SUT_table$nace_num)) #90
+
+
+
 ComapaniesTypes <- read_excel("ComapaniesTypes.xlsx")      
 
 
@@ -1251,6 +1216,72 @@ dt<-left_join(dt,NACE_SUT_table,by=c('sector'='nace_num'))
 #test<-left_join(dt,NACE_SUT_table,by=c('sector'='nace_num'))
 
 dt$Name_Own<-NULL
+
+
+
+#
+
+# Import witheld data
+
+
+clean_witheld_df <- read_csv("~/Models/Kosovo-TE-Models/Data/PIT/clean_witheld_df1.csv")%>%
+  data.table()
+
+clean_witheld_df$id_n<-as.character(clean_witheld_df$id_n)
+
+clean_witheld_df$tax_payer_group<-"1"
+
+
+
+
+# Ensure both are data.tables
+dt <- as.data.table(dt)
+clean_witheld_df <- as.data.table(clean_witheld_df)
+
+# Get the union of all column names
+all_cols <- union(names(dt), names(clean_witheld_df))
+
+# Add missing columns in each table with NA
+for (col in setdiff(all_cols, names(dt))) dt[[col]] <- NA
+for (col in setdiff(all_cols, names(clean_witheld_df))) clean_witheld_df[[col]] <- NA
+
+# Set the same column order
+setcolorder(dt, all_cols)
+setcolorder(clean_witheld_df, all_cols)
+
+# Now stack (merge) the datasets row-wise
+combined_dt <- rbindlist(list(dt, clean_witheld_df), use.names = TRUE, fill = TRUE)
+
+
+dt<-combined_dt
+rm(combined_dt)
+
+
+
+n <- NROW(dt)
+
+weights_pit <- data.table(
+  t0 = rep(1, n),
+  t1 = rep(1, n),
+  t2 = rep(1, n),
+  t3 = rep(1, n),
+  t4 = rep(1, n)
+)
+
+
+dt[, description := fifelse(description == "ctivities of extraterritorial organisations and bodies",
+                            "Activities of extraterritorial organisations and bodies", description)]
+
+dt[, description := fifelse(description == "Other service activities",
+                            "Other services activities", description)]
+
+dt[, description := fifelse(description == "Administrative and support service activities",
+                            "Administrative and support services", description)]
+
+
+
+dt[is.na(dt)] <- 0
+
 
 
 # CIT ---------------------------------------------------------------------

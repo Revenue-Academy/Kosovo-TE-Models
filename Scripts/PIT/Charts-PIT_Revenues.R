@@ -43,28 +43,58 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   
   pit_gender_summary$Gender<-as.factor(pit_gender_summary$Gender)
   
+  pit_gender_summary<-pit_gender_summary%>%
+    dplyr::filter(Gender %in% c("F","M"))
   
-  pit_gender_summary_plt <- plot_ly(pit_gender_summary, 
-                                    x = ~Gender , 
-                                    y = ~total_calc_pitax_sim, 
-                                    type = 'bar', 
-                                    barmode = 'group',
-                                    marker = list(color = c('#ff7f0e', '#1f77b4'))) %>%
-                                layout(
-                                  title = paste("Distribution of Tax Revenues by Gender,", SimulationYear),
-                                  xaxis = list(title = " ", tickmode = 'linear'), # Show all values on the x-axis
-                                  yaxis = list(title = " "),
-                                  annotations = list(
-                                    list(
-                                      x = -0.02,
-                                      y = -0.1,
-                                      text = "Source: WB staff estimation",
-                                      showarrow = FALSE,
-                                      xref = 'paper',
-                                      yref = 'paper',
-                                      align = 'left'
-                                    )
-                                  ))
+  # pit_gender_summary_plt <- plot_ly(pit_gender_summary, 
+  #                                   x = ~Gender , 
+  #                                   y = ~total_calc_pitax_sim, 
+  #                                   type = 'bar', 
+  #                                   barmode = 'group',
+  #                                   marker = list(color = c('#ff7f0e', '#1f77b4'))) %>%
+  #                               layout(
+  #                                 title = paste("Distribution of Tax Revenues by Gender,", SimulationYear),
+  #                                 xaxis = list(title = " ", tickmode = 'linear'), # Show all values on the x-axis
+  #                                 yaxis = list(title = " "),
+  #                                 annotations = list(
+  #                                   list(
+  #                                     x = -0.02,
+  #                                     y = -0.1,
+  #                                     text = "Source: WB staff estimation",
+  #                                     showarrow = FALSE,
+  #                                     xref = 'paper',
+  #                                     yref = 'paper',
+  #                                     align = 'left'
+  #                                   )
+  #                                 ))
+  
+  pit_gender_summary_plt <- plot_ly(
+    pit_gender_summary, 
+    x = ~Gender, 
+    y = ~total_calc_pitax_sim, 
+    type = 'bar', 
+    barmode = 'group',
+    marker = list(color = c('#ff7f0e', '#1f77b4')),
+    width = 0.6  # Optional: makes bars narrower
+  ) %>%
+    layout(
+      title = paste("Distribution of Tax Revenues by Gender,", SimulationYear),
+      xaxis = list(title = " ", tickmode = 'linear'),
+      yaxis = list(title = " "),
+      bargap = 0.6,       # gap between groups (0-1)
+      bargroupgap = 0.2,  # gap between bars within a group (0-1)
+      annotations = list(
+        list(
+          x = -0.02,
+          y = -0.1,
+          text = "Source: WB staff estimation",
+          showarrow = FALSE,
+          xref = 'paper',
+          yref = 'paper',
+          align = 'left'
+        )
+      )
+    )
   
   
   
@@ -73,7 +103,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   treemap_nace_pit_bu_type_plt <- plot_ly(
                         data = pit_nace_summary, 
                         type = "treemap", 
-                        values = ~round(total_calc_pitax_bu, 0), 
+                        values = ~round(total_calc_pitax_bu/1e06, 0), 
                         labels = ~section,
                         parents = ~value,  
                         name = " ",
@@ -84,7 +114,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
                       ) %>%
                         layout(
                           title = list(
-                            text = paste("Structure of Gross income by NACE sections (Baseline),", SimulationYear),
+                            text = paste("Structure of PIT by NACE sections (Baseline),", SimulationYear),
                             font = list(size = 14)  # Set the font size here
                           ),
                           annotations = list(
@@ -110,7 +140,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   treemap_nace_pit_sim_type_plt <- plot_ly(
                                 data = pit_nace_summary, 
                                 type = "treemap", 
-                                values = ~round(total_calc_pitax_sim, 0), 
+                                values = ~round(total_calc_pitax_sim/1e06, 0), 
                                 labels = ~section,
                                 parents = ~value,  
                                 name = " ",
@@ -121,7 +151,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
                               ) %>%
                                 layout(
                                   title = list(
-                                    text = paste("Structure of Gross income by NACE sections (Simulation),", SimulationYear),
+                                    text = paste("Structure of PIT by NACE sections (Simulation),", SimulationYear),
                                     font = list(size = 14)  # Set the font size here
                                   ),
                                   annotations = list(

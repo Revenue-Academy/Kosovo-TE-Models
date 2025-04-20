@@ -23,7 +23,7 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
                                         name = "Baseline",
                                         type = 'scatter',
                                         mode = 'lines+markers+text',
-                                        text = ~round(calc_total_inc_sim,0),
+                                        #text = ~round(calc_total_inc_sim,0),
                                         textposition = 'top middle',
                                         hoverinfo = 'text+y',
                                         line = list(width = 4, dash = "solid")
@@ -47,8 +47,22 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
 
 # II. Chart Type of Income --------------------------------
 
-                    #color_mapping <- c('#1f77b4', "cyan", "brown", "purple", "orange", "red", "chartreuse", "darkturquoise", "forestgreen")
-                    color_mapping <- c( "forestgreen","chartreuse", "cyan", "brown", "purple", "orange", "red", "#1f77b4", "darkturquoise","chartreuse")
+                  
+                    
+                    color_mapping <- c(
+                      "forestgreen",       # keep for a deep green
+                      "deeppink",          # replaces "chartreuse" (much more contrast)
+                      "cyan",              # keep
+                      "brown",             # keep
+                      "purple",            # keep
+                      "orange",            # keep
+                      "darkturquoise",     # keep
+                      "#1f77b4",           # Plotly blue
+                      "red",               # keep
+                      "gold",              # replaces second "chartreuse" with warmer contrast
+                      "mediumslateblue"    # replaces "yellow" with a clearer purple-blue
+                    )
+                    
                     
                     # Create a stacked bar chart with Plotly and custom colors
                     labor_capital_type_plt <- plot_ly(labor_capital_type, 
@@ -86,7 +100,7 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
                     
                     treemap_labor_capital_type_plt <- plot_ly(data = long_labor_capital_type, 
                                                         type = "treemap", 
-                                                        values = ~round(value,0), 
+                                                        values = ~round(value/1e06,1), 
                                                         labels = ~income_type,
                                                         parents = ~TypeOfIncome,  
                                                         name = " ",
@@ -119,7 +133,7 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
                     treemap_nace_type_plt <- plot_ly(
                                                 data = gross_nace_tbl, 
                                                 type = "treemap", 
-                                                values = ~round(total_inc, 0), 
+                                                values = ~round(total_inc/1e06, 1), 
                                                 labels = ~nace_section,
                                                 parents = ~TypeOfIncome,  
                                                 name = " ",
