@@ -129,9 +129,7 @@
               #dt_scn[, calc_tot_amount_3pct_9pct := calc_tqi_3pct+calc_tqi_9pct ]
             
             # 4.[16] Amount for payment in this statement [14] - [15]----------------------------
-              # da se najde od kade e ova rent_tax_held_oth ?????
-              # namesto rent_tax_held_oth  vmetnav tir_hbo
-        
+             
               
               
             dt_scn[, calc_rent_tax := pmax((gross_inc_rent * rate_tax_rent - rent_tax_held_oth), 0) ]

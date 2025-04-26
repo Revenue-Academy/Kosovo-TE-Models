@@ -54,7 +54,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
   
   # 4. D27 Deduction for Charitable Contributions (max 5% of taxable amount) not claimed on FS -------------------------------------
   
-  #dt_scn[, calc_charity_contribution := min(dis_charity_contribution, max(calc_gti * rate_ded_charitable, 0))]
+  
   dt_scn[, calc_charity_contribution := pmin(dis_charity_contribution, pmax(calc_gti * rate_ded_charitable, 0))]
   
   # 5. D28 Total Additional Deductions (26+27)---------------
@@ -153,7 +153,6 @@ vars_to_grow <- c(
   "other_allowed_ded",
   "dis_charity_contribution",
   "loss_carried_for",
-  # new
   "gross_wage_w",
   "tax_witheld",
   "employee_cont",

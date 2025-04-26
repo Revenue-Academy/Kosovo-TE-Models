@@ -32,16 +32,7 @@ ui <- dashboardPage(
       menuItem("Indirect Taxes", icon = icon("shopping-cart"),
                menuSubItem("Import Taxes Module", tabName = "customsModule", icon = icon("truck")),
                menuSubItem("VAT Module", tabName = "vatModule", icon = icon("cash-register"))
-              
-               #menuSubItem("Excise Module", tabName = "exciseModule", icon = icon("beer"))
       )
-      # menuItem("Revenue Forecasting", icon = icon("chart-line"),
-      #          menuSubItem("Short-Term", tabName = "shortTerm", icon = icon("calendar-alt")),
-      #          menuSubItem("Medium-Term", tabName = "mediumTerm", icon = icon("calendar-check"))
-      # ),
-      # menuItem("Revenue Monitoring", icon = icon("magnifying-glass-chart"),
-      #          menuSubItem("Revenue-Monitoring", tabName = "revMon", icon = icon("gauge"))
-      # )
     )
   ),
   dashboardBody(
@@ -49,7 +40,12 @@ ui <- dashboardPage(
       tabItem(
         tabName = "aboutModel",
         h3("About the Model"),
-        p("This is a centralized interface for managing and activating different tax modeling modules."),
+        #p("This is a centralized interface for managing and activating different tax modeling modules."),
+        p("This model was developed by",
+          a("Rajiv Kumar Senior Economist, EFMTX", href = "https://people.worldbank.org/people/profile/000395723", target = "_blank"), 
+          " and ",
+          a("Jordan Simonov Consultant, EFMTX", href = "https://www.linkedin.com/in/jordan-s-b274a96/", target = "_blank"), 
+          "in the R programming environment."),
         br()
       ),
       tabItem(
