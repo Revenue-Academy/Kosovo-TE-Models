@@ -1,6 +1,5 @@
 'Distribution tables'
 
-
 # I.FUNCTIONS ---------------------------------------------------------------
 
 # Function to extract columns and add scenario
@@ -80,11 +79,6 @@ setkey(pit_centile_distribution_sim, centile_group, scenario, year)
 pit_centile_distribution_bu_sim <- merge(pit_centile_distribution_bu, pit_centile_distribution_sim, by = c("centile_group", "scenario", "year"), suffixes = c("_bu", "_sim"))
 setorder(pit_centile_distribution_bu_sim, centile_group)
 
-# 1.3 Chart -------------------------------------------------------------------
-# pit_centile_distribution_bu_sub<-pit_centile_distribution_bu_sim%>%
-#                               filter(year==SimulationYear)
-# 
-
 # 2.Decile Groups ---------------------------------------------------------
 # 1.BU --------------------------------------------------------------------
 extracted_dist_tables_bu <- mapply(extract_dec_rev_fun, PIT_BU_list, scenarios, SIMPLIFY = FALSE)
@@ -162,35 +156,7 @@ pit_decile_distribution_bu_sim<-setnames(pit_decile_distribution_bu_sim,
 
 
 
-# pit_decile_distribution_bu_sim <- pit_decile_distribution_bu_sim %>%
-#   mutate_if(is.numeric, ~ round(. / 1e06, 1))
 
-
-# pit_decile_distribution_bu_sim <- pit_decile_distribution_bu_sim %>%
-#   mutate(across(
-#     .cols = where(is.numeric) & !starts_with("Average PIT liability (business as usual)") & 
-#       !starts_with("Average PIT liability (simulation)"),
-#     .fns = ~ round(. / 1e06, 1)
-#   ))
-# mutate(across(
-#   .cols = where(is.numeric) & (starts_with("Average PIT liability (business as usual)") | 
-#                                  starts_with("Average PIT liability (simulation)")),
-#   .fns = ~ round(. / 1000, 1)
-# ))
-# mutate(across(
-#   .cols = (starts_with("Total")),
-#                                  
-#   .fns = ~ round(. /  1e06,, 1)
-# ))
-
-# 
-# cols_to_divide <- c("Total PIT liability (business as usual)", 
-#                     "Average PIT liability (business as usual)", 
-#                     "Total gross income (business as usual)", 
-#                     "Total PIT liability (simulation)", 
-#                     "Average PIT liability (simulation)", 
-#                     "Total gross income (simulation)")
-# 
 
 cols_to_divide <- c("Total PIT liability (business as usual)", 
                     #"Average PIT liability (business as usual)", 
@@ -247,16 +213,6 @@ pit_decile_distribution_bu_sim$year<-NULL
 # 1.BU ----------------------------------------------------------------------
 
 # Define the breakpoints and labels
-# old
-# breaks <- c(-Inf, 0, 1, 0.5e6, 1e6, 1.5e6, 2e6, 3e6, 4e6, 5e6, 10e6, Inf)
-# labels <- c("<0", "0", "0-0.5m", "0.5-1m", "1-1.5m", "1.5-2m", "2-3m", "3-4m", "4-5m", "5-10m", ">10m")
-# 
-# #nEW
-
-
-
-# breaks <- c( -Inf, 0, 1e-09,5000000.0,10000000.0,15000000.0,20000000.0,30000000.0,40000000.0,50000000.0,100000000.0,500000000.0,1000000000.0,9e+99) #14 #13
-# labels <- c("<0","=0","0-5m","5-10m","10-15m","15-20m","20-30m","30-40m","40-50m","50-100m","100-500m","500m-1bn",">1bn")
 
 breaks <- c(
   -Inf, 0, 1e-09,     # "<0", "=0", very tiny positive numbers
@@ -347,7 +303,6 @@ pit_result_bins_sim_sub <- pit_result_bins_sim %>%
 
 
 # Reorder the bin_group factor
-#pit_result_bins_sim_sub[, bin_group := factor(bin_group, levels = c("<0", "0-0.5m", "0.5-1m", "1-1.5m","1.5-2m","2-3m"))]
 pit_result_bins_sim_sub[, bin_group := factor(bin_group, labels <- c(
   "<0", "=0", "0-1000", "1-2000", "2-3000", "3-4000", "4-5000",
   "5-6000", "6-7000", "7-8000", "8-9000", "9-10000", ">10k"

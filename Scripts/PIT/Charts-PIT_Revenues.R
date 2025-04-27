@@ -46,27 +46,7 @@ Revenue_Charts <- function(merged_PIT_BU_SIM,pit_gender_summary,pit_nace_summary
   pit_gender_summary<-pit_gender_summary%>%
     dplyr::filter(Gender %in% c("F","M"))
   
-  # pit_gender_summary_plt <- plot_ly(pit_gender_summary, 
-  #                                   x = ~Gender , 
-  #                                   y = ~total_calc_pitax_sim, 
-  #                                   type = 'bar', 
-  #                                   barmode = 'group',
-  #                                   marker = list(color = c('#ff7f0e', '#1f77b4'))) %>%
-  #                               layout(
-  #                                 title = paste("Distribution of Tax Revenues by Gender,", SimulationYear),
-  #                                 xaxis = list(title = " ", tickmode = 'linear'), # Show all values on the x-axis
-  #                                 yaxis = list(title = " "),
-  #                                 annotations = list(
-  #                                   list(
-  #                                     x = -0.02,
-  #                                     y = -0.1,
-  #                                     text = "Source: WB staff estimation",
-  #                                     showarrow = FALSE,
-  #                                     xref = 'paper',
-  #                                     yref = 'paper',
-  #                                     align = 'left'
-  #                                   )
-  #                                 ))
+  
   
   pit_gender_summary_plt <- plot_ly(
     pit_gender_summary, 

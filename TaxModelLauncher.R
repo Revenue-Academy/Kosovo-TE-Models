@@ -51,28 +51,28 @@ ui <- dashboardPage(
       tabItem(
         tabName = "pitModule",
         h3("PIT Module"),
-        p("The PIT Module enables the simulation and analysis of personal income tax policies."),
+        p("The PIT Module enables the simulation, analysis of personal income tax policies and estimation of tax expenditures"),
         br(),
         actionButton("activatePIT", "Activate PIT Module", icon = icon("play"), class = "btn-primary", style = "float: right;")
       ),
       tabItem(
         tabName = "citModule",
         h3("CIT Module"),
-        p("The CIT Module enables the simulation and analysis of corporate income tax policies."),
+        p("The CIT Module enables the simulation,analysis of corporate income tax policies and estimation of tax expenditures"),
         br(),
         actionButton("activateCIT", "Activate CIT Module", icon = icon("play"), class = "btn-primary", style = "float: right;")
       ),
       tabItem(
         tabName = "vatModule",
         h3("VAT Module"),
-        p("The VAT Module provides simulations and analysis for value-added tax policies."),
+        p("The VAT Module provides simulations, analysis for value-added tax policies and estimation of tax expenditures"),
         br(),
         actionButton("activateVAT", "Activate VAT Module", icon = icon("play"), class = "btn-primary", style = "float: right;")
       ),
       tabItem(
         tabName = "customsModule",
         h3("Import Tax Module"),
-        p("The Import Tax Module provides simulations and analysis for customs policies."),
+        p("The Import Tax Module provides simulations,analysis for customs policies and estimation of tax expenditures."),
         br(),
         actionButton("activateCustoms", "Activate Customs Module", icon = icon("play"), class = "btn-primary", style = "float: right;")
       ),
