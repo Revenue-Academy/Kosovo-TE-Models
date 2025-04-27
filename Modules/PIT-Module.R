@@ -489,25 +489,6 @@ server <- function(input, output, session) {
                                  SimulationYear,
                                  range(forecast_horizon))
         
-        # output$infoBox1 <- renderInfoBox({
-        #   cat("Rendering infoBox1\n")
-        #   infoBox(
-        #     title = " ",   # Remove title
-        #     icon = icon("chart-area"),
-        #     color = "orange"
-        #   )
-        # })
-        # 
-        # output$infoBox2 <- renderInfoBox({
-        #   cat("Rendering infoBox1\n")
-        #   infoBox(
-        #     title = " ",   # Remove title
-        #     value = NULL,  # Remove value text
-        #     icon = icon("industry"),
-        #     color = "light-blue"
-        #   )
-        # })
-        
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           infoBox(

@@ -1,10 +1,6 @@
 'PIT FUNCTIONS'
 
 
-
-##
-
-
 get_param_fun <- function(params_dt, param_name) {
   params_dt[Parameters == param_name, Value]
 }
@@ -35,41 +31,28 @@ summarize_PIT_fun <- function(PIT_list, suffix) {
 
 
 
+# 
+# make_breaks_unique_fun <- function(breaks) {
+#   if (length(unique(breaks)) != length(breaks)) {
+#     breaks <- breaks + cumsum(c(0, diff(breaks) == 0)) * .Machine$double.eps * 1000
+#   }
+#   return(breaks)
+# }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-make_breaks_unique_fun <- function(breaks) {
-  if (length(unique(breaks)) != length(breaks)) {
-    breaks <- breaks + cumsum(c(0, diff(breaks) == 0)) * .Machine$double.eps * 1000
-  }
-  return(breaks)
-}
-
-
-# # Define the function for weighted deciles
-cal_weighted_deciles_fun <- function(total_inc, weight) {
-  deciles <- wtd.quantile(total_inc, weights = weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
-  deciles <- make_breaks_unique_fun(deciles)  # Ensure breaks are unique
-  decile_group <- cut(total_inc, breaks = deciles, include.lowest = TRUE, labels = FALSE)
-  return(decile_group)
-}
-
-
-# # Define the function for weighted centiles
-cal_weighted_centiles_fun <- function(total_inc, weight, centiles = seq(0, 1, by = 0.01)) {
-  boundaries <- wtd.quantile(total_inc, weights = weight, probs = centiles, na.rm = TRUE)
-  boundaries <- make_breaks_unique_fun(boundaries)  # Ensure breaks are unique
-  centile_group <- cut(total_inc, breaks = boundaries, include.lowest = TRUE, labels = FALSE)
-  return(centile_group)
-}
+# # # Define the function for weighted deciles
+# cal_weighted_deciles_fun <- function(total_inc, weight) {
+#   deciles <- wtd.quantile(total_inc, weights = weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
+#   deciles <- make_breaks_unique_fun(deciles)  # Ensure breaks are unique
+#   decile_group <- cut(total_inc, breaks = deciles, include.lowest = TRUE, labels = FALSE)
+#   return(decile_group)
+# }
+# 
+# 
+# # # Define the function for weighted centiles
+# cal_weighted_centiles_fun <- function(total_inc, weight, centiles = seq(0, 1, by = 0.01)) {
+#   boundaries <- wtd.quantile(total_inc, weights = weight, probs = centiles, na.rm = TRUE)
+#   boundaries <- make_breaks_unique_fun(boundaries)  # Ensure breaks are unique
+#   centile_group <- cut(total_inc, breaks = boundaries, include.lowest = TRUE, labels = FALSE)
+#   return(centile_group)
+# }

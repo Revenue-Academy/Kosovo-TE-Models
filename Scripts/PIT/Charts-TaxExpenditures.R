@@ -44,64 +44,7 @@ Tax_Expenditures_Charts <- function(te_agg,
          
          
           
-          # gender_pit_summary_te$Gender<-as.factor(gender_pit_summary_te$Gender)
-          # 
-          # 
-          # 
-          # 
-          # te_gender_groups_plt <- plot_ly(gender_pit_summary_te,
-          #                                 x = ~Gender,
-          #                                 y = ~tax_expenditures,
-          #                                 type = 'bar',
-          #                                 barmode = 'group',
-          #                                 marker = list(color = c('#ff7f0e', '#1f77b4'))) %>%
-          #   layout(
-          #     title = paste("Distribution of Tax Expenditures by Gender (in LCU),", SimulationYear),
-          #     xaxis = list(title = " ", tickmode = 'linear'), # Show all values on the x-axis
-          #     yaxis = list(title = " "),
-          #     bargap = 0.7, # Adjust this value to make bars thinner
-          #     annotations = list(
-          #       list(
-          #         x = -0.02,
-          #         y = -0.1,
-          #         text = "Source: WB staff estimation",
-          #         showarrow = FALSE,
-          #         xref = 'paper',
-          #         yref = 'paper',
-          #         align = 'left'
-          #       )
-          #     ))
-          # 
-          
-          
-          #te_agg_type$`tax incentive`<-as.factor(te_agg_type$`tax incentive`)
-          
-          # te_agg_type$year<-as.factor(te_agg_type$year)
-          # 
-          # 
-          # 
-          # te_gender_groups_plt <- plot_ly(te_agg_type, 
-          #                                 x = ~`tax incentive`, 
-          #                                 y = ~`tax expenditure`, 
-          #                                 type = 'bar', 
-          #                                 barmode = 'group',
-          #                                 marker = list(color = c('#ff7f0e', '#1f77b4'))) %>%
-          #   layout(
-          #     title = paste("Distribution of Tax Expenditures by Gender (in LCU),", SimulationYear),
-          #     xaxis = list(title = " ", tickmode = 'linear'), # Show all values on the x-axis
-          #     yaxis = list(title = " "),
-          #     bargap = 0.7, # Adjust this value to make bars thinner
-          #     annotations = list(
-          #       list(
-          #         x = -0.02,
-          #         y = -0.1,
-          #         text = "Source: WB staff estimation",
-          #         showarrow = FALSE,
-          #         xref = 'paper',
-          #         yref = 'paper',
-          #         align = 'left'
-          #       )
-          #     ))
+         
           
           # Create the plot
           te_gender_groups_plt <- plot_ly(te_agg_type, 
@@ -172,31 +115,7 @@ Tax_Expenditures_Charts <- function(te_agg,
   # Chart 4. Tax Expenditures by Decile Groups---------------------------------------------------------------
 
           
-          # # Create a grouped bar chart with Plotly and custom colors
-          # te_decile_groups_plt <- plot_ly(decile_pit_summary_tbl, 
-          #                                 x = ~decile_group, 
-          #                                 y = ~tax_expenditures, 
-          #                                # color = ~as.factor(year), 
-          #                                # colors = custom_colors,
-          #                                 hoverinfo = 'text+y', # Specify hover info to include text and y value
-          #                                 type = 'bar', 
-          #                                 barmode = 'group') %>%
-          #                           layout(#title = "Tax Expenditures by Decile Groups",
-          #                                  #title = paste("Tax Expenditures by Decile Groups,", min(forecast_horizon), "-", max(forecast_horizon)),
-          #                             title = paste("Tax Expenditures by Decile Groups (in LCU),", SimulationYear),
-          #                                  xaxis = list(title = "Decile", tickmode = 'linear'), # Show all values on the x-axis
-          #                                  yaxis = list(title = " "),
-          #                                  annotations = list(
-          #                                    list(
-          #                                      x = -0.02,
-          #                                      y = -0.1,
-          #                                      text = "Source: WB staff estimation",
-          #                                      showarrow = FALSE,
-          #                                      xref = 'paper',
-          #                                      yref = 'paper',
-          #                                      align = 'left'
-          #                                    )
-          #                                  ))
+        
           
             
             te_decile_groups_plt <- plot_ly(

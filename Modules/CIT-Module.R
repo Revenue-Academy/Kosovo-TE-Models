@@ -27,17 +27,16 @@ library(openxlsx)
 library(sfo)
 library(sf)
 
-# Define custom colors
+
 gc(TRUE)
-#options(future.globals.maxSize = 10 * 1024^3)
 options(scipen = 999)
 
 # I. UI --------------------------------------------------------------------
 ui <- dashboardPage(
   dashboardHeader(
     title = tags$div(
-      style = "display: flex; align-items: center;",  # Align image and text
-      uiOutput("headerImage"),  # Output slot for the image in the header
+      style = "display: flex; align-items: center;", 
+      uiOutput("headerImage"), 
       tags$span("CIT Module", style = "flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;")
     )
   ),
@@ -97,9 +96,7 @@ ui <- dashboardPage(
                        numericInput("default_Value", "Value", value = 0, min = 0, step = 0.01)
                 ),
                 column(3,
-                       # Keep the toggle for Tax Expenditures
                        switchInput("toggleSimulationRates", "Toggle Tax Expenditures", value = FALSE, onLabel = "On", offLabel = "Off")
-                       # Removed numericInput("sim_PIT_Rates", ...)
                 )
               ),
               div(h4("Selected Simulations Parameters"), style = "text-align: center;"),
@@ -356,10 +353,7 @@ server <- function(input, output, session) {
     cat("cit_simulation_parameters_updated assigned to GlobalEnv\n")
   })
   
-  # Removed any code that toggles sim_PIT_Rates in or out of the global environment
   observe({
-    # We still keep the logic that checks input$toggleSimulationRates to conditionally do TE, 
-    # but no references to sim_PIT_Rates now:
     if (!is.null(input$toggleSimulationRates) && length(input$toggleSimulationRates) > 0 && input$toggleSimulationRates) {
       cat("Tax Expenditures toggle is ON\n")
     } else {

@@ -30,6 +30,7 @@ list.of.packages <- unique(c("shinydashboard",
                              "base64enc",
                              "maps",
                              "sfo",
+                             "sf",
                              "circlize",
                              "flexdashboard",
                              "rpivotTable",
@@ -774,7 +775,7 @@ getwd()
         
         dt<-read_csv("dataset_pit_xk_2023.csv")%>%data.table()
           
-          #read_csv("~/Models/Kosovo_Models/Data/PIT/dataset_pit_xk_2023.csv")%>%data.table()
+         
         
         
         dt$tax_payer_group<-"0"
@@ -790,7 +791,7 @@ getwd()
       
         growth_factors_pit <- read_csv("growth_factors_pit.csv")%>%data.table()
           
-          #read_csv("~/Models/Kosovo-TE-Models/Data/PIT/growth_factors_pit.csv")%>%data.table()
+         
         
         # The 5 scenario labels
         scenarios_5 <- c("t0","t1","t2","t3","t4")
@@ -833,9 +834,7 @@ getwd()
                 
                 
                 clean_witheld_df <-  read_csv("clean_witheld_df1.csv")%>%data.table()
-                  # read_csv("~/Models/Kosovo-TE-Models/Data/PIT/clean_witheld_df1.csv")%>%
-                  # data.table()
-                  # 
+
                 clean_witheld_df$id_n<-as.character(clean_witheld_df$id_n)
                 
                 clean_witheld_df$tax_payer_group<-"1"
@@ -908,10 +907,7 @@ getwd()
                 
                 cit_raw<- read_csv("dataset_cit_xk.csv")%>%data.table()
           
-                #read_csv("~/Models/Kosovo_Models/Data/CIT/dataset_cit_xk.csv")%>%data.table()
-                
-                
-        
+               
                 NACE_SUT_table_cit <- read_excel("NACE_SUT_table.xlsx")%>%
                   dplyr::select(nace,section,description)%>%
                   distinct(nace, .keep_all = TRUE)
@@ -931,7 +927,7 @@ getwd()
                 
                 growth_factors_cit<-  read_csv("growfactors_cit_kosovo.csv")%>%data.table()
                   
-                  #read_csv("~/Models/Kosovo_Models/Data/CIT/growfactors_cit_kosovo.csv")%>%data.table()
+                
                 
                 
                 scenarios_5 <- c("t0","t1","t2","t3","t4")

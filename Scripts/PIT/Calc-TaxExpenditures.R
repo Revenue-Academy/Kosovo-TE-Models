@@ -15,10 +15,6 @@ pit_simulation_parameters_updated <- pit_simulation_parameters_updated %>% data.
 
 pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
 
-#pit_simulation_parameters_updated_te[9,7]<-0
-#pit_simulation_parameters_updated_te[10,7]<-0
-#start.time <- proc.time()
-
 # I.Tax Expenditures (rate_ded_rent) ---------------------------------------
     pit_simulation_parameters_updated_te<-pit_simulation_parameters_raw
     pit_simulation_parameters_updated_te[9,7]<-0
@@ -337,6 +333,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
   
 
 
+      
 # II. Tax Expenditures (rate_ded_charitable)---------------------------------------------------------------------
       pit_simulation_parameters_updated_te<-pit_simulation_parameters_raw
       pit_simulation_parameters_updated_te[10,7]<-0
@@ -651,7 +648,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
     #  view(te_agg_ded_charitable)
       
 
-# Aggregate data ----------------------------------------------------------
+      # 8. Aggregate data ----------------------------------------------------------
 
       te_agg_ded_rent$`tax incentive`<-"ded_rent"
       te_agg_ded_charitable$`tax incentive`<-"ded_charitable"
@@ -660,7 +657,8 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
      
 
-# III. Aggregate data--------------------------------------------------------------------
+     
+# III. Aggregate data --------------------------------------------------------------------
       
       pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
@@ -853,29 +851,9 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
       
       
-      # Decile ------------------------------------------------------------------
-      
-      # # Define the function for weighted deciles
+      # 6. Decile ------------------------------------------------------------------
       
       
-      # #Apply the functions to each data frame in the PIT_BU_list_TE
-      # for (name in names(PIT_BU_list_TE)) {
-      #   df <- PIT_BU_list_TE[[name]]
-      #   df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-      #   df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-      #   PIT_BU_list_TE[[name]] <- df
-      # }
-      # 
-      # # Apply the functions to each data frame in the PIT_SIM_list_TE
-      # for (name in names(PIT_SIM_list_TE)) {
-      #   df <- PIT_SIM_list_TE[[name]]
-      #   df$decile_group <- cal_weighted_deciles_fun(df$calc_total_inc, df$weight)
-      #   df$centile_group <- cal_weighted_centiles_fun(df$calc_total_inc, df$weight)
-      #   PIT_SIM_list_TE[[name]] <- df
-      # }
-      # 
-      
-      #Apply the functions to each data frame in the PIT_BU_list
       calc_weighted_groups_in_one_pass <- function(DT, inc_col = "calc_total_inc", w_col = "weight") {
         # 1. Keep track of original row order so we can restore it after sorting
         DT[, row_id__tmp := .I]
@@ -912,9 +890,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
         invisible(DT)
       }
       
-      # -------------------------------------------------------------------
-      # Loop over lists in data.tables
-      # -------------------------------------------------------------------
+
       for (i in seq_along(PIT_BU_list_TE)) {
         calc_weighted_groups_in_one_pass(
           DT      = PIT_BU_list_TE[[i]],
@@ -979,7 +955,6 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
       
       
-      # #I. Data preparation --------------------------------------------------------
       # 1.Summarize data and prepare table for GUI with TE -------------------------------------------------------
       #       # Extract by type of TE
       patterns <- c('year',
@@ -1015,14 +990,6 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
                       "tax expenditure"="difference",
         )
       
-      #       
-      #       # Adding name from raw table
-      #      
-      #       # OVA DA SE NAPRAVI
-      # te_summary_df<-left_join(te_summary_df,pit_simulation_parameters_raw,by=c(`tax incentive`="LongName"))%>%
-      #   select( year,`tax incentive`,`current law`,benchmark,`tax expenditure`,AdditionalInfo)%>%
-      #   dplyr::rename("legal reference"="AdditionalInfo")
-      
       
       #     Table for GUI
       te_summary_df <- as.data.table(te_summary_df)
@@ -1030,12 +997,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       te_summary_df <- te_summary_df %>%
         mutate(across(where(is.numeric), ~ round(., 1)))
       
-      
-      # # Divide all numerical columns by 1e03 and round to 1 decimal place using dplyr
-      # te_summary_df <- te_summary_df %>%
-      #   mutate(across(where(is.numeric), ~ round(. / 1e03, 1)))
-      
-      
+
       
       
       # 2.Tax expenditures by years ------------------------------------------------------------------------
@@ -1043,7 +1005,7 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       te_agg<-te_summary_df%>%
         dplyr::select(year, `tax incentive`, `tax expenditure`)%>%
         dplyr:: filter(`tax incentive` %in% c("pitax"))
-      #dplyr:: filter(`tax incentive` %in% c("calc_pitax",'pit_diplomatic_consular'))
+   
       
       
       
@@ -1052,13 +1014,10 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
                                         calc_pitax = "Tax_Expenditures"
         ))
       
-      
-      # te_agg <- te_agg %>%
-      #   mutate(across(where(is.numeric), ~ round(. / 1e03, 1)))
+    
       
       
-      
-      # 4.Tax expenditures by NACE sections -----------------------------------------------------------
+      # 3.Tax expenditures by NACE sections -----------------------------------------------------------
       
       # Function to extract columns and add scenario identifier
       extract_te_nace_fun <- function(dt, scenario) {
@@ -1113,12 +1072,10 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
       nace_pit_summary_tbl$value<-"Value"
       
-      
-      # te_agg <- te_agg %>%
-      #   mutate(across(where(is.numeric), ~ . / 1e03))
+     
       
       
-      # 5.Tax Expenditures by Decile Groups ---------------------------------------------
+      # 4.Tax Expenditures by Decile Groups ---------------------------------------------
       
       # Function to extract columns and add scenario identifier
       extract_te_decile_fun <- function(dt, scenario) {
@@ -1171,106 +1128,16 @@ pit_simulation_parameters_updated_te<-pit_simulation_parameters_updated
       
       
       
-      # 6.Choropleth Map ----------------------------------------------------------
-      
-      # # Function to extract columns and add scenario identifier
-      # extract_te_region_fun <- function(dt, scenario) {
-      #   dt[, .(pitax, City, scenario = scenario)]
-      # }
-      # 
-      # # Extract and process PIT_BU_list_TE
-      # extracted_tables_bu <- mapply(extract_te_region_fun, PIT_BU_list_TE, scenarios, SIMPLIFY = FALSE)
-      # combined_data_bu <- rbindlist(extracted_tables_bu)
-      # result_bu <- combined_data_bu[, .(total_calc_pitax_bu = sum(pitax)), by = .(scenario, City)]
-      # 
-      # # Extract and process PIT_SIM_list_TE
-      # 
-      # extracted_tables_sim <- mapply(extract_te_region_fun, PIT_SIM_list_TE, scenarios, SIMPLIFY = FALSE)
-      # combined_data_sim <- rbindlist(extracted_tables_sim)
-      # result_sim <- combined_data_sim[, .(total_calc_pitax_sim = sum(pitax)), by = .(scenario, City)]
-      # 
-      # # Add year column to both results
-      # result_bu[, year := forecast_horizon[match(scenario, scenarios)]]
-      # result_sim[, year := forecast_horizon[match(scenario, scenarios)]]
-      # 
-      # # Combine both results into one data frame
-      # region_pit_summary <- merge(result_bu, result_sim, by = c("scenario", "year","City"), all = TRUE)
-      # 
-      # 
-      # region_pit_summary<-region_pit_summary%>%
-      #   dplyr::mutate(tax_expenditures=total_calc_pitax_sim-total_calc_pitax_bu)
-      # 
-      # 
-      # region_pit_summary_te<-region_pit_summary%>%
-      #   select(year,City,tax_expenditures)
-      # 
-      # 
-      # # Remove rows with NA in City for the plot
-      # region_pit_summary_te <- region_pit_summary_te[!is.na(City)]
-      # #region_pit_summary_te[is.na(City), City := "Other"]
-      # 
-      # region_pit_summary_te<-region_pit_summary_te%>%
-      #   dplyr::filter(year==SimulationYear)
-      # 
-      # merged_df_regions_pit_regions<-left_join(region_pit_summary_te,region_data,by=c('City'='city'))
-      # 
-      # 
-      # merged_df_regions_pit_regions<-merged_df_regions_pit_regions%>%
-      #   dplyr::group_by(regions)%>%
-      #   dplyr::summarise(tax_expenditures=sum(tax_expenditures)) 
-      # 
-      # 
-      # choropleth_data <- merge(kosovo_regions, merged_df_regions_pit_regions, by.x = "nam", by.y = "regions", all.x = TRUE)
-      
-      
-      
-      
-      # 7.Gender ----------------------------------------------------------------
-      # # Function to extract columns and add scenario identifier
-      # extract_te_gender_fun <- function(dt, scenario) {
-      #   dt[, .(pitax, Gender, scenario = scenario)]
-      # }
-      # 
-      # # Extract and process PIT_BU_list_TE
-      # extracted_tables_bu <- mapply(extract_te_gender_fun, PIT_BU_list_TE, scenarios, SIMPLIFY = FALSE)
-      # combined_data_bu <- rbindlist(extracted_tables_bu)
-      # result_bu <- combined_data_bu[, .(total_calc_pitax_bu = sum(pitax)), by = .(scenario, Gender)]
-      # 
-      # # Extract and process PIT_SIM_list_TE
-      # 
-      # extracted_tables_sim <- mapply(extract_te_gender_fun, PIT_SIM_list_TE, scenarios, SIMPLIFY = FALSE)
-      # combined_data_sim <- rbindlist(extracted_tables_sim)
-      # result_sim <- combined_data_sim[, .(total_calc_pitax_sim = sum(pitax)), by = .(scenario, Gender)]
-      # 
-      # # Add year column to both results
-      # result_bu[, year := forecast_horizon[match(scenario, scenarios)]]
-      # result_sim[, year := forecast_horizon[match(scenario, scenarios)]]
-      # 
-      # # Combine both results into one data frame
-      # gender_pit_summary <- merge(result_bu, result_sim, by = c("scenario", "year","Gender"), all = TRUE)
-      # 
-      # 
-      # gender_pit_summary<-gender_pit_summary%>%
-      #   dplyr::mutate(tax_expenditures=total_calc_pitax_sim-total_calc_pitax_bu)
-      # 
-      # 
-      # gender_pit_summary_te<-gender_pit_summary%>%
-      #   select(year,Gender,tax_expenditures)
-      # 
-      # 
-      # # Remove rows with NA in Gender for the plot
-      # gender_pit_summary_te <- gender_pit_summary_te[!is.na(Gender)]
-      # #gender_pit_summary_te[is.na(Gender), Gender := "Other"]
-      # 
-      # gender_pit_summary_te<-gender_pit_summary_te%>%
-      #   dplyr::filter(year==SimulationYear)
-      # 
       
       
       
       
       
-      # 8. Type of taxpayer ----------------------------------------------
+      
+      
+      
+      
+      # 5.Type of taxpayer ----------------------------------------------
       
       
       # Function to extract columns and add scenario identifier

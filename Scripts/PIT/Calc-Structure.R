@@ -1,23 +1,23 @@
 " Data prep Distribution Dashboard "
 
-# I. Labor-capital -----------------------------------------------------
+# I. Gross income by type of income -----------------------------------------------------
 
 columns_gross_income <- c( 
-  "gross_wage" , 
-  "net_income_business" , 
-  "net_income_partnership" ,
-  "gross_rents" , 
-  "gross_i_interest_pen_pay" , 
-  "gross_i_interest" ,
-  "gross_i_inta_prop" , 
-  "capital_gain" , 
-  "foreign_s_inc" ,
-  "other_inc_gifts",
-  "decile_group",
-  "total_inc_adjusted",
-  "gross_wage_w"
-  
-)
+                          "gross_wage" , 
+                          "net_income_business" , 
+                          "net_income_partnership" ,
+                          "gross_rents" , 
+                          "gross_i_interest_pen_pay" , 
+                          "gross_i_interest" ,
+                          "gross_i_inta_prop" , 
+                          "capital_gain" , 
+                          "foreign_s_inc" ,
+                          "other_inc_gifts",
+                          "decile_group",
+                          "total_inc_adjusted",
+                          "gross_wage_w"
+                          
+                        )
 
 # Select columns 
 selected_gross_desc_tbl <- select(PIT_BU_list$t0, all_of(columns_gross_income))
@@ -42,9 +42,6 @@ labor_capital <- selected_gross_desc_tbl %>%
 #       # Reshape the data into long format
 labor_capital_type <- labor_capital %>%
   gather(key = "gross_income", value = "value",  gross_wage_w,gross_wage, net_income_business, net_income_partnership, gross_rents, gross_i_interest_pen_pay,gross_i_interest, gross_i_inta_prop, capital_gain, foreign_s_inc, other_inc_gifts)
-
-# Reverse the order of the factors for 'gross_income'
-# labor_capital_type$gross_income <- factor(labor_capital_type$gross_income, levels = c("labor_wages","labor_temporary_contract","labor_agricultural","capital_dividends_profits","capital_property_income","capital_other"))
 
 
 # II. Type of Income ---------------------------------------------------------------------

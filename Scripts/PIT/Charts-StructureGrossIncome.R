@@ -2,7 +2,7 @@
 
 # Define custom colors
 custom_colors <- c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf')
-# Infoboxes colors: # red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
+
 
 # I.Function for Dashboard ------------------------------------------------------------------
 
@@ -12,10 +12,6 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
 
 # I.Total Gross income -------------------------------------------------------------------------
 
-  
-                    # Define custom colors for the gross income categories
-                   # custom_colors <- c("labor" = '#1f77b4', "capital" = '#ff7f0e')
-                    
                     gross_inc_plt <- plot_ly(
                                         gross_income_BU_SIM,
                                         x = ~year,
@@ -50,17 +46,17 @@ Structure_GrossIncome_Charts_fun <- function(gross_income_BU_SIM,
                   
                     
                     color_mapping <- c(
-                      "forestgreen",       # keep for a deep green
-                      "deeppink",          # replaces "chartreuse" (much more contrast)
-                      "cyan",              # keep
-                      "brown",             # keep
-                      "purple",            # keep
-                      "orange",            # keep
-                      "darkturquoise",     # keep
-                      "#1f77b4",           # Plotly blue
-                      "red",               # keep
-                      "gold",              # replaces second "chartreuse" with warmer contrast
-                      "mediumslateblue"    # replaces "yellow" with a clearer purple-blue
+                      "forestgreen",       
+                      "deeppink",          
+                      "cyan",              
+                      "brown",             
+                      "purple",            
+                      "orange",            
+                      "darkturquoise",     
+                      "#1f77b4",           
+                      "red",               
+                      "gold",              
+                      "mediumslateblue"    
                     )
                     
                     
