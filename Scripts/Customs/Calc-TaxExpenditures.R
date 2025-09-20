@@ -135,7 +135,9 @@ start.time <- proc.time()
                                   dplyr::group_by(Treatment)%>%
                                   dplyr::summarise(Value=sum(Value,na.rm = TRUE))
 
-                                CustomsDuties_base_pie<-melt(CustomsDuties_base_pie)
+                                #CustomsDuties_base_pie<-melt(CustomsDuties_base_pie)
+                                CustomsDuties_base_pie <- reshape2::melt(CustomsDuties_base_pie)
+                                
 
                                 # 2.3 TE's by HS Type of products -----------------------------------------
 
@@ -172,7 +174,8 @@ start.time <- proc.time()
                                 CustomsDuties_TE_type_products<-rbind(CustomsDuties_TE_Agricultural,CustomsDuties_TE_Industrial)
                                 CustomsDuties_TE_type_products$Chapter<-NULL
 
-                                CustomsDuties_TE_type_products<-melt(CustomsDuties_TE_type_products)
+                                #CustomsDuties_TE_type_products<-melt(CustomsDuties_TE_type_products)
+                                CustomsDuties_TE_type_products<-reshape2::melt(CustomsDuties_TE_type_products)
 
                                 CustomsDuties_TE_type_products$Treatment<- factor(CustomsDuties_TE_type_products$Treatment)
 
@@ -416,7 +419,8 @@ start.time <- proc.time()
                                 
                                 
                                 
-                                MainResultsCustoms1<-melt(MainResultsCustoms1)
+                                #MainResultsCustoms1<-melt(MainResultsCustoms1)
+                                MainResultsCustoms1<-reshape2::melt(MainResultsCustoms1)
                                 
                                 MainResultsCustoms2<-MainResultsCustoms1
                                 MainResultsCustoms1$value<-round(MainResultsCustoms1$value,2)
@@ -1199,7 +1203,8 @@ start.time <- proc.time()
                         )
                       
                       
-                      MainResultsExcise_1<-melt(MainResultsExcise_1)
+                      #MainResultsExcise_1<-melt(MainResultsExcise_1)
+                      MainResultsExcise_1<-reshape2::melt(MainResultsExcise_1)
                       MainResultsExcise_2<-MainResultsExcise_1
                       MainResultsExcise_2$value<-round(MainResultsExcise_2$value,2)
                       

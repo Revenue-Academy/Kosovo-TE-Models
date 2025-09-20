@@ -4,7 +4,10 @@
 
 rm(list = ls())
 #path1<-" "# <--------Set your path here
-path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
+path1<-"C:/Users/User/Documents/Models/Kosovo-TE-Models"
+#C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
+
+
 
 'Step 2. Press CTRL+A to select all lines in this script and after that press CTRL+Enter to execute selected lines'
 
@@ -45,7 +48,9 @@ list.of.packages <- unique(c("shinydashboard",
                              "purrr",
                              "tidyr",
                              "RColorBrewer",
-                             "Hmisc"))
+                             "Hmisc",
+                             "ineq"
+                             ))
 
 # Check for missing packages and install them
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -56,9 +61,9 @@ lapply(list.of.packages, library, character.only = TRUE)
 
 
 
-install.packages("https://cran.r-project.org/src/contrib/Archive/IC2/IC2_1.0-1.tar.gz",
-                 repos = NULL, type = "source", method = "wininet")
-
+# install.packages("https://cran.r-project.org/src/contrib/Archive/IC2/IC2_1.0-1.tar.gz",
+#                  repos = NULL, type = "source", method = "wininet")
+# 
 
 
 # Warning manual installation of rccmisc library
@@ -621,7 +626,8 @@ getwd()
           
           colnames(matrix) <- matrix[1,]
           
-          data <- matrix[c(-1,-2),c(-1,-2)] %>% as.matrix() %>% melt()
+          #data <- matrix[c(-1,-2),c(-1,-2)] %>% as.matrix() %>% melt()
+          data <- matrix[c(-1,-2),c(-1,-2)] %>% as.matrix() %>% reshape2::melt()
           
           product_industry_name <- matrix[[2]][c(-1,-2)]
           product_industry_code <- matrix[[1]][c(-1,-2)]
@@ -670,6 +676,7 @@ getwd()
                 
                 # Name of the version of model
                 version_vat_model<-c("Data_SUT_XK_v1.6a.xlsx")
+                #version_vat_model<-c("Data_SUT_XK_v1.6.xlsx")
                 
                 # Taxable proportions
                 taxable_proportions_raw <- read_excel("VAT_TaxableProportions.xlsx")

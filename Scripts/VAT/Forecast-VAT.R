@@ -588,6 +588,8 @@ forecast_horizon <- seq(base_year_VAT, end_year)
                                          dplyr::mutate(across(-year, ~ round(., 1)))
                 
                 
+                MACRO_FISCAL_INDICATORS$Year<-as.integer(MACRO_FISCAL_INDICATORS$Year)
+                
                 forecast_combined_agg_tbl_wide<-left_join(forecast_combined_agg_tbl_wide_raw,MACRO_FISCAL_INDICATORS,by=c("year"="Year"))
                 
               

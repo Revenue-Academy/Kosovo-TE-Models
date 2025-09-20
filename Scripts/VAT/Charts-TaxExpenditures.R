@@ -58,7 +58,7 @@ VAT_TE_fun <- function(VAT_TE_tbl,forecast_combined_te_selected,forecast_TE_tbl_
     dplyr::filter(scenario=="Simulation")%>% 
     dplyr::select(-c("year",
                      "scenario"))%>%
-    melt()
+    reshape2::melt()
   
  # forecast_combined_te_selected_sim$label<-"TE"
   

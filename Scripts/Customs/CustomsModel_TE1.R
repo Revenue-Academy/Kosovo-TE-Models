@@ -629,8 +629,9 @@ options(warn = -1)
                       dplyr::group_by(Treatment)%>%
                       dplyr::summarise(Value=sum(Value,na.rm = TRUE))
                     
-                    CustomsDuties_base_pie<-melt(CustomsDuties_base_pie)
-
+                    #CustomsDuties_base_pie<-melt(CustomsDuties_base_pie)
+                    CustomsDuties_base_pie<-reshape2::melt(CustomsDuties_base_pie)
+                    
             # 1.3 TE's by HS Type of products -----------------------------------------
   
                   CustomsDuties_TE_type_products<-CustomsDuties_TE_agg_HS%>%
@@ -666,7 +667,8 @@ options(warn = -1)
                     CustomsDuties_TE_type_products<-rbind(CustomsDuties_TE_Agricultural,CustomsDuties_TE_Industrial)
                     CustomsDuties_TE_type_products$Chapter<-NULL
                     
-                    CustomsDuties_TE_type_products<-melt(CustomsDuties_TE_type_products)
+                    #CustomsDuties_TE_type_products<-melt(CustomsDuties_TE_type_products)
+                    CustomsDuties_TE_type_products<-reashape2::melt(CustomsDuties_TE_type_products)
                     
                     CustomsDuties_TE_type_products$Treatment<- factor(CustomsDuties_TE_type_products$Treatment)
                   
@@ -904,7 +906,8 @@ options(warn = -1)
                   
                 
                 
-                MainResultsCustoms1<-melt(MainResultsCustoms1)
+                #MainResultsCustoms1<-melt(MainResultsCustoms1)
+                MainResultsCustoms1<-reshape2::melt(MainResultsCustoms1)
                 MainResultsCustoms1$value<-round(MainResultsCustoms1$value,2)
                 
                 MainResultsFinal<-MainResultsCustoms1%>%
@@ -1009,7 +1012,10 @@ year_df <- MacroFiscalData%>%
                 "Current taxes on income, wealth, etc.")
 
 year_df$Year<-as.factor(year_df$Year)
-year_df<-melt(year_df)
+#year_df<-melt(year_df)
+year_df<-reshape2::melt(year_df)
+
+
 year_df$color <- factor(year_df$variable, labels =c( "orange","brown","forestgreen","red", "cyan","royalblue","blue")) 
 
 StructureOfTaxRevenues_Nominal <- plot_ly(year_df, x = ~Year, y = ~value,

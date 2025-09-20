@@ -68,7 +68,7 @@ suppressMessages({
       Households=sum(Final_Demand_HH,na.rm = TRUE),
       NPISHs=sum(Final_Demand_NPISH,na.rm = TRUE),
       Government=sum(Final_Demand_Government,na.rm = TRUE))%>%
-    melt()
+    reshape2::melt()
   
       # Chart 4.Breakdown of VAT by Sector ---------------------------------------------
       

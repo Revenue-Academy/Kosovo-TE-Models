@@ -154,7 +154,7 @@ VAT_aggregation_revenues_fun <- function(forecast_combined_agg,forecast_combined
             dplyr::select(-c("year","Total_Revenues_from_Intermediate_Inputs","Final_Demand_HH","Final_Demand_NPISH","Final_Demand_Government",
                              "scenario"))%>%
             
-            melt()
+            reshape2::melt()
           
           
           vat_treemap_sectors_plt <- plot_ly(

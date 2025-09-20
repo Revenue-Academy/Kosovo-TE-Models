@@ -843,7 +843,7 @@
 #                                     dplyr::group_by(Subdataset)%>%
 #                                     dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
 #                             
-#                             ExciseRevenueAlcoholProducts<-melt(AlcoholProducts_Structure)
+#                             ExciseRevenueAlcoholProducts<-reshape2::melt(AlcoholProducts_Structure)
 #                             
 #                             Structure_Excise_AlcoholProducts <- ExciseRevenueAlcoholProducts %>%
 #                               plot_ly(labels = ~Subdataset, values = ~value)
@@ -975,7 +975,7 @@
 #                         dplyr::summarise(Value=sum(ExciseRevenue,na.rm = TRUE))
 #                       
 #                       
-#                       ExciseProducts_TE<-melt(ExciseProducts_TE)
+#                       ExciseProducts_TE<-reshape2::melt(ExciseProducts_TE)
 #                       
 #                       ExciseProducts_TE$DataSet<- factor(ExciseProducts_TE$DataSet)
 #                       
@@ -1063,7 +1063,7 @@
 #                         dplyr::summarise(Value=sum(Excise_TE,na.rm = TRUE))
 #                       
 #                       
-#                        ExciseMineralOils_TE<-melt(ExciseMineralOils_TE)
+#                        ExciseMineralOils_TE<-reshape2::melt(ExciseMineralOils_TE)
 #                       
 #                        #,"purple","green","gold"
 #                      
@@ -1104,7 +1104,7 @@
 #                         dplyr::summarise(Value=sum(Excise_TE,na.rm = TRUE))
 #                       
 #                       
-#                       TobaccoProducts_TE<-melt(TobaccoProducts_TE)
+#                       TobaccoProducts_TE<-reshape2::melt(TobaccoProducts_TE)
 #                       
 #                       
 #                       TobaccoProducts_TE$color <- factor(TobaccoProducts_TE$Subdataset, labels =c( "royalblue","orange")) #,"forestgreen"
@@ -1143,7 +1143,7 @@
 #                         dplyr::summarise(Value=sum(Excise_TE,na.rm = TRUE))
 #                       
 #                       
-#                       AlcoholProducts_TE<-melt(AlcoholProducts_TE)
+#                       AlcoholProducts_TE<-reshape2::melt(AlcoholProducts_TE)
 #                       
 #                       
 #                       AlcoholProducts_TE$color <- factor(AlcoholProducts_TE$Subdataset, labels =c( "royalblue","orange","forestgreen","brown","cyan"))
@@ -1311,7 +1311,7 @@
             
             
             
-                                                                  MainResultsExcise<-melt(MainResultsExcise)
+                                                                  MainResultsExcise<-reshape2::melt(MainResultsExcise)
                                                                   MainResultsExcise$value<-round(MainResultsExcise$value,2)
             
                                                                   MainResultsExcise<-MainResultsExcise%>%
@@ -1366,7 +1366,7 @@
                                                                   
                                                                   
                                                                   
-                                                                   MainResultsExcise_1<-melt(MainResultsExcise_1)
+                                                                   MainResultsExcise_1<-reshape2::melt(MainResultsExcise_1)
                                                                    MainResultsExcise_1$value<-round(MainResultsExcise_1$value,2)
                                                                   
                                                                    MainResultsExcise_1<-MainResultsExcise_1%>%
