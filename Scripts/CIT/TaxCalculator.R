@@ -651,7 +651,7 @@
                                                 by = c("Indicator"), 
                                                 suffixes = c("_bu", "_sim"))%>%
                     select(-c("Name"))%>%
-                    rename("Business as usual"="Simulation_bu",
+                    dplyr::rename("Business as usual"="Simulation_bu",
                            "Simulation"="Simulation_sim",
                     )
                   
@@ -907,7 +907,7 @@
                                                   by = c("Indicator"), 
                                                   suffixes = c("_bu", "_sim"))%>%
                     select(-c("Name"))%>%
-                    rename("Business as usual"="Simulation_bu",
+                    dplyr::rename("Business as usual"="Simulation_bu",
                            "Simulation"="Simulation_sim",
                     )
                   
