@@ -145,7 +145,7 @@ actual_year_simulation <- simulation_year
                                   dplyr::group_by(Year,Treatment)%>%
                                   dplyr::summarise(Value=sum(Value,na.rm = TRUE))
 
-                                CustomsDuties_base_pie<-melt(CustomsDuties_base_pie)
+                                CustomsDuties_base_pie<-reshape2::melt(CustomsDuties_base_pie)
 
                                 # 2.3 TE's by HS Type of products -----------------------------------------
 
@@ -182,7 +182,7 @@ actual_year_simulation <- simulation_year
                                 CustomsDuties_TE_type_products<-rbind(CustomsDuties_TE_Agricultural,CustomsDuties_TE_Industrial)
                                 CustomsDuties_TE_type_products$Chapter<-NULL
 
-                                CustomsDuties_TE_type_products<-melt(CustomsDuties_TE_type_products)   #<---- ovde ima grreska
+                                CustomsDuties_TE_type_products<-reshape2::melt(CustomsDuties_TE_type_products)   #<---- ovde ima grreska
 
                                 CustomsDuties_TE_type_products$Treatment<- factor(CustomsDuties_TE_type_products$Treatment)
 
@@ -373,7 +373,7 @@ actual_year_simulation <- simulation_year
           #                       
           #                       
           #                       
-          #                       MainResultsCustoms1<-melt(MainResultsCustoms1)
+          #                       MainResultsCustoms1<-reshape2::melt(MainResultsCustoms1)
           #                       
           #                       MainResultsCustoms2<-MainResultsCustoms1
           #                       MainResultsCustoms1$value<-round(MainResultsCustoms1$value,2)
@@ -538,9 +538,9 @@ actual_year_simulation <- simulation_year
                                     `Benchmark Effective Customs Rate(without FTA)`,
                                     `Tax Expenditures(without FTA)`,
                                     `Tax Expenditures(without FTA) as % of GDP`,
-                                    `Tax Expenditures(without FTA) as % of import FOB`,
-                                    `Tax Expenditures(without FTA) as % of Government Revenue`,
-                                    `Tax Expenditures (as % of Taxes On Products)`,
+                                    #`Tax Expenditures(without FTA) as % of import FOB`,
+                                    #`Tax Expenditures(without FTA) as % of Government Revenue`,
+                                    #`Tax Expenditures (as % of Taxes On Products)`,
                                     `Tax Expenditures (as % of CustomsRevenue)`
                                   )
                                 
@@ -1232,7 +1232,7 @@ actual_year_simulation <- simulation_year
                       ## test
                       Legal_Fuels_Cars_Products<-Legal_Fuels_Cars%>%
                         dplyr::select(Subdataset,TE)%>%
-                        dplyr::group_by(Subdataset)%>%
+                        dplyr::group_by(Year,Subdataset)%>%
                         dplyr::summarise(TE = pmax(sum(TE, na.rm = TRUE), 0))%>%
                         dplyr::filter(TE>0)
                       
@@ -1331,8 +1331,8 @@ actual_year_simulation <- simulation_year
                           `Excise Revenue Benchmark`,
                           `Tax Expenditures`,
                           `Tax Expenditures as % of GDP`,
-                          `Tax Expenditures as % of Government Revenue`,
-                          `Tax Expenditures (as % of Taxes On Products)`,
+                          #`Tax Expenditures as % of Government Revenue`,
+                          #`Tax Expenditures (as % of Taxes On Products)`,
                           `Tax Expenditures (as % of ExciseRevenue)`,
                           `Tax Expenditures by Mineral Oils`,
                           `Tax Expenditures by Tobacco Products`,
