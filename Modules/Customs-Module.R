@@ -801,7 +801,7 @@ server <- function(input, output, session) {
       source(paste0(path1, "/Scripts/Customs/Calc_aggregate_data.R"))
       
       if (input$toggleSimulationRates) {
-        source(paste0(path1, "/Scripts/Customs/Calc-TaxExpenditures1.R"))
+        source(paste0(path1, "/Scripts/Customs/Calc-TaxExpenditures.R"))
         summary_TE_SIM <- get("summary_TE_SIM", envir = .GlobalEnv)
         summary_TE_SIM_Excise <- get("summary_TE_SIM_Excise", envir = .GlobalEnv)
       } else {
