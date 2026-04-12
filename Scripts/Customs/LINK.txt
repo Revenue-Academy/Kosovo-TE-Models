@@ -1,3 +1,0 @@
-https://ambijat.github.io/uncomtrade/
-https://uncomtrade.org/docs/api-subscription-keys/
-https://www.r-bloggers.com/2023/07/step-by-step-guide-to-scrape-un-comtrade-metadata-with-r-and-selenium/
