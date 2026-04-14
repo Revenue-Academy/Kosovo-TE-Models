@@ -90,8 +90,6 @@ library(data.table)
 library(sf)
 
 
-rm(list = ls())
-path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/Kosovo-TE-Models"# <--------Set your path here
 path <- paste0(path1, "/Data/ImportData")
 setwd(path)
 getwd()
