@@ -60,6 +60,24 @@ actual_year_simulation <- simulation_year
                                 # 1.3 Estimation of Tax Expenditures for Customs duties -----------------------
                                 # 1.4 Countries -----------------------------------------------------------
 
+                                
+                                CustomsDuties_base <- CustomsDuties_base %>%
+                                  dplyr::mutate(
+                                    Treatment = dplyr::if_else(
+                                      iso2c == "US" & Year == 2025 & Month >= 8 & Month <= 12,
+                                      "Preferential",
+                                      Treatment
+                                    )
+                                  )
+                                
+                                # 
+                                # test<-CustomsDuties_base%>%
+                                #   filter(iso2c=="US")%>%
+                                #   filter(Year=="2025")%>%
+#   select(Month,Treatment)
+                                
+                                
+                                
                                           CustomsDuties_TE_agg_countries<-CustomsDuties_base%>%
                                             dplyr::group_by(Year,HS_code,HS_code_s,iso2c,iso3c,Treatment,countries)%>%
                                             dplyr::filter(Treatment=="NonPreferential")%>%
