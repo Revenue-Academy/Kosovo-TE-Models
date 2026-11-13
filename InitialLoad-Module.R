@@ -2,9 +2,6 @@
                                           '
 'Step 1. Set your local path to the model directory'
 
-# Test
-
-
 rm(list = ls())
 
 
