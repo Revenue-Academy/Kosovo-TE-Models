@@ -23,6 +23,122 @@ library(RColorBrewer)
 library(Hmisc)
 library(openxlsx)
 
+# ============================================================
+# Customs STARTUP: LOAD THE ENTIRE SAVED .Rdata WORKSPACE
+# ============================================================
+# The module runs in its own R process when started by the Toolkit.
+# Restore EVERY saved object into THAT process's .GlobalEnv before any
+# module initialization or simulation code executes. No name filtering.
+# Override the chosen file with Sys.setenv(CUSTOMS_RDATA_FILE="C:/.../my.Rdata")
+# in RStudio before launching the Toolkit, if the auto-detected file is wrong.
+
+.customs_source_folder <- local({
+  source_files <- unlist(lapply(sys.frames(), function(fr) {
+    f <- get0("ofile", envir = fr, inherits = FALSE, ifnotfound = NULL)
+    if (is.character(f) && length(f) == 1L && !is.na(f) && nzchar(f)) f
+    else character(0)
+  }), use.names = FALSE)
+  source_files <- source_files[grepl("^Customs-Module.*\\.R$",
+                                     basename(source_files), ignore.case = TRUE)]
+  if (length(source_files)) {
+    normalizePath(dirname(tail(source_files, 1L)), winslash = "/", mustWork = TRUE)
+  } else {
+    normalizePath(getwd(), winslash = "/", mustWork = TRUE)
+  }
+})
+
+.customs_workspace_dirs <- unique(normalizePath(c(
+  .customs_source_folder,
+  file.path(.customs_source_folder, "Data", "Customs"),
+  file.path(.customs_source_folder, "Data"),
+  dirname(.customs_source_folder),
+  file.path(dirname(.customs_source_folder), "Data", "Customs"),
+  file.path(dirname(.customs_source_folder), "Data"),
+  dirname(dirname(.customs_source_folder)),
+  file.path(dirname(dirname(.customs_source_folder)), "Data", "Customs"),
+  getwd(),
+  file.path(getwd(), "Data", "Customs")
+), winslash = "/", mustWork = FALSE))
+.customs_workspace_dirs <- .customs_workspace_dirs[dir.exists(.customs_workspace_dirs)]
+
+.customs_find_workspace <- function() {
+  configured <- Sys.getenv("CUSTOMS_RDATA_FILE", unset = "")
+  if (nzchar(configured)) {
+    candidates <- unique(c(configured,
+                           file.path(.customs_workspace_dirs, configured)))
+    matches <- candidates[file.exists(candidates) & !dir.exists(candidates)]
+    if (!length(matches)) stop(
+      "CUSTOMS_RDATA_FILE does not point to an existing file: ", configured,
+      "\nTried:\n", paste(candidates, collapse = "\n"), call. = FALSE
+    )
+    return(normalizePath(matches[1L], winslash = "/", mustWork = TRUE))
+  }
+
+  # Prefer the exact filename used by the working PIT module: .Rdata
+  exact <- unlist(lapply(.customs_workspace_dirs, function(d) {
+    file.path(d, c(".Rdata", ".RData", ".rdata", ".rda"))
+  }), use.names = FALSE)
+  exact <- exact[file.exists(exact) & !dir.exists(exact)]
+  if (length(exact))
+    return(normalizePath(exact[1L], winslash = "/", mustWork = TRUE))
+
+  # Also allow a named workspace such as CIT-inputs.RData, but do not
+  # silently select among multiple unrelated workspaces.
+  found <- unique(unlist(lapply(.customs_workspace_dirs, function(d) {
+    list.files(d, pattern = "\\.([Rr][Dd][Aa][Tt][Aa]|[Rr][Dd][Aa])$",
+               all.files = TRUE, full.names = TRUE)
+  }), use.names = FALSE))
+  named <- found[grepl("Customs", basename(found), ignore.case = TRUE)]
+  if (length(named) == 1L)
+    return(normalizePath(named[1L], winslash = "/", mustWork = TRUE))
+  if (length(found) == 1L)
+    return(normalizePath(found[1L], winslash = "/", mustWork = TRUE))
+  if (!length(found)) stop(
+    "Customs: no .Rdata workspace was found. Put .Rdata beside Customs-Module.R ",
+    "or in Data/Customs, or set CUSTOMS_RDATA_FILE to the full filename.\n",
+    "Folders checked:\n", paste(.customs_workspace_dirs, collapse = "\n"),
+    call. = FALSE
+  )
+  stop(
+    "Customs: multiple candidate .Rdata workspaces exist. Set CUSTOMS_RDATA_FILE ",
+    "to the correct full path. Files:\n",
+    paste(found, collapse = "\n"), call. = FALSE
+  )
+}
+
+.customs_workspace_file <- .customs_find_workspace()
+message("Customs: loading ALL saved objects from ", .customs_workspace_file)
+.customs_loaded_workspace_names <- tryCatch(
+  load(.customs_workspace_file, envir = .GlobalEnv),
+  error = function(e) stop(
+    "Customs: failed to load .Rdata file: ", .customs_workspace_file,
+    "\n", conditionMessage(e), call. = FALSE
+  )
+)
+message("Customs: restored ", length(.customs_loaded_workspace_names),
+        " objects (no filtering).")
+message("Customs: objects in workspace: ",
+        paste(.customs_loaded_workspace_names, collapse = ", "))
+
+# Rdata files created on another machine can contain a stale path1.
+# Restore the actual model root that contains Scripts/Customs, if found.
+.customs_root_candidates <- unique(normalizePath(c(
+  .customs_source_folder, dirname(.customs_source_folder),
+  dirname(dirname(.customs_source_folder)), getwd(), dirname(getwd())
+), winslash = "/", mustWork = FALSE))
+.customs_script_roots <- .customs_root_candidates[vapply(
+  .customs_root_candidates,
+  function(d) dir.exists(file.path(d, "Scripts", "Customs")), logical(1)
+)]
+if (length(.customs_script_roots)) {
+  path1 <- .customs_script_roots[1L]
+  assign("path1", path1, envir = .GlobalEnv)
+  message("Customs: calculation script root = ", path1)
+} else {
+  message("Customs warning: Scripts/Customs not found near the module. ",
+          "Any path1 loaded from .Rdata will be used.")
+}
+
 gc(TRUE)
 options(future.globals.maxSize = 10 * 1024^3)
 options(scipen = 999)
